@@ -1,0 +1,33 @@
+export type PositionCode =
+  | "GK"
+  | "LB"
+  | "LWB"
+  | "LCB"
+  | "CB"
+  | "RCB"
+  | "RWB"
+  | "RC"
+  | "LDM"
+  | "CDM"
+  | "RDM"
+  | "LCM"
+  | "CM"
+  | "RCM"
+  | "LM"
+  | "CAM"
+  | "RM"
+  | "LW"
+  | "LF"
+  | "CF"
+  | "RF"
+  | "RW";
+
+export type PositionGroup =
+  | "goalkeeper"
+  | "sideBack"
+  | "centerBack"
+  | "defensiveMidfielder"
+  | "centralMidfielder"
+  | "attackingMidfielder"
+  | "wideForward"
+  | "centerForward";
