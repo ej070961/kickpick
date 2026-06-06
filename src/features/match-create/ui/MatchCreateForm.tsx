@@ -3,8 +3,8 @@
 import { useActionState, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { CalendarPlus, Search, Users, X } from "lucide-react";
+import type { FormationTemplate } from "@/entities/formation";
 import type { Player } from "@/entities/player";
-import { FORMATION_PRESETS } from "@/entities/formation";
 import {
   createMatch,
   type MatchCreateState,
@@ -12,11 +12,13 @@ import {
 import { SubmitButton } from "@/features/player-manage/ui/SubmitButton";
 
 type MatchCreateFormProps = {
+  formationTemplates: FormationTemplate[];
   players: Player[];
 };
 
 type MatchInfoFieldsProps = {
   formationKey: string;
+  formationTemplates: FormationTemplate[];
   gkFixed: boolean;
   matchDate: string;
   name: string;
@@ -85,6 +87,12 @@ function formatPositions(player: Player) {
     player.mainPosition,
     ...player.subPositions.filter((position) => position !== player.mainPosition),
   ].join(", ");
+}
+
+function formatPlayerName(player: Player) {
+  return player.playerNumber !== null
+    ? `#${player.playerNumber} ${player.name}`
+    : player.name;
 }
 
 function PlayerPositionBadges({ player }: { player: Player }) {
@@ -195,6 +203,7 @@ function getReducedPlayerIdsFromQuotaSelection({
  */
 function MatchInfoFields({
   formationKey,
+  formationTemplates,
   gkFixed,
   matchDate,
   name,
@@ -273,7 +282,7 @@ function MatchInfoFields({
             onChange={(event) => onFormationChange(event.target.value)}
             className="mt-2 min-h-11 w-full rounded-lg border border-border bg-card px-3 text-sm outline-none transition focus:border-primary"
           >
-            {FORMATION_PRESETS.map((preset) => (
+            {formationTemplates.map((preset) => (
               <option key={preset.key} value={preset.key}>
                 {preset.label}
               </option>
@@ -340,7 +349,7 @@ function PlayerSelectionModal({
   const draftExcludedCount = players.length - draftSelectedCount;
   const filteredPlayers = search
     ? players.filter((player) =>
-        `${player.name} ${formatPositions(player)}`
+        `${formatPlayerName(player)} ${formatPositions(player)}`
           .toLowerCase()
           .includes(search.toLowerCase()),
       )
@@ -519,7 +528,7 @@ function PlayerSelectionModal({
                   />
                   <span className="min-w-0">
                     <span className="block text-sm font-semibold text-foreground">
-                      {player.name}
+                      {formatPlayerName(player)}
                     </span>
                     <span className="mt-1 block text-xs text-muted">
                       우선순위 #{player.priorityRank}
@@ -696,7 +705,7 @@ function ReducedQuotaSelector({
                   />
                   <span className="min-w-0">
                     <span className="block text-sm font-semibold text-foreground">
-                      {player.name}
+                      {formatPlayerName(player)}
                     </span>
                     <span className="mt-1 block text-xs text-muted">
                       #{player.priorityRank} / {formatPositions(player)}
@@ -718,19 +727,24 @@ function ReducedQuotaSelector({
  * 기본 경기 정보 입력, 참가 선수 모달 관리, 계산된 쿼터 보정 대상 선택을
  * 하나의 서버 액션 제출 흐름으로 연결합니다.
  */
-export function MatchCreateForm({ players }: MatchCreateFormProps) {
+export function MatchCreateForm({
+  formationTemplates,
+  players,
+}: MatchCreateFormProps) {
   const [state, action] = useActionState(createMatch, initialState);
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [matchDate, setMatchDate] = useState("");
   const [quarterCount, setQuarterCount] = useState(4);
-  const [formationKey, setFormationKey] = useState(FORMATION_PRESETS[0]?.key ?? "");
+  const [formationKey, setFormationKey] = useState(
+    formationTemplates[0]?.key ?? "",
+  );
   const [gkFixed, setGkFixed] = useState(true);
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(
     () => new Set(players.map((player) => player.id)),
   );
   const [quotaPlayerIds, setQuotaPlayerIds] = useState(() => {
-    const initialPreset = FORMATION_PRESETS[0];
+    const initialPreset = formationTemplates[0];
     const initialSelectionType = getQuotaSelectionType({
       playerCount: players.length,
       quarterCount: 4,
@@ -753,8 +767,8 @@ export function MatchCreateForm({ players }: MatchCreateFormProps) {
     [players, selectedPlayerIds],
   );
   const formationPreset =
-    FORMATION_PRESETS.find((preset) => preset.key === formationKey) ??
-    FORMATION_PRESETS[0];
+    formationTemplates.find((preset) => preset.key === formationKey) ??
+    formationTemplates[0];
   const slotsPerQuarter = formationPreset?.slots.length ?? 0;
   const quotaSelectionType = getQuotaSelectionType({
     playerCount: selectedPlayers.length,
@@ -792,8 +806,8 @@ export function MatchCreateForm({ players }: MatchCreateFormProps) {
     nextSelectedPlayerIds?: Set<string>;
   }) {
     const nextPreset =
-      FORMATION_PRESETS.find((preset) => preset.key === nextFormationKey) ??
-      FORMATION_PRESETS[0];
+      formationTemplates.find((preset) => preset.key === nextFormationKey) ??
+      formationTemplates[0];
     const nextSelectedPlayers = players.filter((player) =>
       nextSelectedPlayerIds.has(player.id),
     );
@@ -870,6 +884,7 @@ export function MatchCreateForm({ players }: MatchCreateFormProps) {
         <>
           <MatchInfoFields
             formationKey={formationKey}
+            formationTemplates={formationTemplates}
             gkFixed={gkFixed}
             matchDate={matchDate}
             name={name}

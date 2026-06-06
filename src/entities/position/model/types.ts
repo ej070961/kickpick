@@ -1,26 +1,32 @@
-export type PositionCode =
+export type PlayerPositionCode =
   | "GK"
   | "LB"
   | "LWB"
-  | "LCB"
   | "CB"
-  | "RCB"
+  | "RB"
   | "RWB"
-  | "RC"
-  | "LDM"
   | "CDM"
-  | "RDM"
-  | "LCM"
   | "CM"
-  | "RCM"
-  | "LM"
   | "CAM"
+  | "LM"
   | "RM"
   | "LW"
-  | "LF"
   | "CF"
-  | "RF"
   | "RW";
+
+export type FormationSlotCode =
+  | PlayerPositionCode
+  | "LCB"
+  | "RCB"
+  | "RC"
+  | "LDM"
+  | "RDM"
+  | "LCM"
+  | "RCM"
+  | "LF"
+  | "RF";
+
+export type PositionCode = FormationSlotCode;
 
 export type PositionGroup =
   | "goalkeeper"

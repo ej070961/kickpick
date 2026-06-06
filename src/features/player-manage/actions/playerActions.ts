@@ -3,13 +3,17 @@
 import { refresh, revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { POSITION_CODES, type PositionCode } from "@/entities/position";
+import {
+  PLAYER_POSITION_CODES,
+  type PlayerPositionCode,
+} from "@/entities/position";
 import { createClient } from "@/shared/api/supabase/server";
 
 export type PlayerFormState = {
   errors?: {
     mainPosition?: string[];
     name?: string[];
+    playerNumber?: string[];
     subPositions?: string[];
   };
   message?: string;
@@ -18,9 +22,19 @@ export type PlayerFormState = {
 
 const initialPlayerSchema = z.object({
   name: z.string().min(1, "선수 이름을 입력해주세요.").trim(),
+  playerNumber: z
+    .union([
+      z.literal(""),
+      z.coerce
+        .number()
+        .int("선수 번호는 정수여야 합니다.")
+        .min(0, "선수 번호는 0 이상이어야 합니다.")
+        .max(99, "선수 번호는 99 이하이어야 합니다."),
+    ])
+    .transform((value) => (value === "" ? null : value)),
   mainPosition: z
     .string()
-    .refine(isPositionCode, "주 포지션을 선택해주세요."),
+    .refine(isPlayerPositionCode, "주 포지션을 선택해주세요."),
   subPositions: z.array(z.string()).default([]),
 });
 
@@ -28,15 +42,17 @@ const updatePlayerSchema = initialPlayerSchema.extend({
   id: z.string().uuid("선수 ID가 올바르지 않습니다."),
 });
 
-function isPositionCode(value: string): value is PositionCode {
-  return POSITION_CODES.includes(value as PositionCode);
+function isPlayerPositionCode(value: string): value is PlayerPositionCode {
+  return PLAYER_POSITION_CODES.includes(value as PlayerPositionCode);
 }
 
 function parseSubPositions(formData: FormData, mainPosition: string) {
   return formData
     .getAll("subPositions")
     .map(String)
-    .filter((position): position is PositionCode => isPositionCode(position))
+    .filter((position): position is PlayerPositionCode =>
+      isPlayerPositionCode(position),
+    )
     .filter((position) => position !== mainPosition);
 }
 
@@ -88,6 +104,7 @@ export async function createPlayer(
   const rawMainPosition = String(formData.get("mainPosition") ?? "");
   const validatedFields = initialPlayerSchema.safeParse({
     name: formData.get("name"),
+    playerNumber: formData.get("playerNumber") ?? "",
     mainPosition: rawMainPosition,
     subPositions: parseSubPositions(formData, rawMainPosition),
   });
@@ -118,6 +135,7 @@ export async function createPlayer(
   const { error } = await supabase.from("players").insert({
     team_id: teamId,
     name: validatedFields.data.name,
+    player_number: validatedFields.data.playerNumber,
     main_position: validatedFields.data.mainPosition,
     sub_positions: validatedFields.data.subPositions,
     priority_rank: priorityRank,
@@ -142,6 +160,7 @@ export async function updatePlayer(
   const validatedFields = updatePlayerSchema.safeParse({
     id: formData.get("id"),
     name: formData.get("name"),
+    playerNumber: formData.get("playerNumber") ?? "",
     mainPosition: rawMainPosition,
     subPositions: parseSubPositions(formData, rawMainPosition),
   });
@@ -151,12 +170,14 @@ export async function updatePlayer(
   }
 
   const supabase = await createClient();
-  const { id, mainPosition, name, subPositions } = validatedFields.data;
+  const { id, mainPosition, name, playerNumber, subPositions } =
+    validatedFields.data;
 
   const { error } = await supabase
     .from("players")
     .update({
       name,
+      player_number: playerNumber,
       main_position: mainPosition,
       sub_positions: subPositions,
     })

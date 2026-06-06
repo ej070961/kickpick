@@ -5,7 +5,7 @@ import type {
 } from "@/features/formation-editor/ui/FormationEditorClient";
 import { FormationEditorClient } from "@/features/formation-editor/ui/FormationEditorClient";
 import type { AssignedSlot } from "@/entities/formation";
-import type { PositionCode } from "@/entities/position";
+import type { PlayerPositionCode } from "@/entities/position";
 import { createClient } from "@/shared/api/supabase/server";
 import { PageHeader } from "@/shared/ui";
 
@@ -39,9 +39,10 @@ type QuarterRow = {
 type MatchPlayerRow = {
   players: {
     id: string;
-    main_position: PositionCode;
+    main_position: PlayerPositionCode;
     name: string;
-    sub_positions: PositionCode[];
+    player_number: number | null;
+    sub_positions: PlayerPositionCode[];
   } | null;
 };
 
@@ -71,7 +72,7 @@ async function getMatchFormation(matchId: string) {
 
   const { data: matchPlayers, error: matchPlayersError } = await supabase
     .from("match_players")
-    .select("players(id, name, main_position, sub_positions)")
+    .select("players(id, name, player_number, main_position, sub_positions)")
     .eq("match_id", matchId);
 
   if (matchPlayersError) {
@@ -113,6 +114,7 @@ function mapPlayer(row: MatchPlayerRow): EditorPlayer | null {
     id: row.players.id,
     mainPosition: row.players.main_position,
     name: row.players.name,
+    playerNumber: row.players.player_number,
     subPositions: row.players.sub_positions,
   };
 }

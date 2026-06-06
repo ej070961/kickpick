@@ -1,9 +1,14 @@
-import { getPositionGroup, type PositionCode } from "@/entities/position";
+import {
+  getPlayerPositionForSlot,
+  getPositionGroup,
+  type FormationSlotCode,
+  type PlayerPositionCode,
+} from "@/entities/position";
 
 type FitScoreInput = {
-  slotPosition: PositionCode;
-  mainPosition: PositionCode;
-  subPositions: PositionCode[];
+  slotPosition: FormationSlotCode;
+  mainPosition: PlayerPositionCode;
+  subPositions: PlayerPositionCode[];
 };
 
 export function calculateFitScore({
@@ -11,9 +16,13 @@ export function calculateFitScore({
   mainPosition,
   subPositions,
 }: FitScoreInput) {
-  if (slotPosition === mainPosition) return 10;
-  if (subPositions.includes(slotPosition)) return 5;
-  if (getPositionGroup(slotPosition) === getPositionGroup(mainPosition)) {
+  const slotPlayerPosition = getPlayerPositionForSlot(slotPosition);
+
+  if (slotPlayerPosition === mainPosition) return 10;
+  if (subPositions.includes(slotPlayerPosition)) return 5;
+  if (
+    getPositionGroup(slotPlayerPosition) === getPositionGroup(mainPosition)
+  ) {
     return 3;
   }
 

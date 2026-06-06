@@ -1,14 +1,18 @@
 import type { AssignedSlot, FormationPreset } from "@/entities/formation";
-import type { PositionCode } from "@/entities/position";
+import type {
+  FormationSlotCode,
+  PlayerPositionCode,
+} from "@/entities/position";
 import { calculateFitScore } from "@/features/formation-generate/lib/calculateFitScore";
 import { calculateTargetQuotas } from "@/features/formation-generate/lib/calculateTargetQuotas";
 
 export type FormationPlayer = {
   id: string;
-  mainPosition: PositionCode;
+  mainPosition: PlayerPositionCode;
   name: string;
+  playerNumber: number | null;
   priorityRank: number;
-  subPositions: PositionCode[];
+  subPositions: PlayerPositionCode[];
 };
 
 type GenerateQuarterFormationsInput = {
@@ -78,7 +82,7 @@ function pickPlayerForSlot({
   usedPlayerIds,
 }: {
   players: FormationPlayer[];
-  slotName: PositionCode;
+  slotName: FormationSlotCode;
   usedPlayerIds: Set<string>;
 }) {
   return players

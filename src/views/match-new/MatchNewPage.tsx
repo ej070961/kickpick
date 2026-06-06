@@ -1,4 +1,5 @@
 import type { Player } from "@/entities/player";
+import { getFormationTemplates } from "@/features/formation-template-manage/lib/formationTemplateQueries";
 import { MatchCreateForm } from "@/features/match-create/ui/MatchCreateForm";
 import { createClient } from "@/shared/api/supabase/server";
 import { PageHeader } from "@/shared/ui";
@@ -7,6 +8,7 @@ type PlayerRow = {
   id: string;
   team_id: string;
   name: string;
+  player_number: number | null;
   main_position: Player["mainPosition"];
   sub_positions: Player["subPositions"];
   priority_rank: number;
@@ -21,6 +23,7 @@ function mapPlayer(row: PlayerRow): Player {
     isDeleted: row.is_deleted,
     mainPosition: row.main_position,
     name: row.name,
+    playerNumber: row.player_number,
     priorityRank: row.priority_rank,
     subPositions: row.sub_positions,
     teamId: row.team_id,
@@ -32,7 +35,7 @@ async function getPlayers() {
   const { data, error } = await supabase
     .from("players")
     .select(
-      "id, team_id, name, main_position, sub_positions, priority_rank, is_deleted, created_at",
+      "id, team_id, name, player_number, main_position, sub_positions, priority_rank, is_deleted, created_at",
     )
     .eq("is_deleted", false)
     .order("priority_rank", { ascending: true })
@@ -46,7 +49,10 @@ async function getPlayers() {
 }
 
 export async function MatchNewPage() {
-  const players = await getPlayers();
+  const [players, formationTemplates] = await Promise.all([
+    getPlayers(),
+    getFormationTemplates(),
+  ]);
 
   return (
     <section>
@@ -54,7 +60,10 @@ export async function MatchNewPage() {
         title="새 경기 생성"
         description="참가 선수, 쿼터 수, GK 고정 여부, 포메이션을 선택하고 자동 배치 초안을 생성합니다."
       />
-      <MatchCreateForm players={players} />
+      <MatchCreateForm
+        formationTemplates={formationTemplates}
+        players={players}
+      />
     </section>
   );
 }

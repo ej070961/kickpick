@@ -4,7 +4,10 @@ import { useActionState } from "react";
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import type { Player } from "@/entities/player";
-import { POSITION_CODES, type PositionCode } from "@/entities/position";
+import {
+  PLAYER_POSITION_CODES,
+  type PlayerPositionCode,
+} from "@/entities/position";
 import type { PlayerFormState } from "@/features/player-manage/actions/playerActions";
 import { SubmitButton } from "./SubmitButton";
 
@@ -37,10 +40,13 @@ export function PlayerForm({
 }: PlayerFormProps) {
   const [state, formAction] = useActionState(action, initialState);
   const [name, setName] = useState(player?.name ?? "");
-  const [mainPosition, setMainPosition] = useState<PositionCode | "">(
+  const [playerNumber, setPlayerNumber] = useState(
+    player?.playerNumber?.toString() ?? "",
+  );
+  const [mainPosition, setMainPosition] = useState<PlayerPositionCode | "">(
     player?.mainPosition ?? "",
   );
-  const [subPositions, setSubPositions] = useState<Set<PositionCode>>(
+  const [subPositions, setSubPositions] = useState<Set<PlayerPositionCode>>(
     () => new Set(player?.subPositions ?? []),
   );
   const [search, setSearch] = useState("");
@@ -49,7 +55,7 @@ export function PlayerForm({
     if (state.success) onSuccess();
   }, [onSuccess, state.success]);
 
-  function handleMainPositionChange(value: PositionCode | "") {
+  function handleMainPositionChange(value: PlayerPositionCode | "") {
     setMainPosition(value);
     if (!value) return;
 
@@ -62,7 +68,10 @@ export function PlayerForm({
     });
   }
 
-  function handleSubPositionChange(position: PositionCode, checked: boolean) {
+  function handleSubPositionChange(
+    position: PlayerPositionCode,
+    checked: boolean,
+  ) {
     setSubPositions((current) => {
       const next = new Set(current);
 
@@ -77,10 +86,10 @@ export function PlayerForm({
   }
 
   const filteredPositions = search
-    ? POSITION_CODES.filter((position) =>
+    ? PLAYER_POSITION_CODES.filter((position) =>
         position.toLowerCase().includes(search.toLowerCase()),
       )
-    : POSITION_CODES;
+    : PLAYER_POSITION_CODES;
   const submitLabel = mode === "create" ? "선수 추가" : "저장";
   const pendingLabel = mode === "create" ? "추가 중" : "저장 중";
   const canSubmit = name.trim().length > 0 && Boolean(mainPosition);
@@ -107,12 +116,36 @@ export function PlayerForm({
       </label>
 
       <label className="block">
+        <span className="text-sm font-medium text-foreground">
+          선수 번호
+          <span className="ml-1 font-normal text-muted">(선택)</span>
+        </span>
+        <input
+          name="playerNumber"
+          type="number"
+          min={0}
+          max={99}
+          value={playerNumber}
+          onChange={(event) => setPlayerNumber(event.target.value)}
+          placeholder="예: 10"
+          className="mt-2 min-h-11 w-full rounded-lg border border-border px-3 text-sm outline-none transition focus:border-primary"
+        />
+        {state.errors?.playerNumber ? (
+          <span className="mt-1 block text-xs text-mismatch">
+            {state.errors.playerNumber[0]}
+          </span>
+        ) : null}
+      </label>
+
+      <label className="block">
         <span className="text-sm font-medium text-foreground">주 포지션</span>
         <select
           name="mainPosition"
           value={mainPosition}
           onChange={(event) =>
-            handleMainPositionChange(event.target.value as PositionCode | "")
+            handleMainPositionChange(
+              event.target.value as PlayerPositionCode | "",
+            )
           }
           className="mt-2 min-h-11 w-full rounded-lg border border-border bg-card px-3 text-sm outline-none transition focus:border-primary"
         >
@@ -121,7 +154,7 @@ export function PlayerForm({
               선택
             </option>
           ) : null}
-          {POSITION_CODES.map((position) => (
+          {PLAYER_POSITION_CODES.map((position) => (
             <option key={position} value={position}>
               {position}
             </option>

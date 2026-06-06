@@ -8,6 +8,7 @@ type PlayerRow = {
   id: string;
   team_id: string;
   name: string;
+  player_number: number | null;
   main_position: Player["mainPosition"];
   sub_positions: Player["subPositions"];
   priority_rank: number;
@@ -20,6 +21,7 @@ function mapPlayer(row: PlayerRow): Player {
     id: row.id,
     teamId: row.team_id,
     name: row.name,
+    playerNumber: row.player_number,
     mainPosition: row.main_position,
     subPositions: row.sub_positions,
     priorityRank: row.priority_rank,
@@ -33,7 +35,7 @@ async function getPlayers() {
   const { data, error } = await supabase
     .from("players")
     .select(
-      "id, team_id, name, main_position, sub_positions, priority_rank, is_deleted, created_at",
+      "id, team_id, name, player_number, main_position, sub_positions, priority_rank, is_deleted, created_at",
     )
     .eq("is_deleted", false)
     .order("priority_rank", { ascending: true })
@@ -57,7 +59,7 @@ export async function PlayersPage() {
   const playerListVersion = players
     .map(
       (player) =>
-        `${player.id}:${player.name}:${player.mainPosition}:${player.subPositions.join(",")}:${player.priorityRank}`,
+        `${player.id}:${player.name}:${player.playerNumber ?? ""}:${player.mainPosition}:${player.subPositions.join(",")}:${player.priorityRank}`,
     )
     .join("|");
 

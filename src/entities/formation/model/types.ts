@@ -1,7 +1,7 @@
-import type { PositionCode } from "@/entities/position";
+import type { FormationSlotCode } from "@/entities/position";
 
 export type FormationSlot = {
-  name: PositionCode;
+  name: FormationSlotCode;
   x: number;
   y: number;
 };
@@ -10,6 +10,10 @@ export type FormationPreset = {
   key: string;
   label: string;
   slots: FormationSlot[];
+};
+
+export type FormationTemplate = FormationPreset & {
+  id: string;
 };
 
 export type AssignedSlot = FormationSlot & {

@@ -2,8 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { FORMATION_PRESETS } from "@/entities/formation";
-import type { PositionCode } from "@/entities/position";
+import type { PlayerPositionCode } from "@/entities/position";
+import { getFormationTemplate } from "@/features/formation-template-manage/lib/formationTemplateQueries";
 import {
   generateQuarterFormations,
   type FormationPlayer,
@@ -23,7 +23,7 @@ export type MatchCreateState = {
 };
 
 const matchCreateSchema = z.object({
-  formation: z.string().min(1, "포메이션을 선택해주세요."),
+  formation: z.string().uuid("포메이션을 선택해주세요."),
   gkFixed: z.boolean(),
   matchDate: z.string().optional(),
   name: z.string().optional(),
@@ -38,10 +38,11 @@ const matchCreateSchema = z.object({
 
 type PlayerRow = {
   id: string;
-  main_position: PositionCode;
+  main_position: PlayerPositionCode;
   name: string;
+  player_number: number | null;
   priority_rank: number;
-  sub_positions: PositionCode[];
+  sub_positions: PlayerPositionCode[];
 };
 
 async function getCurrentTeamId() {
@@ -72,6 +73,7 @@ function mapPlayer(row: PlayerRow): FormationPlayer {
     id: row.id,
     mainPosition: row.main_position,
     name: row.name,
+    playerNumber: row.player_number,
     priorityRank: row.priority_rank,
     subPositions: row.sub_positions,
   };
@@ -104,10 +106,14 @@ export async function createMatch(
     quarterCount,
     reducedPlayerIds,
   } = validatedFields.data;
-  const preset = FORMATION_PRESETS.find((item) => item.key === formation);
+  const preset = await getFormationTemplate(formation);
 
   if (!preset) {
     return { errors: { formation: ["지원하지 않는 포메이션입니다."] } };
+  }
+
+  if (preset.slots.length !== 11) {
+    return { errors: { formation: ["포메이션 슬롯은 11개여야 합니다."] } };
   }
 
   if (playerIds.length < preset.slots.length) {
@@ -151,7 +157,7 @@ export async function createMatch(
   const teamId = await getCurrentTeamId();
   const { data: playerRows, error: playersError } = await supabase
     .from("players")
-    .select("id, name, main_position, sub_positions, priority_rank")
+    .select("id, name, player_number, main_position, sub_positions, priority_rank")
     .eq("team_id", teamId)
     .eq("is_deleted", false)
     .in("id", playerIds);
@@ -190,7 +196,7 @@ export async function createMatch(
   const { data: match, error: matchError } = await supabase
     .from("matches")
     .insert({
-      formation,
+      formation: preset.label,
       gk_fixed: gkFixed,
       match_date: matchDate || null,
       name: name || null,

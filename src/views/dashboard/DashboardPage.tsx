@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { CalendarDays, ListChecks, Users } from "lucide-react";
+import {
+  CalendarDays,
+  GalleryVerticalEnd,
+  ListChecks,
+  Users,
+} from "lucide-react";
 import { PageHeader } from "@/shared/ui";
 
 const cards = [
@@ -14,6 +19,12 @@ const cards = [
     description: "저장된 경기와 포메이션 히스토리를 확인합니다.",
     href: "/matches",
     icon: ListChecks,
+  },
+  {
+    title: "포메이션 템플릿",
+    description: "GK 포함 11개 슬롯 포메이션을 관리합니다.",
+    href: "/formations",
+    icon: GalleryVerticalEnd,
   },
   {
     title: "새 경기 생성",

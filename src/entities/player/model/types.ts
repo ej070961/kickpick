@@ -1,11 +1,12 @@
-import type { PositionCode } from "@/entities/position";
+import type { PlayerPositionCode } from "@/entities/position";
 
 export type Player = {
   id: string;
   teamId: string;
   name: string;
-  mainPosition: PositionCode;
-  subPositions: PositionCode[];
+  playerNumber: number | null;
+  mainPosition: PlayerPositionCode;
+  subPositions: PlayerPositionCode[];
   priorityRank: number;
   isDeleted: boolean;
   createdAt: string;

@@ -77,6 +77,9 @@ function SortablePlayerRow({ index, player }: SortablePlayerRowProps) {
             #{index + 1}
           </span>
           <p className="min-w-0 text-lg font-semibold leading-7 text-foreground">
+            {player.playerNumber !== null ? (
+              <span className="mr-2 text-primary">#{player.playerNumber}</span>
+            ) : null}
             {player.name}
           </p>
         </div>
