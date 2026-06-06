@@ -205,6 +205,27 @@ export function FormationEditorClient({
     setSelectedSlotId(null);
   }
 
+  function handleBenchPlayerClick(player: EditorPlayer) {
+    if (!selectedSlotId) {
+      setMessage("교체할 유니폼을 먼저 선택해주세요.");
+      return;
+    }
+
+    updateActiveQuarter((slots) =>
+      slots.map((slot) => {
+        if (slot.id !== selectedSlotId) return slot;
+
+        return {
+          ...slot,
+          fitScore: scoreSlot(slot.name, player),
+          isManual: true,
+          playerId: player.id,
+        };
+      }),
+    );
+    setSelectedSlotId(null);
+  }
+
   function handleSave() {
     const slots = editedQuarters.flatMap((quarter) =>
       quarter.slots.map((slot) => ({
@@ -370,7 +391,7 @@ export function FormationEditorClient({
                   {selectedPlayer ? formatPlayerName(selectedPlayer) : "미배정"}
                 </p>
                 <p className="mt-2 text-xs text-muted">
-                  다른 유니폼을 누르면 서로 교체됩니다.
+                  다른 유니폼 또는 후보 카드를 누르면 교체됩니다.
                 </p>
               </div>
             ) : (
@@ -388,12 +409,20 @@ export function FormationEditorClient({
               {activeQuarter.quarterNumber}Q · 출전{" "}
               {activeAssignedPlayerIds.size}명 · 후보 {benchPlayers.length}명
             </p>
+            <p className="mt-2 text-xs text-muted">
+              {selectedSlot
+                ? "후보 카드를 누르면 선택한 유니폼과 교체됩니다."
+                : "유니폼을 먼저 선택한 뒤 후보를 누르세요."}
+            </p>
             {benchPlayers.length > 0 ? (
               <div className="mt-3 max-h-72 space-y-2 overflow-auto pr-1">
                 {benchPlayers.map((player) => (
-                  <div
+                  <button
                     key={player.id}
-                    className="flex min-h-10 items-center justify-between gap-3 rounded-lg border border-border px-3 text-sm"
+                    type="button"
+                    onClick={() => handleBenchPlayerClick(player)}
+                    className="flex min-h-10 w-full items-center justify-between gap-3 rounded-lg border border-border px-3 text-left text-sm transition hover:border-primary hover:bg-mint-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    aria-label={`${formatPlayerName(player)} 후보 선수 교체`}
                   >
                     <span className="truncate font-semibold text-foreground">
                       {formatPlayerName(player)}
@@ -401,7 +430,7 @@ export function FormationEditorClient({
                     <span className="shrink-0 text-xs font-semibold text-muted">
                       {player.mainPosition}
                     </span>
-                  </div>
+                  </button>
                 ))}
               </div>
             ) : (
