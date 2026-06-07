@@ -5,6 +5,11 @@ import type {
 } from "@/entities/position";
 import { calculateFitScore } from "@/features/formation-generate/lib/calculateFitScore";
 import { calculateTargetQuotas } from "@/features/formation-generate/lib/calculateTargetQuotas";
+import {
+  getQuotaPlayers,
+  getQuotaSlotsPerQuarter,
+  pickFixedGoalkeeper,
+} from "@/features/match-create/model/quotaSelection";
 
 export type FormationPlayer = {
   id: string;
@@ -33,49 +38,9 @@ type QuotaResult = {
   targetQuotas: Map<string, number>;
 };
 
-function boostFixedGkQuota(
-  targetQuotas: Map<string, number>,
-  players: FormationPlayer[],
-  fixedGkId: string,
-  quarterCount: number,
-) {
-  const currentGkQuota = targetQuotas.get(fixedGkId) ?? 0;
-  const needed = quarterCount - currentGkQuota;
-
-  if (needed <= 0) return targetQuotas;
-
-  const adjusted = new Map(targetQuotas);
-  adjusted.set(fixedGkId, quarterCount);
-
-  let remainingReduction = needed;
-  const donors = [...players]
-    .filter((player) => player.id !== fixedGkId)
-    .sort((a, b) => b.priorityRank - a.priorityRank);
-
-  for (const donor of donors) {
-    if (remainingReduction === 0) break;
-
-    const quota = adjusted.get(donor.id) ?? 0;
-    const reduction = Math.min(quota, remainingReduction);
-
-    adjusted.set(donor.id, quota - reduction);
-    remainingReduction -= reduction;
-  }
-
-  return adjusted;
-}
-
-function pickFixedGoalkeeper(players: FormationPlayer[]) {
-  return [...players].sort((a, b) => {
-    const aIsGk = a.mainPosition === "GK";
-    const bIsGk = b.mainPosition === "GK";
-
-    if (aIsGk !== bIsGk) return aIsGk ? -1 : 1;
-
-    return a.priorityRank - b.priorityRank;
-  })[0];
-}
-
+/**
+ * 한 슬롯에 들어갈 수 있는 후보 중 fit score와 우선순위가 가장 좋은 선수를 선택합니다.
+ */
 function pickPlayerForSlot({
   players,
   slotName,
@@ -102,6 +67,9 @@ function pickPlayerForSlot({
     })[0];
 }
 
+/**
+ * 한 쿼터에 출전할 선수 후보군을 남은 quota가 큰 순서로 구성합니다.
+ */
 function pickQuarterPlayers({
   fixedGoalkeeper,
   players,
@@ -140,6 +108,9 @@ function pickQuarterPlayers({
   return selectedPlayers;
 }
 
+/**
+ * 경기 생성 입력값을 받아 쿼터별 슬롯 배정과 선수별 목표 quota를 생성합니다.
+ */
 export function generateQuarterFormations({
   gkFixed,
   players,
@@ -152,24 +123,28 @@ export function generateQuarterFormations({
   }
 
   const fixedGoalkeeper = gkFixed ? pickFixedGoalkeeper(players) : null;
-  const baseTargetQuotas = calculateTargetQuotas({
-    players: players.map((player) => ({
+  const { quotaPlayers } = getQuotaPlayers({
+    gkFixed: Boolean(fixedGoalkeeper),
+    players,
+  });
+  const quotaSlotsPerQuarter = getQuotaSlotsPerQuarter({
+    gkFixed: Boolean(fixedGoalkeeper),
+    slotsPerQuarter: preset.slots.length,
+  });
+  const targetQuotas = calculateTargetQuotas({
+    players: quotaPlayers.map((player) => ({
       id: player.id,
       priorityRank: player.priorityRank,
     })),
     quarterCount,
     reducedPlayerIds,
-    slotsPerQuarter: preset.slots.length,
+    slotsPerQuarter: quotaSlotsPerQuarter,
   });
-  const targetQuotas =
-    gkFixed && fixedGoalkeeper
-      ? boostFixedGkQuota(
-          baseTargetQuotas,
-          players,
-          fixedGoalkeeper.id,
-          quarterCount,
-        )
-      : baseTargetQuotas;
+
+  if (fixedGoalkeeper) {
+    targetQuotas.set(fixedGoalkeeper.id, quarterCount);
+  }
+
   const remainingQuotas = new Map(targetQuotas);
   const formations: GeneratedQuarterFormation[] = [];
 

@@ -8,6 +8,11 @@ import {
   generateQuarterFormations,
   type FormationPlayer,
 } from "@/features/match-create/lib/generateQuarterFormations";
+import {
+  getQuotaPlayers,
+  getQuotaSlotsPerQuarter,
+  getRequiredReducedPlayerCount,
+} from "@/features/match-create/model/quotaSelection";
 import { createClient } from "@/shared/api/supabase/server";
 
 export type MatchCreateState = {
@@ -45,6 +50,9 @@ type PlayerRow = {
   sub_positions: PlayerPositionCode[];
 };
 
+/**
+ * 현재 로그인 사용자가 소유한 첫 번째 팀 id를 조회하고, 비로그인 사용자는 로그인으로 보냅니다.
+ */
 async function getCurrentTeamId() {
   const supabase = await createClient();
   const {
@@ -68,6 +76,9 @@ async function getCurrentTeamId() {
   return team.id as string;
 }
 
+/**
+ * Supabase player row를 포메이션 생성 알고리즘에서 사용하는 선수 모델로 변환합니다.
+ */
 function mapPlayer(row: PlayerRow): FormationPlayer {
   return {
     id: row.id,
@@ -79,6 +90,9 @@ function mapPlayer(row: PlayerRow): FormationPlayer {
   };
 }
 
+/**
+ * 경기 생성 formData를 검증하고 경기, 참가 선수, 쿼터별 포메이션 슬롯을 저장합니다.
+ */
 export async function createMatch(
   _state: MatchCreateState,
   formData: FormData,
@@ -126,33 +140,6 @@ export async function createMatch(
     };
   }
 
-  const remainder = (quarterCount * preset.slots.length) % playerIds.length;
-  const requiredReducedCount =
-    remainder === 0 ? 0 : playerIds.length - remainder;
-
-  if (reducedPlayerIds.length !== requiredReducedCount) {
-    return {
-      errors: {
-        reducedPlayerIds: [
-          `쿼터 보정 선수 선택값이 올바르지 않습니다.`,
-        ],
-      },
-    };
-  }
-
-  const playerIdSet = new Set(playerIds);
-  const hasInvalidReducedPlayer = reducedPlayerIds.some(
-    (playerId) => !playerIdSet.has(playerId),
-  );
-
-  if (hasInvalidReducedPlayer) {
-    return {
-      errors: {
-        reducedPlayerIds: ["참가 선수 중에서만 선택할 수 있습니다."],
-      },
-    };
-  }
-
   const supabase = await createClient();
   const teamId = await getCurrentTeamId();
   const { data: playerRows, error: playersError } = await supabase
@@ -172,6 +159,38 @@ export async function createMatch(
 
   if (players.length !== playerIds.length) {
     return { message: "선택한 선수 중 사용할 수 없는 선수가 있습니다." };
+  }
+
+  const { quotaPlayers } = getQuotaPlayers({ gkFixed, players });
+  const quotaSlotsPerQuarter = getQuotaSlotsPerQuarter({
+    gkFixed,
+    slotsPerQuarter: preset.slots.length,
+  });
+  const requiredReducedCount = getRequiredReducedPlayerCount({
+    playerCount: quotaPlayers.length,
+    quarterCount,
+    slotsPerQuarter: quotaSlotsPerQuarter,
+  });
+
+  if (reducedPlayerIds.length !== requiredReducedCount) {
+    return {
+      errors: {
+        reducedPlayerIds: ["쿼터 보정 선수 선택값이 올바르지 않습니다."],
+      },
+    };
+  }
+
+  const quotaPlayerIdSet = new Set(quotaPlayers.map((player) => player.id));
+  const hasInvalidReducedPlayer = reducedPlayerIds.some(
+    (playerId) => !quotaPlayerIdSet.has(playerId),
+  );
+
+  if (hasInvalidReducedPlayer) {
+    return {
+      errors: {
+        reducedPlayerIds: ["쿼터 보정 대상 선수 중에서만 선택할 수 있습니다."],
+      },
+    };
   }
 
   let generated;
