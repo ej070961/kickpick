@@ -2,7 +2,7 @@ import type {
   EditorPlayer,
   EditorQuarter,
   EditorSlot,
-} from "@/features/formation-editor/ui/FormationEditorClient";
+} from "@/features/formation-editor/model/types";
 import { FormationEditorClient } from "@/features/formation-editor/ui/FormationEditorClient";
 import type { AssignedSlot } from "@/entities/formation";
 import type { PlayerPositionCode } from "@/entities/position";

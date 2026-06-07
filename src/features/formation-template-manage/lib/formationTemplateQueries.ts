@@ -1,9 +1,5 @@
 import { redirect } from "next/navigation";
-import {
-  DEFAULT_SLOT_COORDS,
-  FORMATION_PRESETS,
-  type FormationTemplate,
-} from "@/entities/formation";
+import type { FormationTemplate } from "@/entities/formation";
 import type { FormationSlotCode } from "@/entities/position";
 import { createClient } from "@/shared/api/supabase/server";
 
@@ -43,47 +39,9 @@ export async function getCurrentTeamId() {
   return team.id as string;
 }
 
-async function seedDefaultTemplatesIfMissing(teamId: string) {
-  const supabase = await createClient();
-  const { count, error } = await supabase
-    .from("formation_templates")
-    .select("id", { count: "exact", head: true })
-    .eq("team_id", teamId)
-    .eq("is_deleted", false);
-
-  if (error) throw new Error(error.message);
-  if ((count ?? 0) > 0) return;
-
-  for (const preset of FORMATION_PRESETS) {
-    const { data: template, error: templateError } = await supabase
-      .from("formation_templates")
-      .insert({ name: preset.label, team_id: teamId })
-      .select("id")
-      .single();
-
-    if (templateError || !template) {
-      throw new Error(templateError?.message ?? "기본 템플릿을 생성하지 못했습니다.");
-    }
-
-    const slotRows = preset.slots.map((slot, index) => {
-      const coords = DEFAULT_SLOT_COORDS[slot.name] ?? slot;
-
-      return {
-        formation_template_id: template.id,
-        slot_name: slot.name,
-        sort_order: index,
-        x: coords.x,
-        y: coords.y,
-      };
-    });
-    const { error: slotsError } = await supabase
-      .from("formation_template_slots")
-      .insert(slotRows);
-
-    if (slotsError) throw new Error(slotsError.message);
-  }
-}
-
+/**
+ * DB row로 저장된 포메이션 템플릿을 경기 생성 UI가 사용하는 모델로 변환합니다.
+ */
 function mapTemplate(row: TemplateRow): FormationTemplate {
   return {
     id: row.id,
@@ -102,8 +60,6 @@ function mapTemplate(row: TemplateRow): FormationTemplate {
 export async function getFormationTemplates() {
   const teamId = await getCurrentTeamId();
 
-  await seedDefaultTemplatesIfMissing(teamId);
-
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("formation_templates")
@@ -119,8 +75,6 @@ export async function getFormationTemplates() {
 
 export async function getFormationTemplate(templateId: string) {
   const teamId = await getCurrentTeamId();
-
-  await seedDefaultTemplatesIfMissing(teamId);
 
   const supabase = await createClient();
   const { data, error } = await supabase
