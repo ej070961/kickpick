@@ -164,7 +164,7 @@ src/
     ui/
 ```
 
-`features/formation-swap`와 `features/formation-replace-player`가 다시 도입될 수 있지만, 현재 주요 편집 흐름은 `features/formation-editor/ui/FormationEditorClient.tsx` 안에서 처리한다.
+포메이션 편집 흐름은 `features/formation-editor/README.md`의 구조를 따른다. 슬롯 변경 규칙은 `lib`, 편집기 상태는 `FormationEditorClient`, 화면 섹션은 `ui` 하위 컴포넌트가 담당한다.
 
 ## 8. 라우팅 설계
 
@@ -290,7 +290,7 @@ remainder = total_slots % player_count
 
 ## 13. 포메이션 편집기
 
-현재 편집기는 `features/formation-editor/ui/FormationEditorClient.tsx`가 담당한다.
+현재 편집기는 `features/formation-editor/README.md`의 구조를 기준으로 관리한다.
 
 - 상단: 전체 배정 요약, 쿼터 탭.
 - 중앙: 축구장 이미지 + 유니폼 슬롯.

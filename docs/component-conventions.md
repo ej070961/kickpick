@@ -72,6 +72,7 @@ slice-name/
   lib/
   api/
   config/
+  README.md
 ```
 
 용도:
@@ -83,8 +84,11 @@ slice-name/
 - `api`: 외부 API 또는 query/mutation wrapper
 - `config`: 해당 slice 전용 상수
 - `index.ts`: 외부 공개 API
+- `README.md`: 해당 slice의 책임, 파일 역할, 변경 시 확인할 문서와 경계
 
 필요 없는 폴더는 만들지 않는다.
+
+feature slice를 새로 만들거나 구조를 크게 바꿀 때 해당 폴더에 `README.md`가 없다면 추가한다. README에는 최소한 slice 목적, 폴더 구조, 각 파일 역할, 변경 시 같이 확인해야 할 문서를 적는다.
 
 ## 4. Public API 규칙
 
@@ -319,7 +323,7 @@ shared/ui/IconButton
 
 ## 13. 포메이션 편집기 구현 패턴
 
-현재 포메이션 편집기는 `features/formation-editor/ui/FormationEditorClient.tsx`가 한 화면 단위로 관리한다.
+포메이션 편집기는 `features/formation-editor/README.md`의 구조를 기준으로 관리한다. `FormationEditorClient`는 상태와 이벤트 연결을 담당하고, 화면 섹션은 `ui/` 하위 컴포넌트로 분리한다.
 
 규칙:
 
@@ -327,7 +331,7 @@ shared/ui/IconButton
 - 슬롯 교체와 선수 교체는 예측 가능한 순수 업데이트로 처리한다.
 - 저장은 `features/formation-editor/actions/formationEditorActions.ts` 서버 액션으로 처리한다.
 - 내보내기는 `features/formation-export/lib/exportElementAsPng.ts`를 통해 DOM 캡처로 처리한다.
-- 기능이 더 커지면 `FormationField`, `QuarterTabs`, `CandidateList`, `EditorActions`로 분리한다.
+- 요약, 쿼터 탭, 필드, 선택 패널, 후보 목록, 액션 영역은 각각 독립 컴포넌트로 유지한다.
 
 ## 14. 테스트 기준
 
