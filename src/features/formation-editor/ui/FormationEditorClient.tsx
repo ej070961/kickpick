@@ -324,6 +324,14 @@ export function FormationEditorClient({
                 className="h-auto w-full"
                 priority
               />
+              <div
+                className="pointer-events-none absolute left-3 top-3 z-20 flex items-end gap-1 rounded-md bg-black/70 px-3 py-2 text-white shadow-sm"
+                aria-hidden="true"
+              >
+                <span className="text-2xl font-black leading-none">
+                  {activeQuarter.quarterNumber}Q
+                </span>
+              </div>
               {activeQuarter.slots.map((slot) => {
                 const player = slot.playerId
                   ? playerMap.get(slot.playerId)
