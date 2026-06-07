@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { GalleryVerticalEnd } from "lucide-react";
 import type { Player } from "@/entities/player";
 import { getFormationTemplates } from "@/features/formation-template-manage/lib/formationTemplateQueries";
 import { MatchCreateForm } from "@/features/match-create/ui/MatchCreateForm";
@@ -48,6 +50,33 @@ async function getPlayers() {
   return (data ?? []).map((row) => mapPlayer(row as PlayerRow));
 }
 
+/**
+ * 포메이션 템플릿이 없을 때 경기 생성을 막고 템플릿 생성 화면으로 안내합니다.
+ */
+function FormationTemplateRequiredState() {
+  return (
+    <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center shadow-sm">
+      <span className="mx-auto flex size-12 items-center justify-center rounded-lg bg-mint-surface text-primary">
+        <GalleryVerticalEnd size={22} aria-hidden="true" />
+      </span>
+      <h3 className="mt-4 text-base font-semibold text-foreground">
+        포메이션 템플릿이 필요합니다
+      </h3>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
+        경기를 생성하려면 먼저 GK 포함 11개 슬롯 템플릿을 만들어야 합니다.
+        팀에서 사용할 포메이션을 등록한 뒤 새 경기를 생성해주세요.
+      </p>
+      <Link
+        href="/formations"
+        className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
+      >
+        <GalleryVerticalEnd size={18} aria-hidden="true" />
+        템플릿 만들기
+      </Link>
+    </div>
+  );
+}
+
 export async function MatchNewPage() {
   const [players, formationTemplates] = await Promise.all([
     getPlayers(),
@@ -60,10 +89,14 @@ export async function MatchNewPage() {
         title="새 경기 생성"
         description="참가 선수, 쿼터 수, GK 고정 여부, 포메이션을 선택하고 자동 배치 초안을 생성합니다."
       />
-      <MatchCreateForm
-        formationTemplates={formationTemplates}
-        players={players}
-      />
+      {formationTemplates.length > 0 ? (
+        <MatchCreateForm
+          formationTemplates={formationTemplates}
+          players={players}
+        />
+      ) : (
+        <FormationTemplateRequiredState />
+      )}
     </section>
   );
 }

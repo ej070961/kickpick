@@ -74,7 +74,7 @@ Roster for a team. Deletion is soft-delete first via `is_deleted`.
 
 ### `formation_templates`
 
-Team-owned formation template. Basic templates may be seeded per team or created from app defaults.
+Team-owned formation template. Templates are user-created; the app does not seed default templates automatically.
 
 | Column | Type | Notes |
 | --- | --- | --- |

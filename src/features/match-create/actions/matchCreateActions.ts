@@ -28,7 +28,7 @@ export type MatchCreateState = {
 };
 
 const matchCreateSchema = z.object({
-  formation: z.string().uuid("포메이션을 선택해주세요."),
+  formation: z.string().uuid("포메이션 템플릿을 먼저 생성해주세요."),
   gkFixed: z.boolean(),
   matchDate: z.string().optional(),
   name: z.string().optional(),
