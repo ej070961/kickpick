@@ -135,7 +135,7 @@ export function GuestPlayerModal({
         className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
       >
         <UserPlus size={18} aria-hidden="true" />
-        용병 추가
+        용병 관리
       </button>
 
       <dialog
@@ -146,10 +146,10 @@ export function GuestPlayerModal({
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
             <h4 className="text-base font-semibold text-foreground">
-              용병 추가
+              용병 관리
             </h4>
             <p className="mt-1 text-xs text-muted">
-              이번 경기에서만 사용할 임시 선수를 등록합니다.
+              부족한 인원을 이번 경기용 선수로 추가하세요.
             </p>
           </div>
           <button
@@ -162,11 +162,11 @@ export function GuestPlayerModal({
           </button>
         </div>
 
-        <div className="grid max-h-[78dvh] gap-5 overflow-y-auto px-5 py-4 md:grid-cols-[minmax(0,1fr)_16rem]">
+        <div className="grid max-h-[70dvh] gap-5 overflow-y-auto px-5 py-4 md:grid-cols-[minmax(0,1fr)_16rem]">
           <div className="space-y-4">
             <div>
               <label className="text-sm font-semibold text-foreground">
-                이름
+                용병 이름
               </label>
               <input
                 type="text"
@@ -243,7 +243,7 @@ export function GuestPlayerModal({
                   onClick={() => setForm(createInitialFormState())}
                   className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border px-4 text-sm font-semibold text-foreground"
                 >
-                  새로 입력
+                  새 용병 입력
                 </button>
               ) : null}
               <button
@@ -252,14 +252,14 @@ export function GuestPlayerModal({
                 className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
               >
                 <Plus size={16} aria-hidden="true" />
-                {form.editingId ? "수정" : "추가"}
+                {form.editingId ? "수정 완료" : "명단에 추가"}
               </button>
             </div>
           </div>
 
           <div>
             <p className="text-sm font-semibold text-foreground">
-              이번 경기 용병
+              추가한 용병
             </p>
             {sortedGuests.length > 0 ? (
               <div className="mt-2 space-y-2">
@@ -301,10 +301,20 @@ export function GuestPlayerModal({
               </div>
             ) : (
               <p className="mt-2 rounded-lg border border-dashed border-border px-3 py-3 text-sm text-muted">
-                추가된 용병이 없습니다.
+                아직 추가한 용병이 없습니다.
               </p>
             )}
           </div>
+        </div>
+
+        <div className="flex justify-end border-t border-border px-5 py-4">
+          <button
+            type="button"
+            onClick={closeModal}
+            className="inline-flex min-h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
+          >
+            완료
+          </button>
         </div>
       </dialog>
     </>

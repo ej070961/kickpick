@@ -33,8 +33,8 @@ export function PlayerSelectionModal({
   const [draftSelectedPlayerIds, setDraftSelectedPlayerIds] = useState(
     () => new Set(selectedPlayerIds),
   );
-  const selectedCount = selectedPlayerIds.size + guestCount;
-  const excludedCount = players.length - selectedPlayerIds.size;
+  const rosterSelectedCount = selectedPlayerIds.size;
+  const totalParticipantCount = rosterSelectedCount + guestCount;
   const draftSelectedCount = draftSelectedPlayerIds.size;
   const draftExcludedCount = players.length - draftSelectedCount;
   const filteredPlayers = search
@@ -112,10 +112,10 @@ export function PlayerSelectionModal({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-base font-semibold text-foreground">
-            참가 선수
+            이번 경기 선수
           </h3>
           <p className="mt-1 text-sm text-muted">
-            이번 경기에 참가할 선수를 선택하세요.
+            팀 선수와 용병을 합쳐 이번 경기 배치 인원을 준비하세요.
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -125,21 +125,17 @@ export function PlayerSelectionModal({
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
           >
             <Users size={18} aria-hidden="true" />
-            참가 선수 관리
+            팀 선수 선택
           </button>
           {actionSlot}
         </div>
       </div>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-4">
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
         <div className="rounded-lg bg-mint-surface px-3 py-2">
-          <p className="text-xs font-medium text-muted">참가</p>
-          <p className="text-base font-bold text-primary">{selectedCount}명</p>
-        </div>
-        <div className="rounded-lg border border-border px-3 py-2">
-          <p className="text-xs font-medium text-muted">미참가</p>
-          <p className="text-base font-bold text-foreground">
-            {excludedCount}명
+          <p className="text-xs font-medium text-muted">팀 선수</p>
+          <p className="text-base font-bold text-primary">
+            {rosterSelectedCount}명
           </p>
         </div>
         <div className="rounded-lg border border-border px-3 py-2">
@@ -147,9 +143,9 @@ export function PlayerSelectionModal({
           <p className="text-base font-bold text-foreground">{guestCount}명</p>
         </div>
         <div className="rounded-lg border border-border px-3 py-2">
-          <p className="text-xs font-medium text-muted">등록 선수</p>
+          <p className="text-xs font-medium text-muted">총 참가</p>
           <p className="text-base font-bold text-foreground">
-            {players.length}명
+            {totalParticipantCount}명
           </p>
         </div>
       </div>
@@ -162,10 +158,10 @@ export function PlayerSelectionModal({
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
             <h4 className="text-base font-semibold text-foreground">
-              참가 선수 관리
+              팀 선수 선택
             </h4>
             <p className="mt-1 text-xs text-muted">
-              완료를 누르면 선택 변경이 경기 설정에 반영됩니다.
+              이번 경기에 뛸 팀 선수를 고르고 완료하세요.
             </p>
           </div>
           <button
@@ -199,20 +195,20 @@ export function PlayerSelectionModal({
               onClick={selectAllPlayers}
               className="min-h-10 rounded-lg border border-border px-3 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
             >
-              전체 선택
+              모두 참가
             </button>
             <button
               type="button"
               onClick={clearAllPlayers}
               className="min-h-10 rounded-lg border border-border px-3 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
             >
-              전체 해제
+              모두 제외
             </button>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-2">
             <div className="rounded-lg border border-border bg-background px-3 py-2">
-              <p className="text-xs font-medium text-muted">선택됨</p>
+              <p className="text-xs font-medium text-muted">참가 예정</p>
               <p className="text-base font-bold text-foreground">
                 {draftSelectedCount}명
               </p>
@@ -264,7 +260,7 @@ export function PlayerSelectionModal({
               onClick={commitSelection}
               className="min-h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
             >
-              완료
+              선택 완료
             </button>
           </div>
         </div>

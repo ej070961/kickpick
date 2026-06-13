@@ -33,8 +33,8 @@ match-create/
 - `model/types.ts`: 등록 선수와 용병을 같은 참가자 모델로 다루기 위한 타입과 `player:{uuid}` / `guest:{uuid}` key helper를 제공한다.
 - `ui/MatchCreateForm.tsx`: 2단계 wizard의 상태와 Server Action 제출을 연결하는 클라이언트 컨테이너다.
 - `ui/MatchInfoFields.tsx`: 경기명, 날짜, 쿼터 수, 포메이션, GK 고정 입력을 렌더링한다.
-- `ui/PlayerSelectionModal.tsx`: 등록 선수 참가/미참가 선택 모달과 참가자 요약을 렌더링한다.
-- `ui/GuestPlayerModal.tsx`: 해당 경기에서만 사용하는 용병을 추가, 수정, 삭제한다. 용병 입력은 이름, 주 포지션, 부 포지션만 받으며 등번호는 저장하지 않는다. 우선순위는 UI 표시와 서버 저장 시 모두 참가자 최하위로 자동 배정한다.
+- `ui/PlayerSelectionModal.tsx`: 팀 선수 선택 모달과 팀 선수, 용병, 총 참가 수 요약을 렌더링한다.
+- `ui/GuestPlayerModal.tsx`: 해당 경기에서만 사용하는 용병 관리 모달이다. 용병을 추가, 수정, 삭제하고 완료 버튼으로 모달을 닫는다. 용병 입력은 이름, 주 포지션, 부 포지션만 받으며 등번호는 저장하지 않는다. 우선순위는 UI 표시와 서버 저장 시 모두 참가자 최하위로 자동 배정한다.
 - `ui/ReducedQuotaSelector.tsx`: 자동 계산된 필요 인원 수에 맞춰 적은/많은 쿼터 배정 대상자를 선택한다.
 - `ui/PlayerPositionBadges.tsx`: 등록 선수의 주/부 포지션 badge를 렌더링한다.
 - `ui/StepIndicator.tsx`: 경기 생성 단계 표시를 담당한다.
