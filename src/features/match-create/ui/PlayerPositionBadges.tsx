@@ -9,18 +9,20 @@ export function PlayerPositionBadges({ player }: { player: Player }) {
   );
 
   return (
-    <span className="mt-2 flex flex-wrap gap-1.5">
-      <span className="inline-flex items-center gap-1 rounded-md border border-primary/35 bg-background px-2 py-1 text-xs font-semibold text-primary">
-        <span className="text-[10px] font-bold text-muted">주</span>
+    <span className="mt-2 flex flex-wrap gap-1.5 sm:mt-0">
+      <span
+        aria-label={`주 포지션 ${player.mainPosition}`}
+        className="inline-flex items-center rounded-md border border-primary/35 bg-background px-2 py-1 text-xs font-semibold text-primary"
+      >
         {player.mainPosition}
       </span>
       {subPositions.length > 0 ? (
         subPositions.map((position) => (
           <span
             key={position}
-            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-muted"
+            aria-label={`부 포지션 ${position}`}
+            className="inline-flex items-center rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-muted"
           >
-            <span className="text-[10px] font-bold text-muted">부</span>
             {position}
           </span>
         ))
