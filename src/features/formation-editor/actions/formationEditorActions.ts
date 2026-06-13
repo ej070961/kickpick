@@ -9,9 +9,22 @@ const slotUpdateSchema = z.array(
     fitScore: z.number().int().min(0).max(10).nullable(),
     id: z.string().uuid(),
     isManual: z.boolean(),
-    playerId: z.string().uuid().nullable(),
+    playerId: z
+      .string()
+      .regex(/^(player|guest):[0-9a-f-]{36}$/)
+      .nullable(),
   }),
 );
+
+function splitPlayerKey(playerKey: string | null) {
+  if (!playerKey) return { guestPlayerId: null, playerId: null };
+
+  const [type, id] = playerKey.split(":");
+
+  return type === "guest"
+    ? { guestPlayerId: id, playerId: null }
+    : { guestPlayerId: null, playerId: id };
+}
 
 export async function saveFormationSlots(matchId: string, slots: unknown) {
   const matchIdResult = z.string().uuid().safeParse(matchId);
@@ -23,16 +36,19 @@ export async function saveFormationSlots(matchId: string, slots: unknown) {
 
   const supabase = await createClient();
   const updates = await Promise.all(
-    slotsResult.data.map((slot) =>
-      supabase
+    slotsResult.data.map((slot) => {
+      const { guestPlayerId, playerId } = splitPlayerKey(slot.playerId);
+
+      return supabase
         .from("formation_slots")
         .update({
           fit_score: slot.fitScore,
+          guest_player_id: guestPlayerId,
           is_manual: slot.isManual,
-          player_id: slot.playerId,
+          player_id: playerId,
         })
-        .eq("id", slot.id),
-    ),
+        .eq("id", slot.id);
+    }),
   );
   const failed = updates.find(({ error }) => error);
 

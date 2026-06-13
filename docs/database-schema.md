@@ -12,6 +12,7 @@ auth.users
     -> players.team_id
     -> formation_templates.team_id
     -> matches.team_id
+      -> match_guest_players.match_id
 ```
 
 Child rows that do not have `team_id` directly must resolve ownership through their parent rows.
@@ -129,7 +130,8 @@ Join table for selected players in a match.
 | Column | Type | Notes |
 | --- | --- | --- |
 | `match_id` | `uuid` | References `matches(id)` |
-| `player_id` | `uuid` | References `players(id)` |
+| `player_id` | `uuid` | Optional, references `players(id)` for registered roster players |
+| `guest_player_id` | `uuid` | Optional, references `match_guest_players(id)` for match-only guest players |
 | `target_quota` | `integer` | Generated target slot count |
 | `is_reduced_quota` | `boolean` | Whether player was selected as reduced quota |
 | `created_at` | `timestamptz` | Insert timestamp |
@@ -137,7 +139,9 @@ Join table for selected players in a match.
 Expected key:
 
 ```txt
-primary key (match_id, player_id)
+unique (match_id, player_id) where player_id is not null
+unique (match_id, guest_player_id) where guest_player_id is not null
+check exactly one of player_id, guest_player_id is not null
 ```
 
 GK fixed behavior:
@@ -145,6 +149,21 @@ GK fixed behavior:
 - Fixed GK receives `target_quota = quarter_count`.
 - Fixed GK is not eligible for `is_reduced_quota`.
 - Other players' `target_quota` is calculated from field slots only when `gk_fixed = true`.
+
+### `match_guest_players`
+
+Match-only guest player snapshots. These rows are not part of the team roster and are deleted with the match.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | `uuid` | Primary key |
+| `match_id` | `uuid` | References `matches(id)` |
+| `name` | `text` | Required, non-blank |
+| `player_number` | `integer` | Optional uniform number |
+| `main_position` | `position_code` | Primary player position |
+| `sub_positions` | `position_code[]` | Unique array, defaults to empty |
+| `priority_rank` | `integer` | Positive sort rank copied from match creation |
+| `created_at` | `timestamptz` | Insert timestamp |
 
 ### `quarter_formations`
 
@@ -176,6 +195,7 @@ Position slot assignments for each quarter.
 | `x` | `numeric(5, 2)` | Percentage coordinate, 0 to 100 |
 | `y` | `numeric(5, 2)` | Percentage coordinate, 0 to 100 |
 | `player_id` | `uuid` | Optional assigned player |
+| `guest_player_id` | `uuid` | Optional assigned match guest player |
 | `fit_score` | `integer` | Optional 0 to 10 score |
 | `is_manual` | `boolean` | Whether user manually changed the slot |
 | `created_at` | `timestamptz` | Insert timestamp |
@@ -194,7 +214,8 @@ Policy resolution:
 - `teams`: direct `owner_user_id = auth.uid()`.
 - `players`, `formation_templates`, `matches`: check direct `team_id`.
 - `formation_template_slots`: check parent `formation_templates.team_id`.
-- `match_players`: check parent `matches.team_id` and selected `players.team_id`.
+- `match_players`: check parent `matches.team_id` and selected `players.team_id` or `match_guest_players.match_id`.
+- `match_guest_players`: check parent `matches.team_id`.
 - `quarter_formations`: check parent `matches.team_id`.
 - `formation_slots`: check parent `quarter_formations -> matches -> team_id`.
 

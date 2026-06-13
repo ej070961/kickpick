@@ -16,7 +16,15 @@ import {
   getQuotaSlotsPerQuarter,
   getReducedPlayerIdsFromQuotaSelection,
 } from "@/features/match-create/model/quotaSelection";
+import {
+  mapGuestDraftToParticipant,
+  mapRosterPlayerToParticipant,
+  type GuestPlayerDraft,
+  type MatchCreateParticipant,
+  type SerializedGuestPlayer,
+} from "@/features/match-create/model/types";
 import { SubmitButton } from "@/features/player-manage/ui/SubmitButton";
+import { GuestPlayerModal } from "./GuestPlayerModal";
 import { MatchInfoFields } from "./MatchInfoFields";
 import { PlayerSelectionModal } from "./PlayerSelectionModal";
 import { ReducedQuotaSelector } from "./ReducedQuotaSelector";
@@ -42,7 +50,7 @@ function getDefaultQuotaSelection({
 }: {
   formationTemplate: FormationTemplate | undefined;
   gkFixed: boolean;
-  players: Player[];
+  players: MatchCreateParticipant[];
   quarterCount: number;
 }) {
   const slotsPerQuarter = formationTemplate?.slots.length ?? 0;
@@ -90,17 +98,29 @@ export function MatchCreateForm({
   const [selectedPlayerIds, setSelectedPlayerIds] = useState(
     () => new Set(players.map((player) => player.id)),
   );
+  const [guestPlayers, setGuestPlayers] = useState<GuestPlayerDraft[]>([]);
+  const selectedRosterPlayers = useMemo(
+    () =>
+      players
+        .filter((player) => selectedPlayerIds.has(player.id))
+        .map(mapRosterPlayerToParticipant),
+    [players, selectedPlayerIds],
+  );
+  const guestParticipants = useMemo(
+    () => guestPlayers.map(mapGuestDraftToParticipant),
+    [guestPlayers],
+  );
+  const selectedPlayers = useMemo(
+    () => [...selectedRosterPlayers, ...guestParticipants],
+    [guestParticipants, selectedRosterPlayers],
+  );
   const [quotaPlayerIds, setQuotaPlayerIds] = useState(() =>
     getDefaultQuotaSelection({
       formationTemplate: formationTemplates[0],
       gkFixed: DEFAULT_GK_FIXED,
-      players,
+      players: players.map(mapRosterPlayerToParticipant),
       quarterCount: DEFAULT_QUARTER_COUNT,
     }),
-  );
-  const selectedPlayers = useMemo(
-    () => players.filter((player) => selectedPlayerIds.has(player.id)),
-    [players, selectedPlayerIds],
   );
   const formationPreset =
     formationTemplates.find((preset) => preset.key === formationKey) ??
@@ -134,6 +154,22 @@ export function MatchCreateForm({
     [quotaPlayerIds, quotaPlayers, quotaSelectionType],
   );
   const canCreateMatch = quotaPlayerIds.size === requiredQuotaSelectionCount;
+  const nextGuestPriorityRank =
+    Math.max(
+      0,
+      ...selectedRosterPlayers.map((player) => player.priorityRank),
+      ...guestPlayers.map((player) => player.priorityRank),
+    ) + 1;
+  const serializedGuestPlayers: SerializedGuestPlayer[] = guestPlayers.map(
+    (guest) => ({
+      clientId: guest.id,
+      mainPosition: guest.mainPosition,
+      name: guest.name,
+      playerNumber: guest.playerNumber,
+      priorityRank: guest.priorityRank,
+      subPositions: guest.subPositions,
+    }),
+  );
   const setupError =
     selectedPlayers.length < slotsPerQuarter
       ? `${formationPreset?.label ?? "선택한"} 포메이션은 최소 ${slotsPerQuarter}명이 필요합니다.`
@@ -148,18 +184,23 @@ export function MatchCreateForm({
     nextGkFixed = gkFixed,
     nextQuarterCount = quarterCount,
     nextSelectedPlayerIds = selectedPlayerIds,
+    nextGuestPlayers = guestPlayers,
   }: {
     nextFormationKey?: string;
     nextGkFixed?: boolean;
+    nextGuestPlayers?: GuestPlayerDraft[];
     nextQuarterCount?: number;
     nextSelectedPlayerIds?: Set<string>;
   }) {
     const nextPreset =
       formationTemplates.find((preset) => preset.key === nextFormationKey) ??
       formationTemplates[0];
-    const nextSelectedPlayers = players.filter((player) =>
-      nextSelectedPlayerIds.has(player.id),
-    );
+    const nextSelectedPlayers = [
+      ...players
+        .filter((player) => nextSelectedPlayerIds.has(player.id))
+        .map(mapRosterPlayerToParticipant),
+      ...nextGuestPlayers.map(mapGuestDraftToParticipant),
+    ];
 
     setQuotaPlayerIds(
       getDefaultQuotaSelection({
@@ -204,6 +245,14 @@ export function MatchCreateForm({
   }
 
   /**
+   * 용병 변경 후 참가자 전체 기준으로 보정 대상 기본 선택값을 갱신합니다.
+   */
+  function handleGuestPlayersChange(nextGuestPlayers: GuestPlayerDraft[]) {
+    setGuestPlayers(nextGuestPlayers);
+    resetQuotaPlayers({ nextGuestPlayers });
+  }
+
+  /**
    * 1단계 입력 검증을 통과하면 쿼터 보정 단계로 이동합니다.
    */
   function proceedToReducedQuotaStep() {
@@ -227,8 +276,13 @@ export function MatchCreateForm({
       ) : null}
 
       {selectedPlayers.map((player) => (
-        <input key={player.id} type="hidden" name="playerIds" value={player.id} />
+        <input key={player.id} type="hidden" name="playerKeys" value={player.id} />
       ))}
+      <input
+        type="hidden"
+        name="guestPlayers"
+        value={JSON.stringify(serializedGuestPlayers)}
+      />
       {step === 2
         ? reducedPlayerIds.map((playerId) => (
             <input
@@ -261,6 +315,14 @@ export function MatchCreateForm({
             players={players}
             selectedPlayerIds={selectedPlayerIds}
             onSelectedPlayerIdsChange={handleSelectedPlayerIdsChange}
+            actionSlot={
+              <GuestPlayerModal
+                guestPlayers={guestPlayers}
+                nextPriorityRank={nextGuestPriorityRank}
+                onGuestPlayersChange={handleGuestPlayersChange}
+              />
+            }
+            guestCount={guestPlayers.length}
           />
           {setupError ? (
             <p className="rounded-xl bg-orange-50 px-3 py-2 text-sm text-mismatch">
@@ -270,6 +332,16 @@ export function MatchCreateForm({
           {state.errors?.playerIds ? (
             <span className="block text-xs text-mismatch">
               {state.errors.playerIds[0]}
+            </span>
+          ) : null}
+          {state.errors?.playerKeys ? (
+            <span className="block text-xs text-mismatch">
+              {state.errors.playerKeys[0]}
+            </span>
+          ) : null}
+          {state.errors?.guestPlayers ? (
+            <span className="block text-xs text-mismatch">
+              {state.errors.guestPlayers[0]}
             </span>
           ) : null}
         </>

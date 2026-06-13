@@ -5,6 +5,7 @@ import type {
 
 export type EditorPlayer = {
   id: string;
+  isGuest?: boolean;
   mainPosition: PlayerPositionCode;
   name: string;
   playerNumber: number | null;

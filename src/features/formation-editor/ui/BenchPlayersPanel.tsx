@@ -46,8 +46,15 @@ export function BenchPlayersPanel({
               className="flex min-h-10 w-full items-center justify-between gap-3 rounded-lg border border-border px-3 text-left text-sm transition hover:border-primary hover:bg-mint-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               aria-label={`${formatPlayerName(player)} 후보 선수 교체`}
             >
-              <span className="truncate font-semibold text-foreground">
-                {formatPlayerName(player)}
+              <span className="min-w-0">
+                <span className="block truncate font-semibold text-foreground">
+                  {formatPlayerName(player)}
+                </span>
+                {player.isGuest ? (
+                  <span className="mt-1 inline-flex rounded-md border border-primary/35 bg-mint-surface px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                    용병
+                  </span>
+                ) : null}
               </span>
               <span className="shrink-0 text-xs font-semibold text-muted">
                 {player.mainPosition}

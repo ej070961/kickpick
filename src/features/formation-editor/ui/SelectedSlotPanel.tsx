@@ -27,6 +27,11 @@ export function SelectedSlotPanel({
           <p className="mt-1 text-sm text-muted">
             {selectedPlayer ? formatPlayerName(selectedPlayer) : "미배정"}
           </p>
+          {selectedPlayer?.isGuest ? (
+            <span className="mt-2 inline-flex rounded-md border border-primary/35 bg-card px-1.5 py-0.5 text-[10px] font-bold text-primary">
+              용병
+            </span>
+          ) : null}
           <p className="mt-2 text-xs text-muted">
             다른 유니폼 또는 후보 카드를 누르면 교체됩니다.
           </p>
