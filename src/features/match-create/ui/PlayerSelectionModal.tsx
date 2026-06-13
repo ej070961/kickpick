@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { MouseEvent } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { Search, Users, X } from "lucide-react";
 import type { Player } from "@/entities/player";
 import {
@@ -11,6 +11,8 @@ import {
 import { PlayerPositionBadges } from "./PlayerPositionBadges";
 
 type PlayerSelectionModalProps = {
+  actionSlot?: ReactNode;
+  guestCount?: number;
   onSelectedPlayerIdsChange: (playerIds: Set<string>) => void;
   players: Player[];
   selectedPlayerIds: Set<string>;
@@ -20,6 +22,8 @@ type PlayerSelectionModalProps = {
  * 등록 선수 중 이번 경기에 참가할 선수를 모달 안에서 선택합니다.
  */
 export function PlayerSelectionModal({
+  actionSlot,
+  guestCount = 0,
   onSelectedPlayerIdsChange,
   players,
   selectedPlayerIds,
@@ -29,8 +33,8 @@ export function PlayerSelectionModal({
   const [draftSelectedPlayerIds, setDraftSelectedPlayerIds] = useState(
     () => new Set(selectedPlayerIds),
   );
-  const selectedCount = selectedPlayerIds.size;
-  const excludedCount = players.length - selectedCount;
+  const selectedCount = selectedPlayerIds.size + guestCount;
+  const excludedCount = players.length - selectedPlayerIds.size;
   const draftSelectedCount = draftSelectedPlayerIds.size;
   const draftExcludedCount = players.length - draftSelectedCount;
   const filteredPlayers = search
@@ -114,17 +118,20 @@ export function PlayerSelectionModal({
             이번 경기에 참가할 선수를 선택하세요.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={openModal}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
-        >
-          <Users size={18} aria-hidden="true" />
-          참가 선수 관리
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={openModal}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
+          >
+            <Users size={18} aria-hidden="true" />
+            참가 선수 관리
+          </button>
+          {actionSlot}
+        </div>
       </div>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+      <div className="mt-4 grid gap-2 sm:grid-cols-4">
         <div className="rounded-lg bg-mint-surface px-3 py-2">
           <p className="text-xs font-medium text-muted">참가</p>
           <p className="text-base font-bold text-primary">{selectedCount}명</p>
@@ -134,6 +141,10 @@ export function PlayerSelectionModal({
           <p className="text-base font-bold text-foreground">
             {excludedCount}명
           </p>
+        </div>
+        <div className="rounded-lg border border-border px-3 py-2">
+          <p className="text-xs font-medium text-muted">용병</p>
+          <p className="text-base font-bold text-foreground">{guestCount}명</p>
         </div>
         <div className="rounded-lg border border-border px-3 py-2">
           <p className="text-xs font-medium text-muted">등록 선수</p>

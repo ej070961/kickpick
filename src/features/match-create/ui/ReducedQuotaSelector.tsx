@@ -1,5 +1,5 @@
-import type { Player } from "@/entities/player";
 import { formatPlayerName, formatPositions } from "@/features/match-create/lib/playerFormat";
+import type { MatchCreateParticipant } from "@/features/match-create/model/types";
 import type { QuotaSelectionType } from "@/features/match-create/model/quotaSelection";
 
 type ReducedQuotaSelectorProps = {
@@ -10,7 +10,7 @@ type ReducedQuotaSelectorProps = {
   quotaPlayerIds: Set<string>;
   quotaSelectionType: QuotaSelectionType;
   requiredCount: number;
-  selectedPlayers: Player[];
+  selectedPlayers: MatchCreateParticipant[];
   slotsPerQuarter: number;
 };
 
@@ -169,6 +169,11 @@ export function ReducedQuotaSelector({
                     <span className="block text-sm font-semibold text-foreground">
                       {formatPlayerName(player)}
                     </span>
+                    {player.isGuest ? (
+                      <span className="mt-1 inline-flex rounded-md border border-primary/35 bg-card px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                        용병
+                      </span>
+                    ) : null}
                     <span className="mt-1 block text-xs text-muted">
                       #{player.priorityRank} / {formatPositions(player)}
                     </span>
