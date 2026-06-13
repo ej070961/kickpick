@@ -129,7 +129,7 @@ Join table for selected players in a match.
 
 | Column | Type | Notes |
 | --- | --- | --- |
-| `match_id` | `uuid` | References `matches(id)` |
+| `match_id` | `uuid` | References `matches(id)`, cascade delete expected |
 | `player_id` | `uuid` | Optional, references `players(id)` for registered roster players |
 | `guest_player_id` | `uuid` | Optional, references `match_guest_players(id)` for match-only guest players |
 | `target_quota` | `integer` | Generated target slot count |
@@ -157,7 +157,7 @@ Match-only guest player snapshots. These rows are not part of the team roster an
 | Column | Type | Notes |
 | --- | --- | --- |
 | `id` | `uuid` | Primary key |
-| `match_id` | `uuid` | References `matches(id)` |
+| `match_id` | `uuid` | References `matches(id)`, cascade delete expected |
 | `name` | `text` | Required, non-blank |
 | `player_number` | `integer` | Optional uniform number |
 | `main_position` | `position_code` | Primary player position |
@@ -172,7 +172,7 @@ One row per match quarter.
 | Column | Type | Notes |
 | --- | --- | --- |
 | `id` | `uuid` | Primary key |
-| `match_id` | `uuid` | References `matches(id)` |
+| `match_id` | `uuid` | References `matches(id)`, cascade delete expected |
 | `quarter_number` | `integer` | Positive, unique per match |
 | `created_at` | `timestamptz` | Insert timestamp |
 | `updated_at` | `timestamptz` | Updated by trigger |
@@ -190,7 +190,7 @@ Position slot assignments for each quarter.
 | Column | Type | Notes |
 | --- | --- | --- |
 | `id` | `uuid` | Primary key |
-| `quarter_formation_id` | `uuid` | References `quarter_formations(id)` |
+| `quarter_formation_id` | `uuid` | References `quarter_formations(id)`, cascade delete expected |
 | `slot_name` | `position_code` | Formation slot code |
 | `x` | `numeric(5, 2)` | Percentage coordinate, 0 to 100 |
 | `y` | `numeric(5, 2)` | Percentage coordinate, 0 to 100 |

@@ -73,6 +73,8 @@ type PlayerRow = {
   sub_positions: PlayerPositionCode[];
 };
 
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
 /**
  * 현재 로그인 사용자가 소유한 첫 번째 팀 id를 조회하고, 비로그인 사용자는 로그인으로 보냅니다.
  */
@@ -124,6 +126,29 @@ function parseGuestPlayers(value: FormDataEntryValue | null) {
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
+  }
+}
+
+/**
+ * 경기 생성 중간 저장 실패 시 먼저 만들어진 match와 하위 row를 정리합니다.
+ */
+async function cleanupCreatedMatch({
+  matchId,
+  reason,
+  supabase,
+}: {
+  matchId: string;
+  reason: string;
+  supabase: SupabaseServerClient;
+}) {
+  const { error } = await supabase.from("matches").delete().eq("id", matchId);
+
+  if (error) {
+    console.error("Failed to cleanup partially created match", {
+      error,
+      matchId,
+      reason,
+    });
   }
 }
 
@@ -330,10 +355,20 @@ export async function createMatch(
       .select("id");
 
     if (guestsError || !insertedGuests) {
+      await cleanupCreatedMatch({
+        matchId,
+        reason: "match_guest_players insert failed",
+        supabase,
+      });
       return { message: "용병 정보를 저장하지 못했습니다." };
     }
 
     if (insertedGuests.length !== guestPlayers.length) {
+      await cleanupCreatedMatch({
+        matchId,
+        reason: "match_guest_players insert count mismatch",
+        supabase,
+      });
       return { message: "용병 정보를 확인하지 못했습니다." };
     }
 
@@ -358,6 +393,11 @@ export async function createMatch(
     );
 
   if (matchPlayersError) {
+    await cleanupCreatedMatch({
+      matchId,
+      reason: "match_players insert failed",
+      supabase,
+    });
     return { message: "참가 선수 배정을 저장하지 못했습니다." };
   }
 
@@ -376,6 +416,12 @@ export async function createMatch(
         error: quarterError,
         matchId,
         quarterNumber: formationItem.quarterNumber,
+      });
+
+      await cleanupCreatedMatch({
+        matchId,
+        reason: "quarter_formations insert failed",
+        supabase,
       });
 
       return { message: "쿼터 포메이션을 저장하지 못했습니다." };
@@ -409,6 +455,12 @@ export async function createMatch(
         quarterFormationId: quarterFormation.id,
         quarterNumber: formationItem.quarterNumber,
         slots: slotRows,
+      });
+
+      await cleanupCreatedMatch({
+        matchId,
+        reason: "formation_slots insert failed",
+        supabase,
       });
 
       return {

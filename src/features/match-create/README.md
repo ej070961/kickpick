@@ -26,7 +26,7 @@ match-create/
 
 ## 파일 역할
 
-- `actions/matchCreateActions.ts`: 경기 생성 Server Action. 입력 검증, 팀/선수 권한 확인, 용병 snapshot 저장, 자동 포메이션 생성 결과 저장을 담당한다.
+- `actions/matchCreateActions.ts`: 경기 생성 Server Action. 입력 검증, 팀/선수 권한 확인, 용병 snapshot 저장, 자동 포메이션 생성 결과 저장을 담당한다. `matches` 생성 이후 하위 row 저장에 실패하면 생성된 match를 삭제해 부분 생성 데이터를 정리한다.
 - `lib/generateQuarterFormations.ts`: 쿼터별 선수 후보군, slot fit score, quota 차감을 계산해 자동 배치 결과를 만든다.
 - `lib/playerFormat.ts`: 경기 생성 UI에서 선수 이름과 포지션 표시 문자열을 만든다.
 - `model/quotaSelection.ts`: GK 고정 여부와 슬롯 수에 따라 쿼터 보정 대상 선택 수와 기본 선택값을 계산한다.
@@ -44,6 +44,7 @@ match-create/
 - 자동 배치와 quota 계산은 UI에서 직접 처리하지 않고 `lib` 또는 `model`의 순수 함수로 유지한다.
 - 용병은 `/players` 명단에 저장하지 않는다. 생성 전 클라이언트 상태에서는 `GuestPlayerDraft`, 생성 후 DB에서는 `match_guest_players` snapshot으로 다룬다.
 - 용병 우선순위는 클라이언트 제출값을 신뢰하지 않는다. 서버 액션에서 선택된 등록 선수의 최하위 우선순위 다음 값부터 다시 계산한다.
+- 경기 생성은 여러 Supabase insert 요청으로 구성되어 있다. `matches` 생성 이후 실패 경로는 `matches` 삭제로 cleanup하며, 하위 테이블 FK는 match 삭제 시 cascade되는 것을 전제로 한다.
 - 참가자 식별자는 feature 내부에서 `player:{uuid}` 또는 `guest:{uuid}` key로 통일하고, DB 저장 시 `player_id` / `guest_player_id`로 분리한다.
 - 용병 입력 항목, 경기 생성 저장 필드, 자동 배치 입력이 바뀌면 `docs/project-design.md`, `docs/database-schema.md`, `docs/match-guest-players.sql`을 함께 확인한다.
 - `MatchCreateForm`이 커질 경우 독립 섹션은 `ui/` 컴포넌트로 분리하고, 공유 계산은 `model/`로 이동한다.
