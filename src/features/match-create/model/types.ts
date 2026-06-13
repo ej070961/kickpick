@@ -17,7 +17,10 @@ export type GuestPlayerDraft = {
   subPositions: PlayerPositionCode[];
 };
 
-export type SerializedGuestPlayer = Omit<GuestPlayerDraft, "id"> & {
+export type SerializedGuestPlayer = Omit<
+  GuestPlayerDraft,
+  "id" | "priorityRank"
+> & {
   clientId: string;
 };
 

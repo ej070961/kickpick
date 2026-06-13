@@ -50,7 +50,6 @@ const matchCreateSchema = z.object({
       mainPosition: playerPositionSchema,
       name: z.string().trim().min(1, "용병 이름을 입력해주세요."),
       playerNumber: z.number().int().min(0).max(999).nullable(),
-      priorityRank: z.number().int().min(1),
       subPositions: z.array(playerPositionSchema).default([]),
     }),
   ),
@@ -219,16 +218,20 @@ export async function createMatch(
     return { message: "선택한 선수 중 사용할 수 없는 선수가 있습니다." };
   }
 
-  const guestFormationPlayers: FormationPlayer[] = guestPlayers.map((guest) => ({
-    id: getGuestPlayerKey(guest.clientId),
-    mainPosition: guest.mainPosition,
-    name: guest.name,
-    playerNumber: guest.playerNumber,
-    priorityRank: guest.priorityRank,
-    subPositions: guest.subPositions.filter(
-      (position) => position !== guest.mainPosition,
-    ),
-  }));
+  const guestPriorityStart =
+    Math.max(0, ...rosterPlayers.map((player) => player.priorityRank)) + 1;
+  const guestFormationPlayers: FormationPlayer[] = guestPlayers.map(
+    (guest, index) => ({
+      id: getGuestPlayerKey(guest.clientId),
+      mainPosition: guest.mainPosition,
+      name: guest.name,
+      playerNumber: guest.playerNumber,
+      priorityRank: guestPriorityStart + index,
+      subPositions: guest.subPositions.filter(
+        (position) => position !== guest.mainPosition,
+      ),
+    }),
+  );
   const players = [...rosterPlayers, ...guestFormationPlayers].filter((player) =>
     playerKeys.includes(player.id),
   );
@@ -313,12 +316,12 @@ export async function createMatch(
     const { data: insertedGuests, error: guestsError } = await supabase
       .from("match_guest_players")
       .insert(
-        guestPlayers.map((guest) => ({
+        guestPlayers.map((guest, index) => ({
           main_position: guest.mainPosition,
           match_id: matchId,
           name: guest.name,
           player_number: guest.playerNumber,
-          priority_rank: guest.priorityRank,
+          priority_rank: guestPriorityStart + index,
           sub_positions: guest.subPositions.filter(
             (position) => position !== guest.mainPosition,
           ),

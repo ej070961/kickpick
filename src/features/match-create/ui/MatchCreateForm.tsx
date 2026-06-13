@@ -166,7 +166,6 @@ export function MatchCreateForm({
       mainPosition: guest.mainPosition,
       name: guest.name,
       playerNumber: guest.playerNumber,
-      priorityRank: guest.priorityRank,
       subPositions: guest.subPositions,
     }),
   );
