@@ -219,4 +219,10 @@ Policy resolution:
 - `quarter_formations`: check parent `matches.team_id`.
 - `formation_slots`: check parent `quarter_formations -> matches -> team_id`.
 
+RLS helper functions that validate assignments must accept both roster and guest identifiers. In particular:
+
+- `match_players` insert/update checks must validate `(match_id, player_id, guest_player_id)`.
+- `formation_slots` insert/update checks must validate `(quarter_formation_id, player_id, guest_player_id)`.
+- Guest assignments are valid only when `match_guest_players.match_id` belongs to the same match being created or edited.
+
 Inserts should validate that child rows belong to a team owned by the current user. Updates and deletes should use the same ownership chain.
