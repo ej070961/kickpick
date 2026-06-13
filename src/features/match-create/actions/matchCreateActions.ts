@@ -50,7 +50,6 @@ const matchCreateSchema = z.object({
       mainPosition: playerPositionSchema,
       name: z.string().trim().min(1, "용병 이름을 입력해주세요."),
       playerNumber: z.number().int().min(0).max(999).nullable(),
-      priorityRank: z.number().int().min(1),
       subPositions: z.array(playerPositionSchema).default([]),
     }),
   ),
@@ -73,6 +72,8 @@ type PlayerRow = {
   priority_rank: number;
   sub_positions: PlayerPositionCode[];
 };
+
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 /**
  * 현재 로그인 사용자가 소유한 첫 번째 팀 id를 조회하고, 비로그인 사용자는 로그인으로 보냅니다.
@@ -125,6 +126,29 @@ function parseGuestPlayers(value: FormDataEntryValue | null) {
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
+  }
+}
+
+/**
+ * 경기 생성 중간 저장 실패 시 먼저 만들어진 match와 하위 row를 정리합니다.
+ */
+async function cleanupCreatedMatch({
+  matchId,
+  reason,
+  supabase,
+}: {
+  matchId: string;
+  reason: string;
+  supabase: SupabaseServerClient;
+}) {
+  const { error } = await supabase.from("matches").delete().eq("id", matchId);
+
+  if (error) {
+    console.error("Failed to cleanup partially created match", {
+      error,
+      matchId,
+      reason,
+    });
   }
 }
 
@@ -219,16 +243,20 @@ export async function createMatch(
     return { message: "선택한 선수 중 사용할 수 없는 선수가 있습니다." };
   }
 
-  const guestFormationPlayers: FormationPlayer[] = guestPlayers.map((guest) => ({
-    id: getGuestPlayerKey(guest.clientId),
-    mainPosition: guest.mainPosition,
-    name: guest.name,
-    playerNumber: guest.playerNumber,
-    priorityRank: guest.priorityRank,
-    subPositions: guest.subPositions.filter(
-      (position) => position !== guest.mainPosition,
-    ),
-  }));
+  const guestPriorityStart =
+    Math.max(0, ...rosterPlayers.map((player) => player.priorityRank)) + 1;
+  const guestFormationPlayers: FormationPlayer[] = guestPlayers.map(
+    (guest, index) => ({
+      id: getGuestPlayerKey(guest.clientId),
+      mainPosition: guest.mainPosition,
+      name: guest.name,
+      playerNumber: guest.playerNumber,
+      priorityRank: guestPriorityStart + index,
+      subPositions: guest.subPositions.filter(
+        (position) => position !== guest.mainPosition,
+      ),
+    }),
+  );
   const players = [...rosterPlayers, ...guestFormationPlayers].filter((player) =>
     playerKeys.includes(player.id),
   );
@@ -313,12 +341,12 @@ export async function createMatch(
     const { data: insertedGuests, error: guestsError } = await supabase
       .from("match_guest_players")
       .insert(
-        guestPlayers.map((guest) => ({
+        guestPlayers.map((guest, index) => ({
           main_position: guest.mainPosition,
           match_id: matchId,
           name: guest.name,
           player_number: guest.playerNumber,
-          priority_rank: guest.priorityRank,
+          priority_rank: guestPriorityStart + index,
           sub_positions: guest.subPositions.filter(
             (position) => position !== guest.mainPosition,
           ),
@@ -327,10 +355,20 @@ export async function createMatch(
       .select("id");
 
     if (guestsError || !insertedGuests) {
+      await cleanupCreatedMatch({
+        matchId,
+        reason: "match_guest_players insert failed",
+        supabase,
+      });
       return { message: "용병 정보를 저장하지 못했습니다." };
     }
 
     if (insertedGuests.length !== guestPlayers.length) {
+      await cleanupCreatedMatch({
+        matchId,
+        reason: "match_guest_players insert count mismatch",
+        supabase,
+      });
       return { message: "용병 정보를 확인하지 못했습니다." };
     }
 
@@ -355,6 +393,11 @@ export async function createMatch(
     );
 
   if (matchPlayersError) {
+    await cleanupCreatedMatch({
+      matchId,
+      reason: "match_players insert failed",
+      supabase,
+    });
     return { message: "참가 선수 배정을 저장하지 못했습니다." };
   }
 
@@ -373,6 +416,12 @@ export async function createMatch(
         error: quarterError,
         matchId,
         quarterNumber: formationItem.quarterNumber,
+      });
+
+      await cleanupCreatedMatch({
+        matchId,
+        reason: "quarter_formations insert failed",
+        supabase,
       });
 
       return { message: "쿼터 포메이션을 저장하지 못했습니다." };
@@ -406,6 +455,12 @@ export async function createMatch(
         quarterFormationId: quarterFormation.id,
         quarterNumber: formationItem.quarterNumber,
         slots: slotRows,
+      });
+
+      await cleanupCreatedMatch({
+        matchId,
+        reason: "formation_slots insert failed",
+        supabase,
       });
 
       return {

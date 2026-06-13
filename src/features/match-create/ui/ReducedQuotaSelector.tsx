@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import { Info } from "lucide-react";
 import { formatPlayerName, formatPositions } from "@/features/match-create/lib/playerFormat";
 import type { MatchCreateParticipant } from "@/features/match-create/model/types";
 import type { QuotaSelectionType } from "@/features/match-create/model/quotaSelection";
@@ -28,6 +32,7 @@ export function ReducedQuotaSelector({
   selectedPlayers,
   slotsPerQuarter,
 }: ReducedQuotaSelectorProps) {
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const selectedCount = quotaPlayerIds.size;
   const disabled = requiredCount === 0 || selectedPlayers.length === 0;
   const totalSlots = quarterCount * slotsPerQuarter;
@@ -49,14 +54,15 @@ export function ReducedQuotaSelector({
     requiredCount === 0
       ? "모든 선수가 동일한 쿼터 수로 배정됩니다."
       : "참가 선수가 없습니다.";
-  const calculationMessage =
+  const quotaSummary =
     increasedPlayerCount === 0
-      ? `총 ${totalSlots}자리를 ${selectedPlayers.length}명이 나누어 모든 선수가 ${baseQuota}쿼터씩 뜁니다.`
-      : `총 ${totalSlots}자리를 ${selectedPlayers.length}명이 나누어 ${increasedPlayerCount}명은 ${baseQuota + 1}쿼터, ${reducedPlayerCount}명은 ${baseQuota}쿼터를 뜁니다.`;
-  const selectionReason =
+      ? `이번 경기에서는 모두 ${baseQuota}쿼터씩 뛰어요.`
+      : `${increasedPlayerCount}명은 ${baseQuota + 1}쿼터, ${reducedPlayerCount}명은 ${baseQuota}쿼터를 뛰어요.`;
+  const helpMessage =
     quotaSelectionType === "increased"
-      ? `선택 수가 더 적은 ${increasedPlayerCount}명의 많은 쿼터 배정 선수를 고릅니다.`
-      : `선택 수가 더 적은 ${reducedPlayerCount}명의 적은 쿼터 배정 선수를 고릅니다.`;
+      ? `경기 시간을 최대한 공평하게 나누기 위해 더 뛰는 선수 ${requiredCount}명을 골라주세요. ${quotaSummary}`
+      : `경기 시간을 최대한 공평하게 나누기 위해 덜 뛰는 선수 ${requiredCount}명을 골라주세요. ${quotaSummary}`;
+  const helpId = "quota-selection-help";
 
   /**
    * 선택 가능 수를 넘지 않는 범위에서 보정 대상 선수 선택을 토글합니다.
@@ -77,9 +83,43 @@ export function ReducedQuotaSelector({
     <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h3 className="text-base font-semibold text-foreground">
-            {title}
-          </h3>
+          <div className="flex items-center gap-1">
+            <h3 className="text-base font-semibold text-foreground">
+              {title}
+            </h3>
+            <span
+              className="relative inline-flex"
+              onMouseEnter={() => setIsHelpOpen(true)}
+              onMouseLeave={() => setIsHelpOpen(false)}
+            >
+              <button
+                type="button"
+                aria-label="쿼터 보정 설명"
+                aria-describedby={isHelpOpen ? helpId : undefined}
+                aria-expanded={isHelpOpen}
+                onClick={() => setIsHelpOpen((current) => !current)}
+                onFocus={() => setIsHelpOpen(true)}
+                onBlur={() => setIsHelpOpen(false)}
+                className="inline-flex size-7 items-center justify-center rounded-full text-muted transition hover:bg-mint-surface hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                <Info size={16} aria-hidden="true" />
+              </button>
+              {isHelpOpen ? (
+                <span
+                  id={helpId}
+                  role="tooltip"
+                  className="absolute left-0 top-9 z-20 w-76 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium leading-relaxed text-foreground shadow-lg sm:left-1/2 sm:-translate-x-1/2"
+                >
+                  {helpMessage}
+                  {gkFixed ? (
+                    <span className="mt-1 block text-muted">
+                      GK 고정 시 골키퍼와 GK 슬롯은 이 계산에서 제외돼요.
+                    </span>
+                  ) : null}
+                </span>
+              ) : null}
+            </span>
+          </div>
           <p className="mt-1 text-sm text-muted">
             {description}
           </p>
@@ -118,20 +158,6 @@ export function ReducedQuotaSelector({
             {gkFixed ? "고정" : "자동"}
           </p>
         </div>
-      </div>
-
-      <div className="mt-4 rounded-lg border border-border bg-background px-4 py-3">
-        <p className="text-sm font-semibold text-foreground">
-          {calculationMessage}
-        </p>
-        {requiredCount > 0 ? (
-          <p className="mt-1 text-xs text-muted">{selectionReason}</p>
-        ) : null}
-        {gkFixed ? (
-          <p className="mt-1 text-xs text-muted">
-            GK 고정 시 골키퍼와 GK 슬롯은 쿼터 보정 계산에서 제외됩니다.
-          </p>
-        ) : null}
       </div>
 
       {disabled ? (
