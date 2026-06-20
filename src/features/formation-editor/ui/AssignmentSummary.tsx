@@ -1,5 +1,5 @@
 import type { AssignmentSummaryItem } from "@/features/formation-editor/model/types";
-import { formatPlayerName } from "@/features/formation-editor/lib/formationEditorFormat";
+import { PlayerDisplayName } from "./PlayerDisplayName";
 
 type AssignmentSummaryProps = {
   assignmentItems: AssignmentSummaryItem[];
@@ -37,14 +37,10 @@ export function AssignmentSummary({
             className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2 text-sm"
           >
             <span className="min-w-0">
-              <span className="block truncate font-semibold text-foreground">
-                {formatPlayerName(player)}
-              </span>
-              {player.isGuest ? (
-                <span className="mt-1 inline-flex rounded-md border border-primary/35 bg-mint-surface px-1.5 py-0.5 text-[10px] font-bold text-primary">
-                  용병
-                </span>
-              ) : null}
+              <PlayerDisplayName
+                player={player}
+                className="block truncate font-semibold text-foreground"
+              />
             </span>
             <span className="flex shrink-0 flex-wrap justify-end gap-1">
               {quarterNumbers.length > 0 ? (

@@ -7,9 +7,12 @@ import {
   replaceSlotPlayer,
   swapSlotPlayers,
 } from "@/features/formation-editor/lib/formationEditorSlots";
+import {
+  calculateAssignmentItems,
+  sortPlayersForBench,
+} from "@/features/formation-editor/lib/formationEditorSummary";
 import { sanitizeFileName } from "@/features/formation-editor/lib/formationEditorFormat";
 import type {
-  AssignmentSummaryItem,
   EditorPlayer,
   EditorQuarter,
   EditorSlot,
@@ -32,53 +35,6 @@ type EditorSelection =
   | { slotId: string; type: "slot" }
   | { playerId: string; type: "bench" }
   | null;
-
-/**
- * 선수 번호와 이름을 기준으로 후보 선수 목록을 안정적으로 정렬합니다.
- */
-function sortPlayersForBench(players: EditorPlayer[]) {
-  return [...players].sort((a, b) => {
-    const aNumber = a.playerNumber ?? Number.POSITIVE_INFINITY;
-    const bNumber = b.playerNumber ?? Number.POSITIVE_INFINITY;
-
-    if (aNumber !== bNumber) return aNumber - bNumber;
-
-    return a.name.localeCompare(b.name);
-  });
-}
-
-/**
- * 전체 쿼터에서 선수별 출전 쿼터 목록을 계산하고 많이 배정된 순서로 정렬합니다.
- */
-function calculateAssignmentItems({
-  players,
-  quarters,
-}: {
-  players: EditorPlayer[];
-  quarters: EditorQuarter[];
-}): AssignmentSummaryItem[] {
-  return players
-    .map((player) => ({
-      player,
-      quarterNumbers: quarters
-        .filter((quarter) =>
-          quarter.slots.some((slot) => slot.playerId === player.id),
-        )
-        .map((quarter) => quarter.quarterNumber),
-    }))
-    .sort((a, b) => {
-      if (b.quarterNumbers.length !== a.quarterNumbers.length) {
-        return b.quarterNumbers.length - a.quarterNumbers.length;
-      }
-
-      const aNumber = a.player.playerNumber ?? Number.POSITIVE_INFINITY;
-      const bNumber = b.player.playerNumber ?? Number.POSITIVE_INFINITY;
-
-      if (aNumber !== bNumber) return aNumber - bNumber;
-
-      return a.player.name.localeCompare(b.player.name);
-    });
-}
 
 /**
  * 쿼터별 포메이션을 편집하고 저장/PNG 내보내기를 연결하는 클라이언트 컨테이너입니다.

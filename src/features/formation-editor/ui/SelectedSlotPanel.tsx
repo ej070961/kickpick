@@ -1,8 +1,9 @@
+import type { ReactNode } from "react";
 import type {
   EditorPlayer,
   EditorSlot,
 } from "@/features/formation-editor/model/types";
-import { formatPlayerName } from "@/features/formation-editor/lib/formationEditorFormat";
+import { PlayerDisplayName } from "./PlayerDisplayName";
 
 type SelectedSlotPanelProps = {
   selectedBenchPlayer: EditorPlayer | undefined;
@@ -12,14 +13,12 @@ type SelectedSlotPanelProps = {
 
 type SelectedItemCardProps = {
   description: string;
-  isGuest?: boolean;
-  subtitle: string;
-  title: string;
+  subtitle: ReactNode;
+  title: ReactNode;
 };
 
 function SelectedItemCard({
   description,
-  isGuest = false,
   subtitle,
   title,
 }: SelectedItemCardProps) {
@@ -27,11 +26,6 @@ function SelectedItemCard({
     <div className="mt-3 rounded-lg border border-primary bg-mint-surface px-3 py-2">
       <p className="text-sm font-bold text-foreground">{title}</p>
       <p className="mt-1 text-sm text-muted">{subtitle}</p>
-      {isGuest ? (
-        <span className="mt-2 inline-flex rounded-md border border-primary/35 bg-card px-1.5 py-0.5 text-[10px] font-bold text-primary">
-          용병
-        </span>
-      ) : null}
       <p className="mt-2 text-xs text-muted">{description}</p>
     </div>
   );
@@ -51,16 +45,20 @@ export function SelectedSlotPanel({
       {selectedSlot ? (
         <SelectedItemCard
           description="다른 유니폼 또는 후보 카드를 누르면 교체됩니다."
-          isGuest={selectedPlayer?.isGuest}
-          subtitle={selectedPlayer ? formatPlayerName(selectedPlayer) : "미배정"}
+          subtitle={
+            selectedPlayer ? (
+              <PlayerDisplayName player={selectedPlayer} />
+            ) : (
+              "미배정"
+            )
+          }
           title={selectedSlot.name}
         />
       ) : selectedBenchPlayer ? (
         <SelectedItemCard
           description="교체할 유니폼을 누르면 선택한 후보가 들어갑니다."
-          isGuest={selectedBenchPlayer.isGuest}
           subtitle={selectedBenchPlayer.mainPosition}
-          title={formatPlayerName(selectedBenchPlayer)}
+          title={<PlayerDisplayName player={selectedBenchPlayer} />}
         />
       ) : (
         <p className="mt-2 rounded-lg border border-dashed border-border px-3 py-3 text-sm text-muted">

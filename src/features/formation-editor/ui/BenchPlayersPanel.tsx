@@ -1,5 +1,5 @@
 import type { EditorPlayer } from "@/features/formation-editor/model/types";
-import { formatPlayerName } from "@/features/formation-editor/lib/formationEditorFormat";
+import { PlayerDisplayName } from "./PlayerDisplayName";
 
 type BenchPlayersPanelProps = {
   activeAssignedPlayerCount: number;
@@ -53,17 +53,13 @@ export function BenchPlayersPanel({
                     : "border-border hover:border-primary hover:bg-mint-surface"
                 }`}
                 aria-pressed={isSelected}
-                aria-label={`${formatPlayerName(player)} 후보 선수 교체`}
+                aria-label={`${player.name} 후보 선수 교체`}
               >
                 <span className="min-w-0">
-                  <span className="block truncate font-semibold text-foreground">
-                    {formatPlayerName(player)}
-                  </span>
-                  {player.isGuest ? (
-                    <span className="mt-1 inline-flex rounded-md border border-primary/35 bg-mint-surface px-1.5 py-0.5 text-[10px] font-bold text-primary">
-                      용병
-                    </span>
-                  ) : null}
+                  <PlayerDisplayName
+                    player={player}
+                    className="block truncate font-semibold text-foreground"
+                  />
                 </span>
                 <span className="shrink-0 text-xs font-semibold text-muted">
                   {player.mainPosition}
