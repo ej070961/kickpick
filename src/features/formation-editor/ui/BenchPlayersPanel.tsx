@@ -1,15 +1,13 @@
-import type {
-  EditorPlayer,
-  EditorSlot,
-} from "@/features/formation-editor/model/types";
+import type { EditorPlayer } from "@/features/formation-editor/model/types";
 import { formatPlayerName } from "@/features/formation-editor/lib/formationEditorFormat";
 
 type BenchPlayersPanelProps = {
   activeAssignedPlayerCount: number;
   benchPlayers: EditorPlayer[];
+  hasSelectedSlot: boolean;
   onBenchPlayerClick: (player: EditorPlayer) => void;
   quarterNumber: number;
-  selectedSlot: EditorSlot | undefined;
+  selectedBenchPlayerId: string | null;
 };
 
 /**
@@ -18,9 +16,10 @@ type BenchPlayersPanelProps = {
 export function BenchPlayersPanel({
   activeAssignedPlayerCount,
   benchPlayers,
+  hasSelectedSlot,
   onBenchPlayerClick,
   quarterNumber,
-  selectedSlot,
+  selectedBenchPlayerId,
 }: BenchPlayersPanelProps) {
   return (
     <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
@@ -32,35 +31,46 @@ export function BenchPlayersPanel({
         {benchPlayers.length}명
       </p>
       <p className="mt-2 text-xs text-muted">
-        {selectedSlot
+        {hasSelectedSlot
           ? "후보 카드를 누르면 선택한 유니폼과 교체됩니다."
-          : "유니폼을 먼저 선택한 뒤 후보를 누르세요."}
+          : selectedBenchPlayerId
+            ? "교체할 유니폼을 누르면 선택한 후보가 들어갑니다."
+            : "유니폼 또는 후보 카드를 먼저 선택하세요."}
       </p>
       {benchPlayers.length > 0 ? (
         <div className="mt-3 max-h-72 space-y-2 overflow-auto pr-1">
-          {benchPlayers.map((player) => (
-            <button
-              key={player.id}
-              type="button"
-              onClick={() => onBenchPlayerClick(player)}
-              className="flex min-h-10 w-full items-center justify-between gap-3 rounded-lg border border-border px-3 text-left text-sm transition hover:border-primary hover:bg-mint-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              aria-label={`${formatPlayerName(player)} 후보 선수 교체`}
-            >
-              <span className="min-w-0">
-                <span className="block truncate font-semibold text-foreground">
-                  {formatPlayerName(player)}
-                </span>
-                {player.isGuest ? (
-                  <span className="mt-1 inline-flex rounded-md border border-primary/35 bg-mint-surface px-1.5 py-0.5 text-[10px] font-bold text-primary">
-                    용병
+          {benchPlayers.map((player) => {
+            const isSelected = selectedBenchPlayerId === player.id;
+
+            return (
+              <button
+                key={player.id}
+                type="button"
+                onClick={() => onBenchPlayerClick(player)}
+                className={`flex min-h-10 w-full items-center justify-between gap-3 rounded-lg border px-3 text-left text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                  isSelected
+                    ? "border-primary bg-mint-surface"
+                    : "border-border hover:border-primary hover:bg-mint-surface"
+                }`}
+                aria-pressed={isSelected}
+                aria-label={`${formatPlayerName(player)} 후보 선수 교체`}
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-semibold text-foreground">
+                    {formatPlayerName(player)}
                   </span>
-                ) : null}
-              </span>
-              <span className="shrink-0 text-xs font-semibold text-muted">
-                {player.mainPosition}
-              </span>
-            </button>
-          ))}
+                  {player.isGuest ? (
+                    <span className="mt-1 inline-flex rounded-md border border-primary/35 bg-mint-surface px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                      용병
+                    </span>
+                  ) : null}
+                </span>
+                <span className="shrink-0 text-xs font-semibold text-muted">
+                  {player.mainPosition}
+                </span>
+              </button>
+            );
+          })}
         </div>
       ) : (
         <p className="mt-3 rounded-lg border border-dashed border-border px-3 py-3 text-sm text-muted">

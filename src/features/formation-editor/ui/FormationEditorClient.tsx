@@ -28,6 +28,11 @@ type FormationEditorClientProps = {
   quarters: EditorQuarter[];
 };
 
+type EditorSelection =
+  | { slotId: string; type: "slot" }
+  | { playerId: string; type: "bench" }
+  | null;
+
 /**
  * 선수 번호와 이름을 기준으로 후보 선수 목록을 안정적으로 정렬합니다.
  */
@@ -88,7 +93,7 @@ export function FormationEditorClient({
   const [activeQuarterNumber, setActiveQuarterNumber] = useState(
     quarters[0]?.quarterNumber ?? 1,
   );
-  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [selection, setSelection] = useState<EditorSelection>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const exportRef = useRef<HTMLDivElement>(null);
@@ -100,11 +105,17 @@ export function FormationEditorClient({
     editedQuarters.find(
       (quarter) => quarter.quarterNumber === activeQuarterNumber,
     ) ?? editedQuarters[0];
+  const selectedSlotId = selection?.type === "slot" ? selection.slotId : null;
+  const selectedBenchPlayerId =
+    selection?.type === "bench" ? selection.playerId : null;
   const selectedSlot = activeQuarter?.slots.find(
     (slot) => slot.id === selectedSlotId,
   );
   const selectedPlayer = selectedSlot?.playerId
     ? playerMap.get(selectedSlot.playerId)
+    : undefined;
+  const selectedBenchPlayer = selectedBenchPlayerId
+    ? playerMap.get(selectedBenchPlayerId)
     : undefined;
   const activeAssignedPlayerIds = useMemo(
     () =>
@@ -142,47 +153,86 @@ export function FormationEditorClient({
   }
 
   /**
-   * 슬롯 선택, 선택 해제, 두 슬롯 간 선수 교환을 처리합니다.
+   * 선택 상태와 안내 메시지를 함께 초기화합니다.
    */
-  function handleSlotClick(slot: EditorSlot) {
-    if (!selectedSlotId) {
-      setSelectedSlotId(slot.id);
-      return;
-    }
-
-    if (selectedSlotId === slot.id) {
-      setSelectedSlotId(null);
-      return;
-    }
-
-    updateActiveQuarter((slots) =>
-      swapSlotPlayers({
-        playerMap,
-        slots,
-        sourceSlotId: selectedSlotId,
-        targetSlotId: slot.id,
-      }),
-    );
-    setSelectedSlotId(null);
+  function clearSelection() {
+    setSelection(null);
+    setMessage(null);
   }
 
   /**
-   * 선택된 슬롯의 선수를 후보 선수로 교체합니다.
+   * 특정 슬롯에 후보 선수를 넣고 선택 상태를 초기화합니다.
    */
-  function handleBenchPlayerClick(player: EditorPlayer) {
-    if (!selectedSlotId) {
-      setMessage("교체할 유니폼을 먼저 선택해주세요.");
-      return;
-    }
-
+  function replaceSlotWithBenchPlayer({
+    player,
+    slotId,
+  }: {
+    player: EditorPlayer;
+    slotId: string;
+  }) {
     updateActiveQuarter((slots) =>
       replaceSlotPlayer({
         player,
         slots,
-        slotId: selectedSlotId,
+        slotId,
       }),
     );
-    setSelectedSlotId(null);
+    clearSelection();
+  }
+
+  /**
+   * 선택된 슬롯과 대상 슬롯의 선수를 교환하고 선택 상태를 초기화합니다.
+   */
+  function swapWithSelectedSlot(targetSlotId: string, sourceSlotId: string) {
+    updateActiveQuarter((slots) =>
+      swapSlotPlayers({
+        playerMap,
+        slots,
+        sourceSlotId,
+        targetSlotId,
+      }),
+    );
+    clearSelection();
+  }
+
+  /**
+   * 슬롯 선택, 선택 해제, 두 슬롯 간 선수 교환, 후보 선수 선선택 교체를 처리합니다.
+   */
+  function handleSlotClick(slot: EditorSlot) {
+    if (selectedBenchPlayer) {
+      replaceSlotWithBenchPlayer({ player: selectedBenchPlayer, slotId: slot.id });
+      return;
+    }
+
+    if (selection?.type !== "slot") {
+      setSelection({ slotId: slot.id, type: "slot" });
+      return;
+    }
+
+    if (selection.slotId === slot.id) {
+      clearSelection();
+      return;
+    }
+
+    swapWithSelectedSlot(slot.id, selection.slotId);
+  }
+
+  /**
+   * 슬롯이 선택되어 있으면 후보 선수로 교체하고, 아니면 후보 선수를 먼저 선택합니다.
+   */
+  function handleBenchPlayerClick(player: EditorPlayer) {
+    if (selection?.type === "slot") {
+      replaceSlotWithBenchPlayer({ player, slotId: selection.slotId });
+      return;
+    }
+
+    if (selection?.type === "bench" && selection.playerId === player.id) {
+      clearSelection();
+      return;
+    }
+
+    setMessage("교체할 유니폼을 선택해주세요.");
+    setSelection({ playerId: player.id, type: "bench" });
   }
 
   /**
@@ -239,7 +289,7 @@ export function FormationEditorClient({
             quarters={editedQuarters}
             onQuarterChange={(quarterNumber) => {
               setActiveQuarterNumber(quarterNumber);
-              setSelectedSlotId(null);
+              clearSelection();
             }}
           />
 
@@ -254,14 +304,16 @@ export function FormationEditorClient({
 
         <aside className="space-y-3">
           <SelectedSlotPanel
+            selectedBenchPlayer={selectedBenchPlayer}
             selectedPlayer={selectedPlayer}
             selectedSlot={selectedSlot}
           />
           <BenchPlayersPanel
             activeAssignedPlayerCount={activeAssignedPlayerIds.size}
             benchPlayers={benchPlayers}
+            hasSelectedSlot={selection?.type === "slot"}
             quarterNumber={activeQuarter.quarterNumber}
-            selectedSlot={selectedSlot}
+            selectedBenchPlayerId={selectedBenchPlayerId}
             onBenchPlayerClick={handleBenchPlayerClick}
           />
           <FormationEditorActions
