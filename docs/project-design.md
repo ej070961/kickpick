@@ -158,6 +158,7 @@ src/
     match/
     player/
     position/
+    team/
 
   shared/
     api/supabase/

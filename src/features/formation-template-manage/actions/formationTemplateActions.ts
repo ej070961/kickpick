@@ -1,13 +1,13 @@
 "use server";
 
 import { refresh, revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { DEFAULT_SLOT_COORDS } from "@/entities/formation";
 import {
   FORMATION_SLOT_CODES,
   type FormationSlotCode,
 } from "@/entities/position";
+import { requireCurrentTeamId } from "@/entities/team";
 import { createClient } from "@/shared/api/supabase/server";
 
 export type FormationTemplateFormState = {
@@ -45,29 +45,6 @@ function parseFieldSlots(formData: FormData) {
   return [...uniqueSlots];
 }
 
-async function getCurrentTeamId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  const { data: team, error } = await supabase
-    .from("teams")
-    .select("id")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error || !team) {
-    throw new Error(error?.message ?? "팀을 찾을 수 없습니다.");
-  }
-
-  return team.id as string;
-}
-
 export async function createFormationTemplate(
   _state: FormationTemplateFormState,
   formData: FormData,
@@ -82,7 +59,7 @@ export async function createFormationTemplate(
   }
 
   const supabase = await createClient();
-  const teamId = await getCurrentTeamId();
+  const teamId = await requireCurrentTeamId();
   const { name, slots } = validatedFields.data;
   const { data: template, error: templateError } = await supabase
     .from("formation_templates")

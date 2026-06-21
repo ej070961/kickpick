@@ -6,6 +6,7 @@ import {
   PLAYER_POSITION_CODES,
   type PlayerPositionCode,
 } from "@/entities/position";
+import { requireCurrentTeamId } from "@/entities/team";
 import { getFormationTemplate } from "@/features/formation-template-manage/lib/formationTemplateQueries";
 import {
   generateQuarterFormations,
@@ -74,32 +75,6 @@ type PlayerRow = {
 };
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
-
-/**
- * 현재 로그인 사용자가 소유한 첫 번째 팀 id를 조회하고, 비로그인 사용자는 로그인으로 보냅니다.
- */
-async function getCurrentTeamId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  const { data: team, error } = await supabase
-    .from("teams")
-    .select("id")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error || !team) {
-    throw new Error(error?.message ?? "팀을 찾을 수 없습니다.");
-  }
-
-  return team.id as string;
-}
 
 /**
  * Supabase player row를 포메이션 생성 알고리즘에서 사용하는 선수 모델로 변환합니다.
@@ -205,7 +180,7 @@ export async function createMatch(
   }
 
   const supabase = await createClient();
-  const teamId = await getCurrentTeamId();
+  const teamId = await requireCurrentTeamId();
   const rosterPlayerIds = playerKeys
     .filter((playerKey) => !isGuestPlayerKey(playerKey))
     .map(getIdFromPlayerKey);

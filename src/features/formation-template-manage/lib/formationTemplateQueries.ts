@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
 import type { FormationTemplate } from "@/entities/formation";
 import type { FormationSlotCode } from "@/entities/position";
+import { requireCurrentTeamId } from "@/entities/team";
 import { createClient } from "@/shared/api/supabase/server";
 
 type TemplateSlotRow = {
@@ -15,29 +15,6 @@ type TemplateRow = {
   id: string;
   name: string;
 };
-
-export async function getCurrentTeamId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  const { data: team, error } = await supabase
-    .from("teams")
-    .select("id")
-    .eq("owner_user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error || !team) {
-    throw new Error(error?.message ?? "팀을 찾을 수 없습니다.");
-  }
-
-  return team.id as string;
-}
 
 /**
  * DB row로 저장된 포메이션 템플릿을 경기 생성 UI가 사용하는 모델로 변환합니다.
@@ -58,7 +35,7 @@ function mapTemplate(row: TemplateRow): FormationTemplate {
 }
 
 export async function getFormationTemplates() {
-  const teamId = await getCurrentTeamId();
+  const teamId = await requireCurrentTeamId();
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -74,7 +51,7 @@ export async function getFormationTemplates() {
 }
 
 export async function getFormationTemplate(templateId: string) {
-  const teamId = await getCurrentTeamId();
+  const teamId = await requireCurrentTeamId();
 
   const supabase = await createClient();
   const { data, error } = await supabase

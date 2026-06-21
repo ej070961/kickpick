@@ -1,12 +1,12 @@
 "use server";
 
 import { refresh, revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import {
   PLAYER_POSITION_CODES,
   type PlayerPositionCode,
 } from "@/entities/position";
+import { ensureCurrentTeamId } from "@/entities/team";
 import { createClient } from "@/shared/api/supabase/server";
 
 export type PlayerFormState = {
@@ -56,47 +56,6 @@ function parseSubPositions(formData: FormData, mainPosition: string) {
     .filter((position) => position !== mainPosition);
 }
 
-async function getCurrentUserId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  return user.id;
-}
-
-async function getCurrentTeamId() {
-  const userId = await getCurrentUserId();
-  const supabase = await createClient();
-  const { data: team, error } = await supabase
-    .from("teams")
-    .select("id")
-    .eq("owner_user_id", userId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (team) return team.id as string;
-
-  const { data: createdTeam, error: createError } = await supabase
-    .from("teams")
-    .insert({ name: "KickPick 팀", owner_user_id: userId })
-    .select("id")
-    .single();
-
-  if (createError) {
-    throw new Error(createError.message);
-  }
-
-  return createdTeam.id as string;
-}
-
 export async function createPlayer(
   _state: PlayerFormState,
   formData: FormData,
@@ -114,7 +73,7 @@ export async function createPlayer(
   }
 
   const supabase = await createClient();
-  const teamId = await getCurrentTeamId();
+  const teamId = await ensureCurrentTeamId();
   const { data: latestPlayer, error: latestError } = await supabase
     .from("players")
     .select("priority_rank")

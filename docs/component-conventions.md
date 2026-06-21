@@ -29,37 +29,7 @@ app -> views -> widgets -> features -> entities -> shared
 - 서버 액션은 사용자 행동 단위 feature에 둔다.
 - 화면별 데이터 로드는 현재 구현처럼 `views`에서 수행하는 것을 기본으로 한다.
 
-## 3. 현재 폴더 구조
-
-```txt
-src/
-  app/
-    (auth)/
-    (main)/
-    auth/
-  views/
-  widgets/
-    top-bar/
-  features/
-    auth/
-    formation-editor/
-    formation-export/
-    formation-generate/
-    formation-template-manage/
-    match-create/
-    match-delete/
-    player-manage/
-    priority-reorder/
-  entities/
-    formation/
-    match/
-    player/
-    position/
-  shared/
-    api/supabase/
-    lib/
-    ui/
-```
+## 3. Slice 폴더 규칙
 
 각 slice는 필요할 때만 아래 폴더를 둔다.
 
@@ -172,6 +142,7 @@ calculateFitScore.ts
 - `entities/match`: 경기 타입
 - `entities/formation`: 포메이션 템플릿/슬롯 타입과 기본 좌표
 - `entities/position`: 선수 포지션과 슬롯 포지션 타입/매핑
+- `entities/team`: 현재 로그인 사용자의 팀 workspace 조회/보장 서버 API
 
 규칙:
 
