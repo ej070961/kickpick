@@ -135,6 +135,7 @@ src/
     formation-editor/
     formation-templates/
     login/
+    matches/
     match-new/
     players/
 
