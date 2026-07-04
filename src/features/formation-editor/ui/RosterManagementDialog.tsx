@@ -12,11 +12,13 @@ import type {
   RosterCandidate,
 } from "@/features/formation-editor/model/types";
 import { getIdFromPlayerKey } from "@/features/match-create/model/types";
-import { Badge, Button, Panel, SelectField, TextField } from "@/shared/ui";
+import { Badge, Button, Dialog, SelectField, TextField } from "@/shared/ui";
 import { PlayerDisplayName } from "./PlayerDisplayName";
 
-type RosterManagementPanelProps = {
+type RosterManagementDialogProps = {
+  isOpen: boolean;
   isPending: boolean;
+  onClose: () => void;
   onAddRosterPlayer: (playerId: string) => void;
   onRemoveParticipant: (player: EditorPlayer) => void;
   onSaveGuestPlayer: (input: GuestPlayerFormInput) => void;
@@ -35,14 +37,16 @@ type GuestFormState = {
 /**
  * 경기 참가 명단에서 팀 선수와 경기 전용 용병을 추가, 수정, 제거합니다.
  */
-export function RosterManagementPanel({
+export function RosterManagementDialog({
+  isOpen,
   isPending,
+  onClose,
   onAddRosterPlayer,
   onRemoveParticipant,
   onSaveGuestPlayer,
   players,
   rosterCandidates,
-}: RosterManagementPanelProps) {
+}: RosterManagementDialogProps) {
   const [search, setSearch] = useState("");
   const [guestForm, setGuestForm] = useState<GuestFormState>(
     createEmptyGuestForm,
@@ -91,7 +95,9 @@ export function RosterManagementPanel({
   }
 
   return (
-    <Panel
+    <Dialog
+      isOpen={isOpen}
+      onClose={onClose}
       title="경기 명단"
       description={`참가 ${players.length}명 · 추가 가능 ${rosterCandidates.length}명 · 용병 ${guestPlayers.length}명`}
     >
@@ -268,7 +274,7 @@ export function RosterManagementPanel({
           </div>
         </div>
       </div>
-    </Panel>
+    </Dialog>
   );
 
   function toggleGuestSubPosition(position: PlayerPositionCode) {

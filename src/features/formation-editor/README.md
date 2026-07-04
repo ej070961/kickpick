@@ -33,7 +33,7 @@ formation-editor/
     FormationToolbar.tsx
     PlayerDisplayName.tsx
     QuarterTabs.tsx
-    RosterManagementPanel.tsx
+    RosterManagementDialog.tsx
     SelectedSlotPanel.tsx
 ```
 
@@ -56,11 +56,11 @@ formation-editor/
 - `ui/QuarterTabs.tsx`: 활성 쿼터 전환 탭.
 - `ui/FormationField.tsx`: 축구장 이미지 위에 쿼터 라벨과 슬롯 유니폼을 렌더링하는 편집 필드. PNG export 캡처 대상도 포함한다.
 - `ui/FormationRegenerationDialog.tsx`: 경기 포메이션 템플릿과 재배정 방식을 선택하고 영향 범위를 안내하는 모달.
-- `ui/FormationToolbar.tsx`: 현재 경기 포메이션, 저장 전 변경 배지, 포메이션 변경 버튼을 표시한다.
+- `ui/FormationToolbar.tsx`: 현재 경기 포메이션, 저장 전 변경 배지, 포메이션 변경/선수 명단 수정 버튼을 표시한다.
 - `ui/PlayerDisplayName.tsx`: 선수 이름과 용병 표기 문구를 일관되게 렌더링한다.
 - `ui/SelectedSlotPanel.tsx`: 현재 선택된 슬롯과 배정 선수 정보.
 - `ui/BenchPlayersPanel.tsx`: 현재 쿼터에 출전하지 않는 후보 선수 목록과 교체 액션. 후보 선수를 먼저 선택한 뒤 유니폼을 눌러도 교체할 수 있다.
-- `ui/RosterManagementPanel.tsx`: 경기 참가 명단, 팀 선수 추가, 용병 추가/수정, 참가자 제거 액션을 제공한다.
+- `ui/RosterManagementDialog.tsx`: 모달에서 경기 참가 명단, 팀 선수 추가, 용병 추가/수정, 참가자 제거 액션을 제공한다.
 - `ui/FormationEditorActions.tsx`: 저장, 현재 쿼터 PNG 내보내기, 액션 결과 메시지.
 
 ## 작업 기준

@@ -26,7 +26,7 @@ import { FormationField } from "./FormationField";
 import { FormationRegenerationDialog } from "./FormationRegenerationDialog";
 import { FormationToolbar } from "./FormationToolbar";
 import { QuarterTabs } from "./QuarterTabs";
-import { RosterManagementPanel } from "./RosterManagementPanel";
+import { RosterManagementDialog } from "./RosterManagementDialog";
 import { SelectedSlotPanel } from "./SelectedSlotPanel";
 
 type FormationEditorClientProps = {
@@ -54,6 +54,7 @@ export function FormationEditorClient({
   const exportRef = useRef<HTMLDivElement>(null);
   const [isSavePending, startSaveTransition] = useTransition();
   const [isRosterPending, startRosterTransition] = useTransition();
+  const [isRosterDialogOpen, setIsRosterDialogOpen] = useState(false);
   const [editorPlayers, setEditorPlayers] = useState(players);
   const [availableRosterPlayers, setAvailableRosterPlayers] =
     useState(rosterCandidates);
@@ -189,11 +190,12 @@ export function FormationEditorClient({
         hasUnsavedChanges={editor.hasUnsavedChanges}
         isPending={isPending}
         onOpenRegeneration={() => regeneration.setIsRegenerationOpen(true)}
+        onOpenRosterManagement={() => setIsRosterDialogOpen(true)}
       />
 
       <AssignmentSummary
         assignmentItems={editor.assignmentItems}
-        playerCount={players.length}
+        playerCount={editorPlayers.length}
         quarterCount={editor.editedQuarters.length}
       />
 
@@ -231,14 +233,6 @@ export function FormationEditorClient({
             selectedBenchPlayerId={editor.selectedBenchPlayerId}
             onBenchPlayerClick={editor.handleBenchPlayerClick}
           />
-          <RosterManagementPanel
-            isPending={isPending}
-            players={editorPlayers}
-            rosterCandidates={availableRosterPlayers}
-            onAddRosterPlayer={handleAddRosterPlayer}
-            onRemoveParticipant={handleRemoveParticipant}
-            onSaveGuestPlayer={handleSaveGuestPlayer}
-          />
           <FormationEditorActions
             isPending={isPending}
             message={editor.message}
@@ -247,6 +241,17 @@ export function FormationEditorClient({
           />
         </aside>
       </div>
+
+      <RosterManagementDialog
+        isOpen={isRosterDialogOpen}
+        isPending={isPending}
+        players={editorPlayers}
+        rosterCandidates={availableRosterPlayers}
+        onAddRosterPlayer={handleAddRosterPlayer}
+        onClose={() => setIsRosterDialogOpen(false)}
+        onRemoveParticipant={handleRemoveParticipant}
+        onSaveGuestPlayer={handleSaveGuestPlayer}
+      />
 
       <FormationRegenerationDialog
         currentFormationLabel={regeneration.currentFormationLabel}

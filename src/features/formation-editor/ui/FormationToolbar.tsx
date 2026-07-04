@@ -6,6 +6,7 @@ type FormationToolbarProps = {
   hasUnsavedChanges: boolean;
   isPending: boolean;
   onOpenRegeneration: () => void;
+  onOpenRosterManagement: () => void;
 };
 
 /**
@@ -17,6 +18,7 @@ export function FormationToolbar({
   hasUnsavedChanges,
   isPending,
   onOpenRegeneration,
+  onOpenRosterManagement,
 }: FormationToolbarProps) {
   return (
     <Panel className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -29,14 +31,23 @@ export function FormationToolbar({
           ) : null}
         </div>
       </div>
-      <Button
-        onClick={onOpenRegeneration}
-        disabled={isPending || !hasTemplates}
-        variant="secondary"
-        className="border-primary text-primary hover:bg-mint-surface"
-      >
-        포메이션 변경
-      </Button>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button
+          onClick={onOpenRosterManagement}
+          disabled={isPending}
+          variant="secondary"
+        >
+          선수 명단 수정
+        </Button>
+        <Button
+          onClick={onOpenRegeneration}
+          disabled={isPending || !hasTemplates}
+          variant="secondary"
+          className="border-primary text-primary hover:bg-mint-surface"
+        >
+          포메이션 변경
+        </Button>
+      </div>
     </Panel>
   );
 }
