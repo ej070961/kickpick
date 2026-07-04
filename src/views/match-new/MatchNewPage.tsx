@@ -18,18 +18,28 @@ type PlayerRow = {
   created_at: string;
 };
 
-function mapPlayer(row: PlayerRow): Player {
-  return {
-    createdAt: row.created_at,
-    id: row.id,
-    isDeleted: row.is_deleted,
-    mainPosition: row.main_position,
-    name: row.name,
-    playerNumber: row.player_number,
-    priorityRank: row.priority_rank,
-    subPositions: row.sub_positions,
-    teamId: row.team_id,
-  };
+export async function MatchNewPage() {
+  const [players, formationTemplates] = await Promise.all([
+    getPlayers(),
+    getFormationTemplates(),
+  ]);
+
+  return (
+    <section>
+      <PageHeader
+        title="새 경기 생성"
+        description="참가 선수, 쿼터 수, GK 고정 여부, 포메이션을 선택하고 자동 배치 초안을 생성합니다."
+      />
+      {formationTemplates.length > 0 ? (
+        <MatchCreateForm
+          formationTemplates={formationTemplates}
+          players={players}
+        />
+      ) : (
+        <FormationTemplateRequiredState />
+      )}
+    </section>
+  );
 }
 
 async function getPlayers() {
@@ -48,6 +58,20 @@ async function getPlayers() {
   }
 
   return (data ?? []).map((row) => mapPlayer(row as PlayerRow));
+}
+
+function mapPlayer(row: PlayerRow): Player {
+  return {
+    createdAt: row.created_at,
+    id: row.id,
+    isDeleted: row.is_deleted,
+    mainPosition: row.main_position,
+    name: row.name,
+    playerNumber: row.player_number,
+    priorityRank: row.priority_rank,
+    subPositions: row.sub_positions,
+    teamId: row.team_id,
+  };
 }
 
 /**
@@ -74,29 +98,5 @@ function FormationTemplateRequiredState() {
         템플릿 만들기
       </Link>
     </div>
-  );
-}
-
-export async function MatchNewPage() {
-  const [players, formationTemplates] = await Promise.all([
-    getPlayers(),
-    getFormationTemplates(),
-  ]);
-
-  return (
-    <section>
-      <PageHeader
-        title="새 경기 생성"
-        description="참가 선수, 쿼터 수, GK 고정 여부, 포메이션을 선택하고 자동 배치 초안을 생성합니다."
-      />
-      {formationTemplates.length > 0 ? (
-        <MatchCreateForm
-          formationTemplates={formationTemplates}
-          players={players}
-        />
-      ) : (
-        <FormationTemplateRequiredState />
-      )}
-    </section>
   );
 }

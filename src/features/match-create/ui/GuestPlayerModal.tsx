@@ -22,17 +22,6 @@ type GuestPlayerFormState = {
   subPositions: Set<PlayerPositionCode>;
 };
 
-const DEFAULT_MAIN_POSITION: PlayerPositionCode = "CM";
-
-function createInitialFormState(): GuestPlayerFormState {
-  return {
-    editingId: null,
-    mainPosition: DEFAULT_MAIN_POSITION,
-    name: "",
-    subPositions: new Set(),
-  };
-}
-
 /**
  * 경기 생성 중에만 사용하는 용병 선수를 추가, 수정, 삭제합니다.
  */
@@ -319,4 +308,18 @@ export function GuestPlayerModal({
       </dialog>
     </>
   );
+}
+
+const DEFAULT_MAIN_POSITION: PlayerPositionCode = "CM";
+
+/**
+ * 용병 추가 모달을 신규 입력 상태로 초기화합니다.
+ */
+function createInitialFormState(): GuestPlayerFormState {
+  return {
+    editingId: null,
+    mainPosition: DEFAULT_MAIN_POSITION,
+    name: "",
+    subPositions: new Set(),
+  };
 }

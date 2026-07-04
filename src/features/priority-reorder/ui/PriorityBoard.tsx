@@ -35,84 +35,6 @@ type SortablePlayerRowProps = {
 };
 
 /**
- * 드래그 가능한 선수 관리 카드입니다.
- *
- * 순위, 이름, 포지션의 시각 위계를 키우고 카드 우측 액션 영역에서 편집과
- * 삭제를 바로 실행할 수 있게 구성합니다.
- */
-function SortablePlayerRow({ index, player }: SortablePlayerRowProps) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: player.id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-  const secondaryPositions = player.subPositions.filter(
-    (position) => position !== player.mainPosition,
-  );
-
-  return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className="grid grid-cols-[44px_minmax(0,1fr)] gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition sm:grid-cols-[44px_64px_minmax(0,1fr)_auto] sm:items-center"
-    >
-      <button
-        type="button"
-        className="flex size-11 touch-none items-center justify-center rounded-lg border border-border bg-background text-muted transition hover:border-primary hover:text-primary"
-        aria-label={`${player.name} 순위 드래그`}
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical size={18} aria-hidden="true" />
-      </button>
-
-      <span className="hidden text-lg font-bold text-primary sm:block">
-        #{index + 1}
-      </span>
-
-      <div className="min-w-0">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <span className="shrink-0 text-base font-bold text-primary sm:hidden">
-            #{index + 1}
-          </span>
-          <p className="min-w-0 text-lg font-semibold leading-7 text-foreground">
-            {player.playerNumber !== null ? (
-              <span className="mr-2 text-primary">#{player.playerNumber}</span>
-            ) : null}
-            {player.name}
-          </p>
-        </div>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-md bg-primary px-2.5 py-1 text-sm font-semibold text-primary-foreground">
-            {player.mainPosition}
-          </span>
-          {secondaryPositions.length > 0 ? (
-            secondaryPositions.map((position) => (
-              <span
-                key={position}
-                className="rounded-md border border-border bg-background px-2.5 py-1 text-sm font-medium text-muted"
-              >
-                {position}
-              </span>
-            ))
-          ) : (
-            <span className="rounded-md border border-dashed border-border px-2.5 py-1 text-sm font-medium text-muted">
-              부 포지션 없음
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="col-start-2 flex flex-wrap gap-2 sm:col-start-auto sm:justify-end">
-        <EditPlayerModal player={player} />
-        <DeletePlayerButton player={player} />
-      </div>
-    </li>
-  );
-}
-
-/**
  * 선수 목록과 우선순위 정렬을 함께 제공하는 관리 보드입니다.
  *
  * `@dnd-kit`의 포인터, 터치, 키보드 센서를 함께 사용해 데스크탑과 모바일에서
@@ -216,5 +138,83 @@ export function PriorityBoard({ players }: PriorityBoardProps) {
         </SortableContext>
       </DndContext>
     </div>
+  );
+}
+
+/**
+ * 드래그 가능한 선수 관리 카드입니다.
+ *
+ * 순위, 이름, 포지션의 시각 위계를 키우고 카드 우측 액션 영역에서 편집과
+ * 삭제를 바로 실행할 수 있게 구성합니다.
+ */
+function SortablePlayerRow({ index, player }: SortablePlayerRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: player.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  const secondaryPositions = player.subPositions.filter(
+    (position) => position !== player.mainPosition,
+  );
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className="grid grid-cols-[44px_minmax(0,1fr)] gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition sm:grid-cols-[44px_64px_minmax(0,1fr)_auto] sm:items-center"
+    >
+      <button
+        type="button"
+        className="flex size-11 touch-none items-center justify-center rounded-lg border border-border bg-background text-muted transition hover:border-primary hover:text-primary"
+        aria-label={`${player.name} 순위 드래그`}
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical size={18} aria-hidden="true" />
+      </button>
+
+      <span className="hidden text-lg font-bold text-primary sm:block">
+        #{index + 1}
+      </span>
+
+      <div className="min-w-0">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <span className="shrink-0 text-base font-bold text-primary sm:hidden">
+            #{index + 1}
+          </span>
+          <p className="min-w-0 text-lg font-semibold leading-7 text-foreground">
+            {player.playerNumber !== null ? (
+              <span className="mr-2 text-primary">#{player.playerNumber}</span>
+            ) : null}
+            {player.name}
+          </p>
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="rounded-md bg-primary px-2.5 py-1 text-sm font-semibold text-primary-foreground">
+            {player.mainPosition}
+          </span>
+          {secondaryPositions.length > 0 ? (
+            secondaryPositions.map((position) => (
+              <span
+                key={position}
+                className="rounded-md border border-border bg-background px-2.5 py-1 text-sm font-medium text-muted"
+              >
+                {position}
+              </span>
+            ))
+          ) : (
+            <span className="rounded-md border border-dashed border-border px-2.5 py-1 text-sm font-medium text-muted">
+              부 포지션 없음
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="col-start-2 flex flex-wrap gap-2 sm:col-start-auto sm:justify-end">
+        <EditPlayerModal player={player} />
+        <DeletePlayerButton player={player} />
+      </div>
+    </li>
   );
 }

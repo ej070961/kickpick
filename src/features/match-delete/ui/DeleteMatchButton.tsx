@@ -9,6 +9,27 @@ type DeleteMatchButtonProps = {
   matchName: string;
 };
 
+export function DeleteMatchButton({
+  matchId,
+  matchName,
+}: DeleteMatchButtonProps) {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    if (!window.confirm(`${matchName} 경기를 삭제할까요?`)) {
+      event.preventDefault();
+    }
+  }
+
+  return (
+    <form action={deleteMatch} onSubmit={handleSubmit}>
+      <input type="hidden" name="id" value={matchId} />
+      <DeleteSubmitButton />
+    </form>
+  );
+}
+
+/**
+ * 서버 action 제출 중 삭제 버튼의 pending 상태를 표시합니다.
+ */
 function DeleteSubmitButton() {
   const { pending } = useFormStatus();
 
@@ -27,23 +48,5 @@ function DeleteSubmitButton() {
         </>
       )}
     </button>
-  );
-}
-
-export function DeleteMatchButton({
-  matchId,
-  matchName,
-}: DeleteMatchButtonProps) {
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    if (!window.confirm(`${matchName} 경기를 삭제할까요?`)) {
-      event.preventDefault();
-    }
-  }
-
-  return (
-    <form action={deleteMatch} onSubmit={handleSubmit}>
-      <input type="hidden" name="id" value={matchId} />
-      <DeleteSubmitButton />
-    </form>
   );
 }

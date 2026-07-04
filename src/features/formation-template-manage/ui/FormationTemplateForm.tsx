@@ -9,12 +9,6 @@ import {
 import type { FormationTemplateFormState } from "@/features/formation-template-manage/actions/formationTemplateActions";
 import { SubmitButton } from "@/features/player-manage/ui/SubmitButton";
 
-const initialState: FormationTemplateFormState = {};
-const FIELD_SLOT_CODES: FormationSlotCode[] = FORMATION_SLOT_CODES.filter(
-  (position) => position !== "GK" && position !== "RC",
-);
-const REQUIRED_FIELD_SLOT_COUNT = 10;
-
 type FormationTemplateFormProps = {
   action: (
     state: FormationTemplateFormState,
@@ -154,3 +148,9 @@ export function FormationTemplateForm({ action }: FormationTemplateFormProps) {
     </form>
   );
 }
+
+const initialState: FormationTemplateFormState = {};
+const FIELD_SLOT_CODES: FormationSlotCode[] = FORMATION_SLOT_CODES.filter(
+  (position) => position !== "GK" && position !== "RC",
+);
+const REQUIRED_FIELD_SLOT_COUNT = 10;

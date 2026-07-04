@@ -9,6 +9,7 @@ export type EditorPlayer = {
   mainPosition: PlayerPositionCode;
   name: string;
   playerNumber: number | null;
+  priorityRank: number;
   subPositions: PlayerPositionCode[];
 };
 
@@ -31,3 +32,10 @@ export type AssignmentSummaryItem = {
   player: EditorPlayer;
   quarterNumbers: number[];
 };
+
+export type FormationEditorTemplate = {
+  id: string;
+  label: string;
+};
+
+export type FormationRegenerationMode = "full" | "preserve_players";

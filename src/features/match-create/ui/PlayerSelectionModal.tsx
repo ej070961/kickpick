@@ -31,49 +31,6 @@ type SelectionCheckboxProps = {
   onChange: ChangeEventHandler<HTMLInputElement>;
 };
 
-function SelectionCheckbox({
-  ariaLabel,
-  checked,
-  className = "",
-  disabled = false,
-  inputRef,
-  isIndeterminate = false,
-  onChange,
-}: SelectionCheckboxProps) {
-  const isActive = checked || isIndeterminate;
-
-  return (
-    <span
-      className={`relative inline-flex size-5 shrink-0 items-center justify-center ${className}`}
-    >
-      <input
-        ref={inputRef}
-        type="checkbox"
-        checked={checked}
-        disabled={disabled}
-        onChange={onChange}
-        aria-label={ariaLabel}
-        aria-checked={isIndeterminate ? "mixed" : checked}
-        className="absolute inset-0 z-10 size-5 cursor-pointer opacity-0 disabled:cursor-not-allowed"
-      />
-      <span
-        aria-hidden="true"
-        className={`flex size-5 items-center justify-center rounded-md border transition ${
-          isActive
-            ? "border-primary bg-primary text-primary-foreground"
-            : "border-border bg-card text-transparent"
-        } ${disabled ? "opacity-40" : ""}`}
-      >
-        {isIndeterminate ? (
-          <Minus size={14} strokeWidth={3} />
-        ) : (
-          <Check size={14} strokeWidth={3} />
-        )}
-      </span>
-    </span>
-  );
-}
-
 /**
  * 등록 선수 중 이번 경기에 참가할 선수를 모달 안에서 선택합니다.
  */
@@ -479,5 +436,51 @@ export function PlayerSelectionModal({
         </div>
       </dialog>
     </section>
+  );
+}
+
+/**
+ * 전체 선택의 indeterminate 상태까지 표현하는 커스텀 체크박스입니다.
+ */
+function SelectionCheckbox({
+  ariaLabel,
+  checked,
+  className = "",
+  disabled = false,
+  inputRef,
+  isIndeterminate = false,
+  onChange,
+}: SelectionCheckboxProps) {
+  const isActive = checked || isIndeterminate;
+
+  return (
+    <span
+      className={`relative inline-flex size-5 shrink-0 items-center justify-center ${className}`}
+    >
+      <input
+        ref={inputRef}
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={onChange}
+        aria-label={ariaLabel}
+        aria-checked={isIndeterminate ? "mixed" : checked}
+        className="absolute inset-0 z-10 size-5 cursor-pointer opacity-0 disabled:cursor-not-allowed"
+      />
+      <span
+        aria-hidden="true"
+        className={`flex size-5 items-center justify-center rounded-md border transition ${
+          isActive
+            ? "border-primary bg-primary text-primary-foreground"
+            : "border-border bg-card text-transparent"
+        } ${disabled ? "opacity-40" : ""}`}
+      >
+        {isIndeterminate ? (
+          <Minus size={14} strokeWidth={3} />
+        ) : (
+          <Check size={14} strokeWidth={3} />
+        )}
+      </span>
+    </span>
   );
 }

@@ -1,8 +1,3 @@
-const STEP_ITEMS = [
-  { label: "경기 설정", value: 1 },
-  { label: "쿼터 배정", value: 2 },
-];
-
 /**
  * 경기 생성 wizard의 현재 단계를 시각적으로 표시합니다.
  */
@@ -27,3 +22,8 @@ export function StepIndicator({ step }: { step: number }) {
     </div>
   );
 }
+
+const STEP_ITEMS = [
+  { label: "경기 설정", value: 1 },
+  { label: "쿼터 배정", value: 2 },
+];

@@ -6,6 +6,7 @@ import type {
 import { FormationEditorClient } from "@/features/formation-editor/ui/FormationEditorClient";
 import type { AssignedSlot } from "@/entities/formation";
 import type { PlayerPositionCode } from "@/entities/position";
+import { getFormationTemplates } from "@/features/formation-template-manage/lib/formationTemplateQueries";
 import {
   getGuestPlayerKey,
   getRosterPlayerKey,
@@ -47,6 +48,7 @@ type MatchPlayerRow = {
     main_position: PlayerPositionCode;
     name: string;
     player_number: number | null;
+    priority_rank: number;
     sub_positions: PlayerPositionCode[];
   } | null;
   players: {
@@ -54,6 +56,7 @@ type MatchPlayerRow = {
     main_position: PlayerPositionCode;
     name: string;
     player_number: number | null;
+    priority_rank: number;
     sub_positions: PlayerPositionCode[];
   } | null;
 };
@@ -85,7 +88,7 @@ async function getMatchFormation(matchId: string) {
   const { data: matchPlayers, error: matchPlayersError } = await supabase
     .from("match_players")
     .select(
-      "players(id, name, player_number, main_position, sub_positions), match_guest_players(id, name, player_number, main_position, sub_positions)",
+      "players(id, name, player_number, main_position, sub_positions, priority_rank), match_guest_players(id, name, player_number, main_position, sub_positions, priority_rank)",
     )
     .eq("match_id", matchId);
 
@@ -133,6 +136,7 @@ function mapPlayer(row: MatchPlayerRow): EditorPlayer | null {
       mainPosition: row.match_guest_players.main_position,
       name: row.match_guest_players.name,
       playerNumber: row.match_guest_players.player_number,
+      priorityRank: row.match_guest_players.priority_rank,
       subPositions: row.match_guest_players.sub_positions,
     };
   }
@@ -144,6 +148,7 @@ function mapPlayer(row: MatchPlayerRow): EditorPlayer | null {
     mainPosition: row.players.main_position,
     name: row.players.name,
     playerNumber: row.players.player_number,
+    priorityRank: row.players.priority_rank,
     subPositions: row.players.sub_positions,
   };
 }
@@ -151,7 +156,10 @@ function mapPlayer(row: MatchPlayerRow): EditorPlayer | null {
 export async function FormationEditorPage({
   matchId,
 }: FormationEditorPageProps) {
-  const { match, players, quarters } = await getMatchFormation(matchId);
+  const [{ match, players, quarters }, formationTemplates] = await Promise.all([
+    getMatchFormation(matchId),
+    getFormationTemplates(),
+  ]);
   const displayName = match.name ?? "이름 없는 경기";
   const editorQuarters = quarters.map(mapQuarter);
   const editorPlayers = players
@@ -167,6 +175,11 @@ export async function FormationEditorPage({
       />
       <FormationEditorClient
         fileBaseName={fileBaseName}
+        formationLabel={match.formation}
+        formationTemplates={formationTemplates.map((template) => ({
+          id: template.id,
+          label: template.label,
+        }))}
         matchId={match.id}
         players={editorPlayers}
         quarters={editorQuarters}

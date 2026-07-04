@@ -35,48 +35,6 @@ type MatchCreateFormProps = {
   players: Player[];
 };
 
-const initialState: MatchCreateState = {};
-const DEFAULT_QUARTER_COUNT = 4;
-const DEFAULT_GK_FIXED = true;
-
-/**
- * 현재 경기 설정값을 기준으로 기본 쿼터 보정 선수 선택값을 계산합니다.
- */
-function getDefaultQuotaSelection({
-  formationTemplate,
-  gkFixed,
-  players,
-  quarterCount,
-}: {
-  formationTemplate: FormationTemplate | undefined;
-  gkFixed: boolean;
-  players: MatchCreateParticipant[];
-  quarterCount: number;
-}) {
-  const slotsPerQuarter = formationTemplate?.slots.length ?? 0;
-  const quotaSlotsPerQuarter = getQuotaSlotsPerQuarter({
-    gkFixed,
-    slotsPerQuarter,
-  });
-  const { quotaPlayers } = getQuotaPlayers({ gkFixed, players });
-  const selectionType = getQuotaSelectionType({
-    playerCount: quotaPlayers.length,
-    quarterCount,
-    slotsPerQuarter: quotaSlotsPerQuarter,
-  });
-  const requiredCount = getQuotaSelectionCount({
-    playerCount: quotaPlayers.length,
-    quarterCount,
-    slotsPerQuarter: quotaSlotsPerQuarter,
-  });
-
-  return getDefaultQuotaPlayerIds({
-    players: quotaPlayers,
-    requiredCount,
-    selectionType,
-  });
-}
-
 /**
  * 새 경기 생성 폼입니다.
  *
@@ -404,4 +362,46 @@ export function MatchCreateForm({
       </div>
     </form>
   );
+}
+
+const initialState: MatchCreateState = {};
+const DEFAULT_QUARTER_COUNT = 4;
+const DEFAULT_GK_FIXED = true;
+
+/**
+ * 현재 경기 설정값을 기준으로 기본 쿼터 보정 선수 선택값을 계산합니다.
+ */
+function getDefaultQuotaSelection({
+  formationTemplate,
+  gkFixed,
+  players,
+  quarterCount,
+}: {
+  formationTemplate: FormationTemplate | undefined;
+  gkFixed: boolean;
+  players: MatchCreateParticipant[];
+  quarterCount: number;
+}) {
+  const slotsPerQuarter = formationTemplate?.slots.length ?? 0;
+  const quotaSlotsPerQuarter = getQuotaSlotsPerQuarter({
+    gkFixed,
+    slotsPerQuarter,
+  });
+  const { quotaPlayers } = getQuotaPlayers({ gkFixed, players });
+  const selectionType = getQuotaSelectionType({
+    playerCount: quotaPlayers.length,
+    quarterCount,
+    slotsPerQuarter: quotaSlotsPerQuarter,
+  });
+  const requiredCount = getQuotaSelectionCount({
+    playerCount: quotaPlayers.length,
+    quarterCount,
+    slotsPerQuarter: quotaSlotsPerQuarter,
+  });
+
+  return getDefaultQuotaPlayerIds({
+    players: quotaPlayers,
+    requiredCount,
+    selectionType,
+  });
 }

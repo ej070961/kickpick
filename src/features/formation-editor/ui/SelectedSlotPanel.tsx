@@ -17,20 +17,6 @@ type SelectedItemCardProps = {
   title: ReactNode;
 };
 
-function SelectedItemCard({
-  description,
-  subtitle,
-  title,
-}: SelectedItemCardProps) {
-  return (
-    <div className="mt-3 rounded-lg border border-primary bg-mint-surface px-3 py-2">
-      <p className="text-sm font-bold text-foreground">{title}</p>
-      <p className="mt-1 text-sm text-muted">{subtitle}</p>
-      <p className="mt-2 text-xs text-muted">{description}</p>
-    </div>
-  );
-}
-
 /**
  * 현재 선택된 슬롯과 배정 선수를 보여주고 다음 교체 행동을 안내합니다.
  */
@@ -65,6 +51,23 @@ export function SelectedSlotPanel({
           유니폼 또는 후보 카드를 선택하면 교체할 수 있습니다.
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * 선택된 슬롯 또는 후보 선수의 요약 정보를 강조해서 표시합니다.
+ */
+function SelectedItemCard({
+  description,
+  subtitle,
+  title,
+}: SelectedItemCardProps) {
+  return (
+    <div className="mt-3 rounded-lg border border-primary bg-mint-surface px-3 py-2">
+      <p className="text-sm font-bold text-foreground">{title}</p>
+      <p className="mt-1 text-sm text-muted">{subtitle}</p>
+      <p className="mt-2 text-xs text-muted">{description}</p>
     </div>
   );
 }
