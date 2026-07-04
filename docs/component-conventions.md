@@ -258,6 +258,8 @@ updatePlayerPriority(input)
 
 - Tailwind CSS를 기본으로 사용한다.
 - 색상 값은 `src/app/globals.css`의 CSS variable과 Tailwind theme token으로 관리한다.
+- 버튼, 배지, 카드형 패널, 기본 입력, select처럼 여러 화면에서 반복되는 UI는 먼저 `shared/ui` 컴포넌트로 만들고 재사용한다.
+- 새 UI를 만들 때 기존 `shared/ui` 컴포넌트로 표현 가능한지 먼저 확인하고, 직접 긴 class 조합을 반복하지 않는다.
 - 반복되는 class 조합은 필요할 때 `shared/lib/cn.ts`의 `cn()` helper를 사용한다.
 - 카드 radius는 기본 8px 내외를 유지하되, 기존 글로벌 radius token과 화면 맥락을 따른다.
 - 텍스트가 좁은 영역에서 넘치면 `truncate`, responsive layout, 줄바꿈으로 처리한다.

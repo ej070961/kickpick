@@ -1,4 +1,5 @@
 import type { EditorPlayer } from "@/features/formation-editor/model/types";
+import { Badge, Panel } from "@/shared/ui";
 import { PlayerDisplayName } from "./PlayerDisplayName";
 
 type BenchPlayersPanelProps = {
@@ -22,14 +23,10 @@ export function BenchPlayersPanel({
   selectedBenchPlayerId,
 }: BenchPlayersPanelProps) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-      <h3 className="text-base font-semibold text-foreground">
-        현재 쿼터 후보
-      </h3>
-      <p className="mt-1 text-sm text-muted">
-        {quarterNumber}Q · 출전 {activeAssignedPlayerCount}명 · 후보{" "}
-        {benchPlayers.length}명
-      </p>
+    <Panel
+      title="현재 쿼터 후보"
+      description={`${quarterNumber}Q · 출전 ${activeAssignedPlayerCount}명 · 후보 ${benchPlayers.length}명`}
+    >
       <p className="mt-2 text-xs text-muted">
         {hasSelectedSlot
           ? "후보 카드를 누르면 선택한 유니폼과 교체됩니다."
@@ -61,9 +58,7 @@ export function BenchPlayersPanel({
                     className="block truncate font-semibold text-foreground"
                   />
                 </span>
-                <span className="shrink-0 text-xs font-semibold text-muted">
-                  {player.mainPosition}
-                </span>
+                <Badge>{player.mainPosition}</Badge>
               </button>
             );
           })}
@@ -73,6 +68,6 @@ export function BenchPlayersPanel({
           후보 선수가 없습니다.
         </p>
       )}
-    </div>
+    </Panel>
   );
 }

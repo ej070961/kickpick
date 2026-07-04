@@ -1,4 +1,5 @@
 import type { AssignmentSummaryItem } from "@/features/formation-editor/model/types";
+import { Badge, Panel } from "@/shared/ui";
 import { PlayerDisplayName } from "./PlayerDisplayName";
 
 type AssignmentSummaryProps = {
@@ -16,20 +17,15 @@ export function AssignmentSummary({
   quarterCount,
 }: AssignmentSummaryProps) {
   return (
-    <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h3 className="text-base font-semibold text-foreground">
-            전체 배정 요약
-          </h3>
-          <p className="mt-1 text-sm text-muted">
-            전체 쿼터 기준 선수별 출전 쿼터입니다.
-          </p>
-        </div>
+    <Panel
+      title="전체 배정 요약"
+      description="전체 쿼터 기준 선수별 출전 쿼터입니다."
+      actions={
         <p className="text-sm font-semibold text-primary">
           {quarterCount}쿼터 · {playerCount}명
         </p>
-      </div>
+      }
+    >
       <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {assignmentItems.map(({ player, quarterNumbers }) => (
           <div
@@ -45,22 +41,17 @@ export function AssignmentSummary({
             <span className="flex shrink-0 flex-wrap justify-end gap-1">
               {quarterNumbers.length > 0 ? (
                 quarterNumbers.map((quarterNumber) => (
-                  <span
-                    key={quarterNumber}
-                    className="rounded-md bg-mint-surface px-2 py-1 text-xs font-bold text-primary"
-                  >
+                  <Badge key={quarterNumber} variant="primary">
                     {quarterNumber}Q
-                  </span>
+                  </Badge>
                 ))
               ) : (
-                <span className="rounded-md border border-dashed border-border px-2 py-1 text-xs font-semibold text-muted">
-                  미배정
-                </span>
+                <Badge>미배정</Badge>
               )}
             </span>
           </div>
         ))}
       </div>
-    </section>
+    </Panel>
   );
 }

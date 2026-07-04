@@ -28,8 +28,15 @@ export type MatchPlayerRow = {
 };
 
 export type QuarterSlotRow = {
+  fit_score?: number | null;
   guest_player_id: string | null;
+  id?: string;
+  is_manual?: boolean;
   player_id: string | null;
+  quarter_formation_id?: string;
+  slot_name?: AssignedSlot["name"];
+  x?: number;
+  y?: number;
 };
 
 export type QuarterRow = {
@@ -51,4 +58,13 @@ export type FormationSlotInsertRow = {
 
 export type InsertedSlotRow = FormationSlotInsertRow & {
   id: string;
+};
+
+export type RosterPlayerRow = {
+  id: string;
+  main_position: PlayerPositionCode;
+  name: string;
+  player_number: number | null;
+  priority_rank: number;
+  sub_positions: PlayerPositionCode[];
 };

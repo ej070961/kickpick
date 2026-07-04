@@ -1,16 +1,24 @@
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { exportElementAsPng } from "@/features/formation-export/lib/exportElementAsPng";
-import { saveFormationSlots } from "@/features/formation-editor/actions/formationEditorActions";
+import {
+  addMatchRosterPlayer,
+  removeMatchParticipant,
+  saveFormationSlots,
+  saveMatchGuestPlayer,
+} from "@/features/formation-editor/actions/formationEditorActions";
 import { sanitizeFileName } from "@/features/formation-editor/lib/formationEditorFormat";
 import type {
   EditorPlayer,
   EditorQuarter,
   FormationEditorTemplate,
+  GuestPlayerFormInput,
+  RosterCandidate,
 } from "@/features/formation-editor/model/types";
 import { useFormationEditorState } from "@/features/formation-editor/model/useFormationEditorState";
 import { useFormationRegeneration } from "@/features/formation-editor/model/useFormationRegeneration";
+import { getIdFromPlayerKey } from "@/features/match-create/model/types";
 import { AssignmentSummary } from "./AssignmentSummary";
 import { BenchPlayersPanel } from "./BenchPlayersPanel";
 import { FormationEditorActions } from "./FormationEditorActions";
@@ -18,6 +26,7 @@ import { FormationField } from "./FormationField";
 import { FormationRegenerationDialog } from "./FormationRegenerationDialog";
 import { FormationToolbar } from "./FormationToolbar";
 import { QuarterTabs } from "./QuarterTabs";
+import { RosterManagementPanel } from "./RosterManagementPanel";
 import { SelectedSlotPanel } from "./SelectedSlotPanel";
 
 type FormationEditorClientProps = {
@@ -27,6 +36,7 @@ type FormationEditorClientProps = {
   matchId: string;
   players: EditorPlayer[];
   quarters: EditorQuarter[];
+  rosterCandidates: RosterCandidate[];
 };
 
 /**
@@ -39,10 +49,15 @@ export function FormationEditorClient({
   matchId,
   players,
   quarters,
+  rosterCandidates,
 }: FormationEditorClientProps) {
   const exportRef = useRef<HTMLDivElement>(null);
   const [isSavePending, startSaveTransition] = useTransition();
-  const editor = useFormationEditorState({ players, quarters });
+  const [isRosterPending, startRosterTransition] = useTransition();
+  const [editorPlayers, setEditorPlayers] = useState(players);
+  const [availableRosterPlayers, setAvailableRosterPlayers] =
+    useState(rosterCandidates);
+  const editor = useFormationEditorState({ players: editorPlayers, quarters });
   const regeneration = useFormationRegeneration({
     formationLabel,
     formationTemplates,
@@ -52,7 +67,8 @@ export function FormationEditorClient({
       editor.replaceEditedQuarters(nextQuarters);
     },
   });
-  const isPending = isSavePending || regeneration.isRegenerationPending;
+  const isPending =
+    isSavePending || isRosterPending || regeneration.isRegenerationPending;
 
   /**
    * 현재 편집된 모든 슬롯 변경사항을 서버 액션으로 저장합니다.
@@ -85,6 +101,75 @@ export function FormationEditorClient({
     await exportElementAsPng({
       element: exportRef.current,
       fileName: `${sanitizeFileName(fileBaseName)}_${editor.activeQuarter.quarterNumber}Q.png`,
+    });
+  }
+
+  /**
+   * 팀 선수를 경기 명단에 추가하고 후보 목록에서 제거합니다.
+   */
+  function handleAddRosterPlayer(playerId: string) {
+    startRosterTransition(async () => {
+      const result = await addMatchRosterPlayer(matchId, playerId);
+      editor.setMessage(result.message);
+
+      if (!result.success || !result.player) return;
+
+      setEditorPlayers((current) => [...current, result.player as EditorPlayer]);
+      setAvailableRosterPlayers((current) =>
+        current.filter((player) => getIdFromPlayerKey(player.id) !== playerId),
+      );
+    });
+  }
+
+  /**
+   * 참가자를 명단에서 제거하고 배정 슬롯을 서버 결과 기준으로 갱신합니다.
+   */
+  function handleRemoveParticipant(player: EditorPlayer) {
+    startRosterTransition(async () => {
+      const result = await removeMatchParticipant(matchId, player.id);
+      editor.setMessage(result.message);
+
+      if (!result.success || !result.quarters) return;
+
+      setEditorPlayers((current) =>
+        current.filter((item) => item.id !== player.id),
+      );
+
+      if (!player.isGuest) {
+        setAvailableRosterPlayers((current) =>
+          [...current, { ...player, isGuest: false as const }].sort(
+            (a, b) => a.priorityRank - b.priorityRank,
+          ),
+        );
+      }
+
+      editor.replaceEditedQuarters(result.quarters);
+    });
+  }
+
+  /**
+   * 용병을 추가하거나 수정하고 참가자 목록과 슬롯 fit score를 갱신합니다.
+   */
+  function handleSaveGuestPlayer(input: GuestPlayerFormInput) {
+    startRosterTransition(async () => {
+      const result = await saveMatchGuestPlayer(matchId, input);
+      editor.setMessage(result.message);
+
+      if (!result.success || !result.player) return;
+
+      setEditorPlayers((current) => {
+        const exists = current.some((player) => player.id === result.player?.id);
+
+        return exists
+          ? current.map((player) =>
+              player.id === result.player?.id ? result.player : player,
+            )
+          : [...current, result.player as EditorPlayer];
+      });
+
+      if (result.quarters) {
+        editor.replaceEditedQuarters(result.quarters);
+      }
     });
   }
 
@@ -145,6 +230,14 @@ export function FormationEditorClient({
             quarterNumber={editor.activeQuarter.quarterNumber}
             selectedBenchPlayerId={editor.selectedBenchPlayerId}
             onBenchPlayerClick={editor.handleBenchPlayerClick}
+          />
+          <RosterManagementPanel
+            isPending={isPending}
+            players={editorPlayers}
+            rosterCandidates={availableRosterPlayers}
+            onAddRosterPlayer={handleAddRosterPlayer}
+            onRemoveParticipant={handleRemoveParticipant}
+            onSaveGuestPlayer={handleSaveGuestPlayer}
           />
           <FormationEditorActions
             isPending={isPending}

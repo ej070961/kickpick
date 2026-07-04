@@ -39,3 +39,15 @@ export type FormationEditorTemplate = {
 };
 
 export type FormationRegenerationMode = "full" | "preserve_players";
+
+export type RosterCandidate = EditorPlayer & {
+  isGuest?: false;
+};
+
+export type GuestPlayerFormInput = {
+  id?: string;
+  mainPosition: PlayerPositionCode;
+  name: string;
+  playerNumber: number | null;
+  subPositions: PlayerPositionCode[];
+};

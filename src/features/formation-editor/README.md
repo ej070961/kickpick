@@ -33,13 +33,14 @@ formation-editor/
     FormationToolbar.tsx
     PlayerDisplayName.tsx
     QuarterTabs.tsx
+    RosterManagementPanel.tsx
     SelectedSlotPanel.tsx
 ```
 
 ## 파일 역할
 
-- `actions/formationEditorActions.ts`: 편집된 슬롯의 `player_id` 또는 `guest_player_id`, `fit_score`, `is_manual` 값을 저장하고, 포메이션 변경 시 슬롯을 재생성하는 서버 액션.
-- `api/formationEditorQueries.ts`: 포메이션 재배정에 필요한 경기, 참가자, 쿼터 정보를 조회한다.
+- `actions/formationEditorActions.ts`: 편집된 슬롯의 `player_id` 또는 `guest_player_id`, `fit_score`, `is_manual` 값을 저장하고, 포메이션 변경 시 슬롯을 재생성하며, 경기 명단 추가/제거와 용병 추가/수정을 처리하는 서버 액션.
+- `api/formationEditorQueries.ts`: 포메이션 재배정과 명단 수정 후 화면 갱신에 필요한 경기, 참가자, 쿼터 정보를 조회한다.
 - `api/formationEditorMutations.ts`: 포메이션 슬롯 교체와 경기 포메이션명 갱신을 담당한다.
 - `api/formationEditorRows.ts`: 편집기 feature 내부에서 사용하는 Supabase row 타입을 정의한다.
 - `model/types.ts`: 편집기 클라이언트에서 사용하는 선수, 슬롯, 쿼터, 배정 요약 타입.
@@ -59,14 +60,17 @@ formation-editor/
 - `ui/PlayerDisplayName.tsx`: 선수 이름과 용병 표기 문구를 일관되게 렌더링한다.
 - `ui/SelectedSlotPanel.tsx`: 현재 선택된 슬롯과 배정 선수 정보.
 - `ui/BenchPlayersPanel.tsx`: 현재 쿼터에 출전하지 않는 후보 선수 목록과 교체 액션. 후보 선수를 먼저 선택한 뒤 유니폼을 눌러도 교체할 수 있다.
+- `ui/RosterManagementPanel.tsx`: 경기 참가 명단, 팀 선수 추가, 용병 추가/수정, 참가자 제거 액션을 제공한다.
 - `ui/FormationEditorActions.tsx`: 저장, 현재 쿼터 PNG 내보내기, 액션 결과 메시지.
 
 ## 작업 기준
 
 - 슬롯 배정 변경 규칙은 `lib/formationEditorSlots.ts`에 둔다. UI 컴포넌트에서 직접 fit score 계산을 반복하지 않는다.
 - 새 UI 섹션이 생기면 `ui/`에 역할 단위 컴포넌트로 추가하고, 이 README의 파일 역할 목록도 갱신한다.
+- 반복되는 버튼, 패널, 배지, 입력 스타일은 `shared/ui`를 우선 사용한다.
 - 서버 저장 필드가 바뀌면 `actions/formationEditorActions.ts`, `model/types.ts`, `docs/database-schema.md`를 함께 확인한다.
 - 선수 식별자는 편집기 내부에서 `player:{uuid}` 또는 `guest:{uuid}` key로 다루고, 저장 시 DB 컬럼으로 분리한다.
+- 명단에서 참가자를 제거하면 서버와 클라이언트 모두 해당 선수의 배정 슬롯을 미배정으로 갱신한다.
 - 전체 재배정은 `features/match-create/lib/generateQuarterFormations.ts`를 재사용해 경기 생성과 같은 배치 규칙을 따른다.
 - 출전 선수 유지 재배정은 기존 쿼터별 배정 선수 집합을 보존하는 로직이므로 `lib/regenerateFormationSlots.ts`에서 관리한다.
 - 내보내기 캡처 영역을 바꾸면 `FormationField.tsx`의 `exportRef` 범위와 `features/formation-export` 동작을 함께 확인한다.

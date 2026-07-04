@@ -2,6 +2,7 @@ import type {
   FormationEditorTemplate,
   FormationRegenerationMode,
 } from "@/features/formation-editor/model/types";
+import { Button, SelectField } from "@/shared/ui";
 
 type FormationRegenerationDialogProps = {
   currentFormationLabel: string;
@@ -55,14 +56,9 @@ export function FormationRegenerationDialog({
               새 포메이션 타입을 선택하고 쿼터별 배치를 재생성합니다.
             </p>
           </div>
-          <button
-            type="button"
-            className="rounded-md px-2 py-1 text-sm font-semibold text-muted hover:bg-surface hover:text-foreground"
-            onClick={onClose}
-            disabled={isPending}
-          >
+          <Button onClick={onClose} disabled={isPending} size="sm" variant="ghost">
             닫기
-          </button>
+          </Button>
         </div>
 
         {hasUnsavedChanges ? (
@@ -82,23 +78,18 @@ export function FormationRegenerationDialog({
             </p>
           </div>
 
-          <label className="block">
-            <span className="text-sm font-semibold text-foreground">
-              새 포메이션
-            </span>
-            <select
-              className="mt-2 min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-semibold text-foreground outline-none focus:border-primary"
-              value={selectedTemplateId}
-              onChange={(event) => onTemplateChange(event.target.value)}
-              disabled={isPending}
-            >
-              {templates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SelectField
+            label="새 포메이션"
+            value={selectedTemplateId}
+            onChange={(event) => onTemplateChange(event.target.value)}
+            disabled={isPending}
+          >
+            {templates.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.label}
+              </option>
+            ))}
+          </SelectField>
 
           <fieldset>
             <legend className="text-sm font-semibold text-foreground">
@@ -137,22 +128,12 @@ export function FormationRegenerationDialog({
         </div>
 
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            className="min-h-11 rounded-lg border border-border px-4 text-sm font-bold text-foreground hover:bg-surface"
-            onClick={onClose}
-            disabled={isPending}
-          >
+          <Button onClick={onClose} disabled={isPending} variant="secondary">
             취소
-          </button>
-          <button
-            type="button"
-            className="min-h-11 rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-            onClick={onSubmit}
-            disabled={isPending || templates.length === 0}
-          >
+          </Button>
+          <Button onClick={onSubmit} disabled={isPending || templates.length === 0}>
             {isPending ? "재배정 중..." : "포메이션 변경 및 재배정"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

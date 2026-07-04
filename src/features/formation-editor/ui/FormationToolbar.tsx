@@ -1,3 +1,5 @@
+import { Badge, Button, Panel } from "@/shared/ui";
+
 type FormationToolbarProps = {
   formationLabel: string;
   hasTemplates: boolean;
@@ -17,26 +19,24 @@ export function FormationToolbar({
   onOpenRegeneration,
 }: FormationToolbarProps) {
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+    <Panel className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p className="text-xs font-bold uppercase text-muted">경기 포메이션</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <p className="text-lg font-bold text-foreground">{formationLabel}</p>
           {hasUnsavedChanges ? (
-            <span className="rounded-md bg-warning/20 px-2 py-1 text-xs font-bold text-foreground">
-              저장 전 변경사항
-            </span>
+            <Badge variant="warning">저장 전 변경사항</Badge>
           ) : null}
         </div>
       </div>
-      <button
-        type="button"
-        className="min-h-11 rounded-lg border border-primary px-4 text-sm font-bold text-primary hover:bg-mint-surface disabled:cursor-not-allowed disabled:opacity-60"
+      <Button
         onClick={onOpenRegeneration}
         disabled={isPending || !hasTemplates}
+        variant="secondary"
+        className="border-primary text-primary hover:bg-mint-surface"
       >
         포메이션 변경
-      </button>
-    </div>
+      </Button>
+    </Panel>
   );
 }

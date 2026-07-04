@@ -1,5 +1,6 @@
 import { createClient } from "@/shared/api/supabase/server";
 import type {
+  InsertedSlotRow,
   MatchPlayerRow,
   MatchRow,
   QuarterRow,
@@ -59,6 +60,58 @@ export async function getFormationRegenerationContext(
       matchPlayers: (matchPlayersData ?? []) as unknown as MatchPlayerRow[],
       quarters: (quarterData ?? []) as unknown as QuarterRow[],
     },
+    ok: true,
+  };
+}
+
+/**
+ * 클라이언트 편집 상태 갱신을 위해 경기의 전체 쿼터 슬롯 row를 조회합니다.
+ */
+export async function getInsertedSlotRowsByMatch(matchId: string): Promise<
+  | {
+      ok: true;
+      quarterNumberByFormationId: Map<string, number>;
+      rows: InsertedSlotRow[];
+    }
+  | { error: string; ok: false }
+> {
+  const supabase = await createClient();
+  const { data: quarters, error: quarterError } = await supabase
+    .from("quarter_formations")
+    .select("id, quarter_number")
+    .eq("match_id", matchId)
+    .order("quarter_number", { ascending: true });
+
+  if (quarterError || !quarters) {
+    return { error: "쿼터 정보를 불러오지 못했습니다.", ok: false };
+  }
+
+  const quarterIds = quarters.map((quarter) => quarter.id as string);
+  const quarterNumberByFormationId = new Map(
+    quarters.map((quarter) => [
+      quarter.id as string,
+      quarter.quarter_number as number,
+    ]),
+  );
+
+  if (quarterIds.length === 0) {
+    return { quarterNumberByFormationId, rows: [], ok: true };
+  }
+
+  const { data: rows, error: slotsError } = await supabase
+    .from("formation_slots")
+    .select(
+      "id, quarter_formation_id, slot_name, x, y, player_id, guest_player_id, fit_score, is_manual",
+    )
+    .in("quarter_formation_id", quarterIds);
+
+  if (slotsError || !rows) {
+    return { error: "포메이션 슬롯을 불러오지 못했습니다.", ok: false };
+  }
+
+  return {
+    quarterNumberByFormationId,
+    rows: rows as unknown as InsertedSlotRow[],
     ok: true,
   };
 }

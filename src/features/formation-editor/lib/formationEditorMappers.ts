@@ -1,9 +1,14 @@
-import type { EditorQuarter } from "@/features/formation-editor/model/types";
+import type {
+  EditorPlayer,
+  EditorQuarter,
+  RosterCandidate,
+} from "@/features/formation-editor/model/types";
 import type {
   FormationSlotInsertRow,
   InsertedSlotRow,
   MatchPlayerRow,
   QuarterRow,
+  RosterPlayerRow,
 } from "@/features/formation-editor/api/formationEditorRows";
 import type {
   FormationPlayer,
@@ -53,6 +58,43 @@ export function mapMatchPlayerRowToFormationPlayer(
     playerNumber: row.players.player_number,
     priorityRank: row.players.priority_rank,
     subPositions: row.players.sub_positions,
+  };
+}
+
+/**
+ * 경기 참가자 row를 편집기 클라이언트에서 사용하는 선수 모델로 변환합니다.
+ */
+export function mapMatchPlayerRowToEditorPlayer(
+  row: MatchPlayerRow,
+): EditorPlayer | null {
+  const player = mapMatchPlayerRowToFormationPlayer(row);
+
+  if (!player) return null;
+
+  return {
+    id: player.id,
+    isGuest: Boolean(row.match_guest_players),
+    mainPosition: player.mainPosition,
+    name: player.name,
+    playerNumber: player.playerNumber,
+    priorityRank: player.priorityRank,
+    subPositions: player.subPositions,
+  };
+}
+
+/**
+ * 팀 선수 row를 경기 편집기에서 추가 가능한 후보 선수 모델로 변환합니다.
+ */
+export function mapRosterPlayerRowToCandidate(
+  row: RosterPlayerRow,
+): RosterCandidate {
+  return {
+    id: getRosterPlayerKey(row.id),
+    mainPosition: row.main_position,
+    name: row.name,
+    playerNumber: row.player_number,
+    priorityRank: row.priority_rank,
+    subPositions: row.sub_positions,
   };
 }
 

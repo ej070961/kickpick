@@ -2,10 +2,19 @@ import type {
   EditorPlayer,
   EditorQuarter,
   EditorSlot,
+  RosterCandidate,
 } from "@/features/formation-editor/model/types";
 import { FormationEditorClient } from "@/features/formation-editor/ui/FormationEditorClient";
 import type { AssignedSlot } from "@/entities/formation";
 import type { PlayerPositionCode } from "@/entities/position";
+import type {
+  MatchPlayerRow as SharedMatchPlayerRow,
+  RosterPlayerRow,
+} from "@/features/formation-editor/api/formationEditorRows";
+import {
+  mapMatchPlayerRowToEditorPlayer,
+  mapRosterPlayerRowToCandidate,
+} from "@/features/formation-editor/lib/formationEditorMappers";
 import { getFormationTemplates } from "@/features/formation-template-manage/lib/formationTemplateQueries";
 import {
   getGuestPlayerKey,
@@ -60,6 +69,22 @@ type MatchPlayerRow = {
     sub_positions: PlayerPositionCode[];
   } | null;
 };
+
+async function getRosterPlayers() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("players")
+    .select("id, name, player_number, main_position, sub_positions, priority_rank")
+    .eq("is_deleted", false)
+    .order("priority_rank", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as unknown as RosterPlayerRow[];
+}
 
 async function getMatchFormation(matchId: string) {
   const supabase = await createClient();
@@ -128,43 +153,26 @@ function mapQuarter(row: QuarterRow): EditorQuarter {
   };
 }
 
-function mapPlayer(row: MatchPlayerRow): EditorPlayer | null {
-  if (row.match_guest_players) {
-    return {
-      id: getGuestPlayerKey(row.match_guest_players.id),
-      isGuest: true,
-      mainPosition: row.match_guest_players.main_position,
-      name: row.match_guest_players.name,
-      playerNumber: row.match_guest_players.player_number,
-      priorityRank: row.match_guest_players.priority_rank,
-      subPositions: row.match_guest_players.sub_positions,
-    };
-  }
-
-  if (!row.players) return null;
-
-  return {
-    id: getRosterPlayerKey(row.players.id),
-    mainPosition: row.players.main_position,
-    name: row.players.name,
-    playerNumber: row.players.player_number,
-    priorityRank: row.players.priority_rank,
-    subPositions: row.players.sub_positions,
-  };
-}
-
 export async function FormationEditorPage({
   matchId,
 }: FormationEditorPageProps) {
-  const [{ match, players, quarters }, formationTemplates] = await Promise.all([
-    getMatchFormation(matchId),
-    getFormationTemplates(),
-  ]);
+  const [{ match, players, quarters }, formationTemplates, rosterPlayers] =
+    await Promise.all([
+      getMatchFormation(matchId),
+      getFormationTemplates(),
+      getRosterPlayers(),
+    ]);
   const displayName = match.name ?? "이름 없는 경기";
   const editorQuarters = quarters.map(mapQuarter);
   const editorPlayers = players
-    .map(mapPlayer)
+    .map((player) =>
+      mapMatchPlayerRowToEditorPlayer(player as unknown as SharedMatchPlayerRow),
+    )
     .filter((player): player is EditorPlayer => Boolean(player));
+  const participantIds = new Set(editorPlayers.map((player) => player.id));
+  const rosterCandidates: RosterCandidate[] = rosterPlayers
+    .map(mapRosterPlayerRowToCandidate)
+    .filter((player) => !participantIds.has(player.id));
   const fileBaseName = `${displayName}_${match.match_date ?? "formation"}`;
 
   return (
@@ -183,6 +191,7 @@ export async function FormationEditorPage({
         matchId={match.id}
         players={editorPlayers}
         quarters={editorQuarters}
+        rosterCandidates={rosterCandidates}
       />
     </section>
   );
