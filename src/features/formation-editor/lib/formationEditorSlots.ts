@@ -72,7 +72,7 @@ export function swapSlotPlayers({
 }
 
 /**
- * 선택된 슬롯의 선수를 후보 선수로 교체하고 fit score를 다시 계산합니다.
+ * 선택된 슬롯의 선수를 후보 선수로 교체하고 같은 쿼터 내 중복 배정을 제거합니다.
  */
 export function replaceSlotPlayer({
   player,
@@ -84,7 +84,16 @@ export function replaceSlotPlayer({
   slotId: string;
 }) {
   return slots.map((slot) => {
-    if (slot.id !== slotId) return slot;
+    if (slot.id !== slotId) {
+      if (slot.playerId !== player.id) return slot;
+
+      return {
+        ...slot,
+        fitScore: null,
+        isManual: true,
+        playerId: null,
+      };
+    }
 
     return {
       ...slot,

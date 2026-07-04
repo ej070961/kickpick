@@ -38,33 +38,88 @@ type QuotaResult = {
   targetQuotas: Map<string, number>;
 };
 
+type FitScoreTable = Map<string, Map<FormationSlotCode, number>>;
+
+/**
+ * 자동 배치 중 반복되는 선수-슬롯 fit score 계산을 쿼터 생성 전에 한 번만 수행합니다.
+ */
+function createFitScoreTable({
+  players,
+  slots,
+}: {
+  players: FormationPlayer[];
+  slots: FormationPreset["slots"];
+}) {
+  return new Map(
+    players.map((player) => [
+      player.id,
+      new Map(
+        slots.map((slot) => [
+          slot.name,
+          calculateFitScore({
+            mainPosition: player.mainPosition,
+            slotPosition: slot.name,
+            subPositions: player.subPositions,
+          }),
+        ]),
+      ),
+    ]),
+  );
+}
+
+function getFitScore({
+  fitScoreTable,
+  playerId,
+  slotName,
+}: {
+  fitScoreTable: FitScoreTable;
+  playerId: string;
+  slotName: FormationSlotCode;
+}) {
+  return fitScoreTable.get(playerId)?.get(slotName) ?? 0;
+}
+
 /**
  * 한 슬롯에 들어갈 수 있는 후보 중 fit score와 우선순위가 가장 좋은 선수를 선택합니다.
  */
 function pickPlayerForSlot({
+  fitScoreTable,
   players,
   slotName,
   usedPlayerIds,
 }: {
+  fitScoreTable: FitScoreTable;
   players: FormationPlayer[];
   slotName: FormationSlotCode;
   usedPlayerIds: Set<string>;
 }) {
-  return players
-    .filter((player) => !usedPlayerIds.has(player.id))
-    .map((player) => ({
-      player,
-      fitScore: calculateFitScore({
-        mainPosition: player.mainPosition,
-        slotPosition: slotName,
-        subPositions: player.subPositions,
-      }),
-    }))
-    .sort((a, b) => {
-      if (b.fitScore !== a.fitScore) return b.fitScore - a.fitScore;
+  let bestAssignment:
+    | {
+        fitScore: number;
+        player: FormationPlayer;
+      }
+    | undefined;
 
-      return a.player.priorityRank - b.player.priorityRank;
-    })[0];
+  for (const player of players) {
+    if (usedPlayerIds.has(player.id)) continue;
+
+    const fitScore = getFitScore({
+      fitScoreTable,
+      playerId: player.id,
+      slotName,
+    });
+
+    if (
+      !bestAssignment ||
+      fitScore > bestAssignment.fitScore ||
+      (fitScore === bestAssignment.fitScore &&
+        player.priorityRank < bestAssignment.player.priorityRank)
+    ) {
+      bestAssignment = { fitScore, player };
+    }
+  }
+
+  return bestAssignment;
 }
 
 /**
@@ -123,6 +178,11 @@ export function generateQuarterFormations({
   }
 
   const fixedGoalkeeper = gkFixed ? pickFixedGoalkeeper(players) : null;
+
+  if (gkFixed && !fixedGoalkeeper) {
+    throw new Error("GK 고정 사용 시 참가 선수에 GK가 포함되어야 합니다.");
+  }
+
   const { quotaPlayers } = getQuotaPlayers({
     gkFixed: Boolean(fixedGoalkeeper),
     players,
@@ -147,6 +207,10 @@ export function generateQuarterFormations({
 
   const remainingQuotas = new Map(targetQuotas);
   const formations: GeneratedQuarterFormation[] = [];
+  const fitScoreTable = createFitScoreTable({
+    players,
+    slots: preset.slots,
+  });
 
   for (let quarterIndex = 0; quarterIndex < quarterCount; quarterIndex += 1) {
     const usedPlayerIds = new Set<string>();
@@ -167,10 +231,10 @@ export function generateQuarterFormations({
         );
         slots.push({
           ...slot,
-          fitScore: calculateFitScore({
-            mainPosition: fixedGoalkeeper.mainPosition,
-            slotPosition: slot.name,
-            subPositions: fixedGoalkeeper.subPositions,
+          fitScore: getFitScore({
+            fitScoreTable,
+            playerId: fixedGoalkeeper.id,
+            slotName: slot.name,
           }),
           isManual: false,
           playerId: fixedGoalkeeper.id,
@@ -179,6 +243,7 @@ export function generateQuarterFormations({
       }
 
       const assignment = pickPlayerForSlot({
+        fitScoreTable,
         players: quarterPlayers,
         slotName: slot.name,
         usedPlayerIds,

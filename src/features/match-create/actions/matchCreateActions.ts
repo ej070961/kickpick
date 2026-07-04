@@ -76,6 +76,11 @@ type PlayerRow = {
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
+type QuarterFormationRow = {
+  id: string;
+  quarter_number: number;
+};
+
 /**
  * Supabase player row를 포메이션 생성 알고리즘에서 사용하는 선수 모델로 변환합니다.
  */
@@ -376,33 +381,66 @@ export async function createMatch(
     return { message: "참가 선수 배정을 저장하지 못했습니다." };
   }
 
-  for (const formationItem of generated.formations) {
-    const { data: quarterFormation, error: quarterError } = await supabase
-      .from("quarter_formations")
-      .insert({
+  const { data: quarterFormations, error: quarterError } = await supabase
+    .from("quarter_formations")
+    .insert(
+      generated.formations.map((formationItem) => ({
         match_id: matchId,
         quarter_number: formationItem.quarterNumber,
-      })
-      .select("id")
-      .single();
+      })),
+    )
+    .select("id, quarter_number");
 
-    if (quarterError) {
-      console.error("Failed to create quarter formation", {
-        error: quarterError,
-        matchId,
-        quarterNumber: formationItem.quarterNumber,
-      });
+  if (quarterError || !quarterFormations) {
+    console.error("Failed to create quarter formations", {
+      error: quarterError,
+      matchId,
+    });
 
-      await cleanupCreatedMatch({
-        matchId,
-        reason: "quarter_formations insert failed",
-        supabase,
-      });
+    await cleanupCreatedMatch({
+      matchId,
+      reason: "quarter_formations insert failed",
+      supabase,
+    });
 
-      return { message: "쿼터 포메이션을 저장하지 못했습니다." };
-    }
+    return { message: "쿼터 포메이션을 저장하지 못했습니다." };
+  }
 
-    const slotRows = formationItem.slots.map((slot) => {
+  if (quarterFormations.length !== generated.formations.length) {
+    await cleanupCreatedMatch({
+      matchId,
+      reason: "quarter_formations insert count mismatch",
+      supabase,
+    });
+    return { message: "쿼터 포메이션을 확인하지 못했습니다." };
+  }
+
+  const quarterFormationIdByNumber = new Map(
+    (quarterFormations as QuarterFormationRow[]).map((quarterFormation) => [
+      quarterFormation.quarter_number,
+      quarterFormation.id,
+    ]),
+  );
+  const hasMissingQuarterFormation = generated.formations.some(
+    (formationItem) =>
+      !quarterFormationIdByNumber.has(formationItem.quarterNumber),
+  );
+
+  if (hasMissingQuarterFormation) {
+    await cleanupCreatedMatch({
+      matchId,
+      reason: "quarter_formations id mapping mismatch",
+      supabase,
+    });
+    return { message: "쿼터 포메이션을 확인하지 못했습니다." };
+  }
+
+  const slotRows = generated.formations.flatMap((formationItem) => {
+    const quarterFormationId = quarterFormationIdByNumber.get(
+      formationItem.quarterNumber,
+    ) as string;
+
+    return formationItem.slots.map((slot) => {
       const isGuest = slot.playerId ? isGuestPlayerKey(slot.playerId) : false;
       const guestPlayerId = slot.playerId
         ? insertedGuestIdByClientKey.get(slot.playerId)
@@ -414,34 +452,33 @@ export async function createMatch(
         is_manual: slot.isManual,
         player_id:
           slot.playerId && !isGuest ? getIdFromPlayerKey(slot.playerId) : null,
-        quarter_formation_id: quarterFormation.id,
+        quarter_formation_id: quarterFormationId,
         slot_name: slot.name,
         x: slot.x,
         y: slot.y,
       };
     });
-    const { error: slotsError } = await supabase
-      .from("formation_slots")
-      .insert(slotRows);
+  });
+  const { error: slotsError } = await supabase
+    .from("formation_slots")
+    .insert(slotRows);
 
-    if (slotsError) {
-      console.error("Failed to create formation slots", {
-        error: slotsError,
-        quarterFormationId: quarterFormation.id,
-        quarterNumber: formationItem.quarterNumber,
-        slots: slotRows,
-      });
+  if (slotsError) {
+    console.error("Failed to create formation slots", {
+      error: slotsError,
+      matchId,
+      slots: slotRows,
+    });
 
-      await cleanupCreatedMatch({
-        matchId,
-        reason: "formation_slots insert failed",
-        supabase,
-      });
+    await cleanupCreatedMatch({
+      matchId,
+      reason: "formation_slots insert failed",
+      supabase,
+    });
 
-      return {
-        message: `포메이션 슬롯을 저장하지 못했습니다. (${slotsError.message})`,
-      };
-    }
+    return {
+      message: `포메이션 슬롯을 저장하지 못했습니다. (${slotsError.message})`,
+    };
   }
 
   redirect(`/matches/${matchId}`);

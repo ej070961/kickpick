@@ -172,6 +172,8 @@ export function MatchCreateForm({
   const setupError =
     selectedPlayers.length < slotsPerQuarter
       ? `${formationPreset?.label ?? "선택한"} 포메이션은 최소 ${slotsPerQuarter}명이 필요합니다.`
+      : gkFixed && !selectedPlayers.some((player) => player.mainPosition === "GK")
+        ? "GK 고정을 사용하려면 참가 선수에 GK가 포함되어야 합니다."
       : null;
   const canProceed = !setupError && quarterCount >= 1 && quarterCount <= 8;
 

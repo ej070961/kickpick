@@ -12,14 +12,9 @@ type QuotaCandidate = {
  * GK 고정 시 모든 쿼터에 배정할 골키퍼를 우선순위 기준으로 선택합니다.
  */
 export function pickFixedGoalkeeper<T extends QuotaCandidate>(players: T[]) {
-  return [...players].sort((a, b) => {
-    const aIsGk = a.mainPosition === "GK";
-    const bIsGk = b.mainPosition === "GK";
-
-    if (aIsGk !== bIsGk) return aIsGk ? -1 : 1;
-
-    return a.priorityRank - b.priorityRank;
-  })[0];
+  return players
+    .filter((player) => player.mainPosition === "GK")
+    .sort((a, b) => a.priorityRank - b.priorityRank)[0];
 }
 
 /**
