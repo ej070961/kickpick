@@ -83,6 +83,9 @@ import type { Player } from "@/entities/player";
 - 이벤트 핸들러 prop: `onVerbNoun`
 - boolean prop/state: `is`, `has`, `can`, `should` prefix 사용
 - 파일명은 주요 export 이름과 맞춘다.
+- 한 파일 안에서만 쓰는 컴포넌트 props 타입은 `Props`를 기본으로 한다.
+- 여러 파일에서 재사용하거나 공개 API 성격을 갖는 props 타입만 `ComponentNameProps`처럼 의미 있는 이름을 붙인다.
+- 타입임을 명확히 드러내야 하는 도메인 모델에는 `T` prefix보다 도메인 명사를 우선한다.
 
 예시:
 
@@ -92,6 +95,13 @@ FormationEditorClient.tsx
 useFormationEditor.ts
 calculateFitScore.ts
 ```
+
+## 5.1 포맷팅
+
+- 코드 포맷은 Prettier를 기준으로 통일한다.
+- Tailwind CSS class 순서는 `prettier-plugin-tailwindcss`로 정렬한다.
+- 저장 시 자동 포맷은 워크스페이스 VS Code 설정의 `editor.formatOnSave`를 사용한다.
+- 수동 정리는 `npm run format`, CI/검증 목적의 확인은 `npm run format:check`를 사용한다.
 
 ## 6. 컴포넌트 책임 분리
 
@@ -111,13 +121,17 @@ calculateFitScore.ts
 - 복잡한 내부 함수, 이벤트 핸들러, 서버 액션 helper에도 “무엇을 왜 하는지”를 설명하는 짧은 JSDoc을 둔다.
 - 단순 setter wrapper처럼 코드만으로 충분히 명확한 함수에는 장황한 주석을 달지 않는다.
 - 주석은 구현 절차 반복보다 도메인 의도와 경계 조건을 설명한다.
+- 컴포넌트 JSDoc은 JSX 구조를 반복하지 않고, 노출 정책, 데이터 소유권, 사용자 흐름, 외부 설정 의존성처럼 코드만으로 놓치기 쉬운 결정사항을 설명한다.
 
 컴포넌트 파일 선언 순서:
 
+- 컴포넌트 파일은 `import -> Props/type -> 주요 exported 컴포넌트 -> 파일 로컬 상수/헬퍼` 순서를 기본으로 한다.
 - import와 props/type 선언 다음에 파일의 주요 exported 컴포넌트를 먼저 둔다.
 - 컴포넌트 외부에서만 쓰는 상수, 유틸 함수, 보조 컴포넌트는 주요 컴포넌트 하단에 둔다.
 - 여러 컴포넌트나 파일에서 재사용되는 상수와 순수 함수는 컴포넌트 하단에 두지 말고 `model`, `lib`, `config` 등 책임에 맞는 폴더로 분리한다.
 - props/type 선언은 컴포넌트의 입력 계약이므로 import 아래에 둘 수 있다.
+- 파일 하나에는 주요 React 컴포넌트 하나를 두는 것을 기본으로 한다. 같은 파일의 보조 컴포넌트가 독립적인 UI 책임, props 계약, 상태 분기를 갖기 시작하면 같은 `ui/` 폴더의 별도 파일로 분리한다.
+- provider, 상태, variant별 스타일 분기는 중첩 삼항보다 객체 map 또는 config 배열로 관리한다. JSX 안에서는 이미 계산된 값을 꺼내 쓰는 형태를 우선한다.
 
 ### 6.1 shared/ui
 
@@ -149,7 +163,7 @@ calculateFitScore.ts
 - `entities/match`: 경기 타입
 - `entities/formation`: 포메이션 템플릿/슬롯 타입과 기본 좌표
 - `entities/position`: 선수 포지션과 슬롯 포지션 타입/매핑
-- `entities/team`: 현재 로그인 사용자의 팀 workspace 조회/보장 서버 API
+- `entities/team`: 현재 로그인 사용자의 current team 조회/보장 서버 API. 현재는 첫 번째 팀을 current team으로 사용하며, 추후 팀 전환 정책은 이 entity API 내부에서 확장한다.
 
 규칙:
 
@@ -248,10 +262,10 @@ features/player-manage/actions/playerActions.ts
 예시:
 
 ```ts
-getFormationTemplates()
-createFormationTemplate(formData)
-saveFormationSlots(matchId, slots)
-updatePlayerPriority(input)
+getFormationTemplates();
+createFormationTemplate(formData);
+saveFormationSlots(matchId, slots);
+updatePlayerPriority(input);
 ```
 
 ## 10. 스타일링 컨벤션

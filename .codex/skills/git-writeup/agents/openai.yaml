@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Writeup"
+  short_description: "Draft commit messages and PR summaries"
+  default_prompt: "Use $git-writeup to draft commit messages and a PR description for the current changes."
