@@ -17,6 +17,10 @@ auth.users
 
 Child rows that do not have `team_id` directly must resolve ownership through their parent rows.
 
+OAuth users and Supabase anonymous trial users both receive an `auth.users.id`.
+KickPick stores both account types through the same `teams.owner_user_id` ownership chain.
+The current application resolves the first team owned by a user as the current team until a team switcher is introduced.
+
 ## Enums
 
 ### `position_code`
@@ -48,58 +52,58 @@ completed
 
 Team workspace owned by a Supabase Auth user.
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | `uuid` | Primary key |
-| `owner_user_id` | `uuid` | References `auth.users(id)` |
-| `name` | `text` | Team name |
-| `created_at` | `timestamptz` | Insert timestamp |
-| `updated_at` | `timestamptz` | Updated by trigger |
+| Column          | Type          | Notes                       |
+| --------------- | ------------- | --------------------------- |
+| `id`            | `uuid`        | Primary key                 |
+| `owner_user_id` | `uuid`        | References `auth.users(id)` |
+| `name`          | `text`        | Team name                   |
+| `created_at`    | `timestamptz` | Insert timestamp            |
+| `updated_at`    | `timestamptz` | Updated by trigger          |
 
 ### `players`
 
 Roster for a team. Deletion is soft-delete first via `is_deleted`.
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | `uuid` | Primary key |
-| `team_id` | `uuid` | References `teams(id)` |
-| `name` | `text` | Required, non-blank |
-| `player_number` | `integer` | Optional uniform number |
-| `main_position` | `position_code` | Primary player position |
-| `sub_positions` | `position_code[]` | Unique array, defaults to empty |
-| `priority_rank` | `integer` | Positive sort rank; lower number means higher priority |
-| `is_deleted` | `boolean` | Soft delete flag |
-| `created_at` | `timestamptz` | Insert timestamp |
-| `updated_at` | `timestamptz` | Updated by trigger |
+| Column          | Type              | Notes                                                  |
+| --------------- | ----------------- | ------------------------------------------------------ |
+| `id`            | `uuid`            | Primary key                                            |
+| `team_id`       | `uuid`            | References `teams(id)`                                 |
+| `name`          | `text`            | Required, non-blank                                    |
+| `player_number` | `integer`         | Optional uniform number                                |
+| `main_position` | `position_code`   | Primary player position                                |
+| `sub_positions` | `position_code[]` | Unique array, defaults to empty                        |
+| `priority_rank` | `integer`         | Positive sort rank; lower number means higher priority |
+| `is_deleted`    | `boolean`         | Soft delete flag                                       |
+| `created_at`    | `timestamptz`     | Insert timestamp                                       |
+| `updated_at`    | `timestamptz`     | Updated by trigger                                     |
 
 ### `formation_templates`
 
 Team-owned formation template. Templates are user-created; the app does not seed default templates automatically.
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | `uuid` | Primary key |
-| `team_id` | `uuid` | References `teams(id)` |
-| `name` | `text` | Template display name, e.g. `4-3-3` |
-| `is_deleted` | `boolean` | Soft delete flag |
-| `created_at` | `timestamptz` | Insert timestamp |
-| `updated_at` | `timestamptz` | Updated by trigger |
+| Column       | Type          | Notes                               |
+| ------------ | ------------- | ----------------------------------- |
+| `id`         | `uuid`        | Primary key                         |
+| `team_id`    | `uuid`        | References `teams(id)`              |
+| `name`       | `text`        | Template display name, e.g. `4-3-3` |
+| `is_deleted` | `boolean`     | Soft delete flag                    |
+| `created_at` | `timestamptz` | Insert timestamp                    |
+| `updated_at` | `timestamptz` | Updated by trigger                  |
 
 ### `formation_template_slots`
 
 Slot definitions for a formation template.
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | `uuid` | Primary key |
-| `formation_template_id` | `uuid` | References `formation_templates(id)` |
-| `slot_name` | `position_code` | Formation slot code |
-| `sort_order` | `integer` | Display/order index; GK is inserted first by the current form |
-| `x` | `numeric(5, 2)` | Percentage coordinate, 0 to 100 |
-| `y` | `numeric(5, 2)` | Percentage coordinate, 0 to 100 |
-| `created_at` | `timestamptz` | Insert timestamp |
-| `updated_at` | `timestamptz` | Updated by trigger |
+| Column                  | Type            | Notes                                                         |
+| ----------------------- | --------------- | ------------------------------------------------------------- |
+| `id`                    | `uuid`          | Primary key                                                   |
+| `formation_template_id` | `uuid`          | References `formation_templates(id)`                          |
+| `slot_name`             | `position_code` | Formation slot code                                           |
+| `sort_order`            | `integer`       | Display/order index; GK is inserted first by the current form |
+| `x`                     | `numeric(5, 2)` | Percentage coordinate, 0 to 100                               |
+| `y`                     | `numeric(5, 2)` | Percentage coordinate, 0 to 100                               |
+| `created_at`            | `timestamptz`   | Insert timestamp                                              |
+| `updated_at`            | `timestamptz`   | Updated by trigger                                            |
 
 Expected invariant:
 
@@ -110,31 +114,31 @@ Expected invariant:
 
 Match setup and generation status.
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | `uuid` | Primary key |
-| `team_id` | `uuid` | References `teams(id)` |
-| `name` | `text` | Optional, non-blank when present |
-| `match_date` | `date` | Optional |
-| `quarter_count` | `integer` | 1 to 8 |
-| `gk_fixed` | `boolean` | Whether the selected GK is fixed to every quarter |
-| `formation` | `text` | Formation label copied at creation time |
-| `status` | `match_status` | `draft`, `generated`, `completed` |
-| `created_at` | `timestamptz` | Insert timestamp |
-| `updated_at` | `timestamptz` | Updated by trigger |
+| Column          | Type           | Notes                                             |
+| --------------- | -------------- | ------------------------------------------------- |
+| `id`            | `uuid`         | Primary key                                       |
+| `team_id`       | `uuid`         | References `teams(id)`                            |
+| `name`          | `text`         | Optional, non-blank when present                  |
+| `match_date`    | `date`         | Optional                                          |
+| `quarter_count` | `integer`      | 1 to 8                                            |
+| `gk_fixed`      | `boolean`      | Whether the selected GK is fixed to every quarter |
+| `formation`     | `text`         | Formation label copied at creation time           |
+| `status`        | `match_status` | `draft`, `generated`, `completed`                 |
+| `created_at`    | `timestamptz`  | Insert timestamp                                  |
+| `updated_at`    | `timestamptz`  | Updated by trigger                                |
 
 ### `match_players`
 
 Join table for selected players in a match.
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `match_id` | `uuid` | References `matches(id)`, cascade delete expected |
-| `player_id` | `uuid` | Optional, references `players(id)` for registered roster players |
-| `guest_player_id` | `uuid` | Optional, references `match_guest_players(id)` for match-only guest players |
-| `target_quota` | `integer` | Generated target slot count |
-| `is_reduced_quota` | `boolean` | Whether player was selected as reduced quota |
-| `created_at` | `timestamptz` | Insert timestamp |
+| Column             | Type          | Notes                                                                       |
+| ------------------ | ------------- | --------------------------------------------------------------------------- |
+| `match_id`         | `uuid`        | References `matches(id)`, cascade delete expected                           |
+| `player_id`        | `uuid`        | Optional, references `players(id)` for registered roster players            |
+| `guest_player_id`  | `uuid`        | Optional, references `match_guest_players(id)` for match-only guest players |
+| `target_quota`     | `integer`     | Generated target slot count                                                 |
+| `is_reduced_quota` | `boolean`     | Whether player was selected as reduced quota                                |
+| `created_at`       | `timestamptz` | Insert timestamp                                                            |
 
 Expected key:
 
@@ -154,28 +158,28 @@ GK fixed behavior:
 
 Match-only guest player snapshots. These rows are not part of the team roster and are deleted with the match.
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | `uuid` | Primary key |
-| `match_id` | `uuid` | References `matches(id)`, cascade delete expected |
-| `name` | `text` | Required, non-blank |
-| `player_number` | `integer` | Optional uniform number |
-| `main_position` | `position_code` | Primary player position |
-| `sub_positions` | `position_code[]` | Unique array, defaults to empty |
-| `priority_rank` | `integer` | Positive sort rank copied from match creation |
-| `created_at` | `timestamptz` | Insert timestamp |
+| Column          | Type              | Notes                                             |
+| --------------- | ----------------- | ------------------------------------------------- |
+| `id`            | `uuid`            | Primary key                                       |
+| `match_id`      | `uuid`            | References `matches(id)`, cascade delete expected |
+| `name`          | `text`            | Required, non-blank                               |
+| `player_number` | `integer`         | Optional uniform number                           |
+| `main_position` | `position_code`   | Primary player position                           |
+| `sub_positions` | `position_code[]` | Unique array, defaults to empty                   |
+| `priority_rank` | `integer`         | Positive sort rank copied from match creation     |
+| `created_at`    | `timestamptz`     | Insert timestamp                                  |
 
 ### `quarter_formations`
 
 One row per match quarter.
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | `uuid` | Primary key |
-| `match_id` | `uuid` | References `matches(id)`, cascade delete expected |
-| `quarter_number` | `integer` | Positive, unique per match |
-| `created_at` | `timestamptz` | Insert timestamp |
-| `updated_at` | `timestamptz` | Updated by trigger |
+| Column           | Type          | Notes                                             |
+| ---------------- | ------------- | ------------------------------------------------- |
+| `id`             | `uuid`        | Primary key                                       |
+| `match_id`       | `uuid`        | References `matches(id)`, cascade delete expected |
+| `quarter_number` | `integer`     | Positive, unique per match                        |
+| `created_at`     | `timestamptz` | Insert timestamp                                  |
+| `updated_at`     | `timestamptz` | Updated by trigger                                |
 
 Expected invariant:
 
@@ -187,19 +191,19 @@ unique (match_id, quarter_number)
 
 Position slot assignments for each quarter.
 
-| Column | Type | Notes |
-| --- | --- | --- |
-| `id` | `uuid` | Primary key |
-| `quarter_formation_id` | `uuid` | References `quarter_formations(id)`, cascade delete expected |
-| `slot_name` | `position_code` | Formation slot code |
-| `x` | `numeric(5, 2)` | Percentage coordinate, 0 to 100 |
-| `y` | `numeric(5, 2)` | Percentage coordinate, 0 to 100 |
-| `player_id` | `uuid` | Optional assigned player |
-| `guest_player_id` | `uuid` | Optional assigned match guest player |
-| `fit_score` | `integer` | Optional 0 to 10 score |
-| `is_manual` | `boolean` | Whether user manually changed the slot |
-| `created_at` | `timestamptz` | Insert timestamp |
-| `updated_at` | `timestamptz` | Updated by trigger |
+| Column                 | Type            | Notes                                                        |
+| ---------------------- | --------------- | ------------------------------------------------------------ |
+| `id`                   | `uuid`          | Primary key                                                  |
+| `quarter_formation_id` | `uuid`          | References `quarter_formations(id)`, cascade delete expected |
+| `slot_name`            | `position_code` | Formation slot code                                          |
+| `x`                    | `numeric(5, 2)` | Percentage coordinate, 0 to 100                              |
+| `y`                    | `numeric(5, 2)` | Percentage coordinate, 0 to 100                              |
+| `player_id`            | `uuid`          | Optional assigned player                                     |
+| `guest_player_id`      | `uuid`          | Optional assigned match guest player                         |
+| `fit_score`            | `integer`       | Optional 0 to 10 score                                       |
+| `is_manual`            | `boolean`       | Whether user manually changed the slot                       |
+| `created_at`           | `timestamptz`   | Insert timestamp                                             |
+| `updated_at`           | `timestamptz`   | Updated by trigger                                           |
 
 ## RLS Expectations
 
