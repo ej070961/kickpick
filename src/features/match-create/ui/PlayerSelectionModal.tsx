@@ -193,7 +193,7 @@ export function PlayerSelectionModal({
       <button
         type="button"
         onClick={() => toggleSort(targetSortKey)}
-        className={`inline-flex min-h-9 items-center gap-1 text-[11px] font-semibold transition hover:text-primary ${
+        className={`hover:text-primary inline-flex min-h-9 items-center gap-1 text-[11px] font-semibold transition ${
           isActive ? "text-primary" : "text-muted"
         }`}
       >
@@ -232,13 +232,13 @@ export function PlayerSelectionModal({
   }
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
+    <section className="border-border bg-card rounded-lg border p-4 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-base font-semibold text-foreground">
+          <h3 className="text-foreground text-base font-semibold">
             이번 경기 선수
           </h3>
-          <p className="mt-1 text-sm text-muted">
+          <p className="text-muted mt-1 text-sm">
             팀 선수와 용병을 합쳐 이번 경기 배치 인원을 준비하세요.
           </p>
         </div>
@@ -246,29 +246,28 @@ export function PlayerSelectionModal({
           <button
             type="button"
             onClick={openModal}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-semibold text-foreground transition hover:border-primary hover:text-primary"
+            className="border-border text-foreground hover:border-primary hover:text-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold transition"
           >
-            <Users size={18} aria-hidden="true" />
-            팀 선수 선택
+            <Users size={18} aria-hidden="true" />팀 선수 선택
           </button>
           {actionSlot}
         </div>
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
-        <div className="rounded-lg bg-mint-surface px-3 py-2">
-          <p className="text-xs font-medium text-muted">팀 선수</p>
-          <p className="text-base font-bold text-primary">
+        <div className="bg-mint-surface rounded-lg px-3 py-2">
+          <p className="text-muted text-xs font-medium">팀 선수</p>
+          <p className="text-primary text-base font-bold">
             {rosterSelectedCount}명
           </p>
         </div>
-        <div className="rounded-lg border border-border px-3 py-2">
-          <p className="text-xs font-medium text-muted">용병</p>
-          <p className="text-base font-bold text-foreground">{guestCount}명</p>
+        <div className="border-border rounded-lg border px-3 py-2">
+          <p className="text-muted text-xs font-medium">용병</p>
+          <p className="text-foreground text-base font-bold">{guestCount}명</p>
         </div>
-        <div className="rounded-lg border border-border px-3 py-2">
-          <p className="text-xs font-medium text-muted">총 참가</p>
-          <p className="text-base font-bold text-foreground">
+        <div className="border-border rounded-lg border px-3 py-2">
+          <p className="text-muted text-xs font-medium">총 참가</p>
+          <p className="text-foreground text-base font-bold">
             {totalParticipantCount}명
           </p>
         </div>
@@ -277,21 +276,21 @@ export function PlayerSelectionModal({
       <dialog
         ref={dialogRef}
         onClick={handleBackdropClick}
-        className="m-auto w-[min(calc(100vw-2rem),42rem)] rounded-2xl bg-card p-0 shadow-xl backdrop:bg-black/50"
+        className="bg-card m-auto w-[min(calc(100vw-2rem),42rem)] rounded-2xl p-0 shadow-xl backdrop:bg-black/50"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+        <div className="border-border flex items-start justify-between gap-4 border-b px-5 py-4">
           <div>
-            <h4 className="text-base font-semibold text-foreground">
+            <h4 className="text-foreground text-base font-semibold">
               팀 선수 선택
             </h4>
-            <p className="mt-1 text-xs text-muted">
+            <p className="text-muted mt-1 text-xs">
               이번 경기에 뛸 팀 선수를 고르고 완료하세요.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className="rounded-full bg-mint-surface px-3 py-1 text-xs font-semibold text-primary">
+              <span className="bg-mint-surface text-primary rounded-full px-3 py-1 text-xs font-semibold">
                 참가 예정 {draftSelectedCount}명
               </span>
-              <span className="rounded-full bg-surface px-3 py-1 text-xs font-semibold text-muted">
+              <span className="bg-surface text-muted rounded-full px-3 py-1 text-xs font-semibold">
                 제외 {draftExcludedCount}명
               </span>
             </div>
@@ -300,7 +299,7 @@ export function PlayerSelectionModal({
             type="button"
             onClick={closeModal}
             aria-label="닫기"
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-mint-surface hover:text-foreground"
+            className="text-muted hover:bg-mint-surface hover:text-foreground flex size-8 shrink-0 items-center justify-center rounded-lg transition"
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -312,14 +311,14 @@ export function PlayerSelectionModal({
               <Search
                 size={15}
                 aria-hidden="true"
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+                className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
               />
               <input
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="선수 이름 또는 포지션 검색"
-                className="min-h-10 w-full rounded-lg border border-border pl-8 pr-3 text-sm outline-none transition focus:border-primary"
+                className="border-border focus:border-primary min-h-10 w-full rounded-lg border pr-3 pl-8 text-sm transition outline-none"
               />
             </div>
             <div className="flex flex-col gap-2 sm:items-end">
@@ -328,14 +327,14 @@ export function PlayerSelectionModal({
                 onChange={(event) =>
                   handleMobileSortChange(event.target.value as PlayerSortKey)
                 }
-                className="min-h-10 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none transition focus:border-primary sm:hidden"
+                className="border-border bg-card text-foreground focus:border-primary min-h-10 rounded-lg border px-3 text-sm font-semibold transition outline-none sm:hidden"
                 aria-label="선수 목록 정렬"
               >
                 <option value="priority">우선순위순</option>
                 <option value="name">이름순</option>
                 <option value="number">등번호순</option>
               </select>
-              <label className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-semibold text-foreground sm:hidden">
+              <label className="border-border text-foreground inline-flex min-h-10 items-center gap-2 rounded-lg border px-3 text-sm font-semibold sm:hidden">
                 <SelectionCheckbox
                   inputRef={mobileVisiblePlayersCheckboxRef}
                   checked={areAllVisiblePlayersSelected}
@@ -351,7 +350,7 @@ export function PlayerSelectionModal({
           </div>
 
           <div className="max-h-[55dvh] overflow-y-auto pr-1">
-            <div className="hidden min-w-0 grid-cols-[44px_minmax(9rem,1.3fr)_5rem_minmax(9rem,1fr)_5.5rem] items-center gap-3 rounded-t-lg border border-border bg-surface/70 px-3 py-1.5 sm:grid">
+            <div className="border-border bg-surface/70 hidden min-w-0 grid-cols-[44px_minmax(9rem,1.3fr)_5rem_minmax(9rem,1fr)_5.5rem] items-center gap-3 rounded-t-lg border px-3 py-1.5 sm:grid">
               <SelectionCheckbox
                 inputRef={visiblePlayersCheckboxRef}
                 checked={areAllVisiblePlayersSelected}
@@ -362,13 +361,13 @@ export function PlayerSelectionModal({
               />
               {renderSortButton("이름", "name")}
               {renderSortButton("등번호", "number")}
-              <span className="text-[11px] font-semibold text-muted">
+              <span className="text-muted text-[11px] font-semibold">
                 포지션
               </span>
               {renderSortButton("우선순위", "priority")}
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-border sm:rounded-t-none sm:border-t-0">
+            <div className="border-border overflow-hidden rounded-lg border sm:rounded-t-none sm:border-t-0">
               {sortedPlayers.length > 0 ? (
                 sortedPlayers.map((player) => {
                   const selected = draftSelectedPlayerIds.has(player.id);
@@ -376,7 +375,7 @@ export function PlayerSelectionModal({
                   return (
                     <label
                       key={player.id}
-                      className={`relative grid min-h-14 cursor-pointer grid-cols-[auto_minmax(0,1fr)] gap-3 border-b border-border p-3 transition last:border-b-0 sm:grid-cols-[44px_minmax(9rem,1.3fr)_5rem_minmax(9rem,1fr)_5.5rem] sm:items-center sm:px-3 sm:py-2.5 ${
+                      className={`border-border relative grid min-h-14 cursor-pointer grid-cols-[auto_minmax(0,1fr)] gap-3 border-b p-3 transition last:border-b-0 sm:grid-cols-[44px_minmax(9rem,1.3fr)_5rem_minmax(9rem,1fr)_5.5rem] sm:items-center sm:px-3 sm:py-2.5 ${
                         selected
                           ? "bg-mint-surface/45"
                           : "bg-card hover:bg-surface/55"
@@ -384,7 +383,7 @@ export function PlayerSelectionModal({
                     >
                       <span
                         aria-hidden="true"
-                        className={`absolute bottom-2 left-0 top-2 w-1 rounded-r-full transition ${
+                        className={`absolute top-2 bottom-2 left-0 w-1 rounded-r-full transition ${
                           selected ? "bg-primary" : "bg-transparent"
                         }`}
                       />
@@ -394,41 +393,41 @@ export function PlayerSelectionModal({
                         className="mt-0.5 sm:mt-0"
                       />
                       <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-foreground">
+                        <span className="text-foreground block text-sm font-semibold">
                           {formatPlayerName(player)}
                         </span>
-                        <span className="mt-1 block text-xs text-muted sm:hidden">
+                        <span className="text-muted mt-1 block text-xs sm:hidden">
                           {player.playerNumber !== null
                             ? `등번호 ${player.playerNumber}`
                             : "등번호 없음"}{" "}
                           · 우선순위 #{player.priorityRank}
                         </span>
                       </span>
-                      <span className="hidden text-center text-sm font-semibold text-foreground sm:block">
+                      <span className="text-foreground hidden text-center text-sm font-semibold sm:block">
                         {player.playerNumber ?? "-"}
                       </span>
                       <span className="col-start-2 sm:col-start-auto">
                         <PlayerPositionBadges player={player} />
                       </span>
-                      <span className="hidden text-center text-sm font-semibold text-foreground sm:block">
+                      <span className="text-foreground hidden text-center text-sm font-semibold sm:block">
                         #{player.priorityRank}
                       </span>
                     </label>
                   );
                 })
               ) : (
-                <p className="rounded-lg border border-dashed border-border px-3 py-4 text-sm text-muted">
+                <p className="border-border text-muted rounded-lg border border-dashed px-3 py-4 text-sm">
                   검색 결과가 없습니다.
                 </p>
               )}
             </div>
           </div>
 
-          <div className="flex justify-end border-t border-border pt-4">
+          <div className="border-border flex justify-end border-t pt-4">
             <button
               type="button"
               onClick={commitSelection}
-              className="min-h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
+              className="bg-primary text-primary-foreground min-h-10 rounded-lg px-4 text-sm font-semibold"
             >
               선택 완료
             </button>

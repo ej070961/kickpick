@@ -37,7 +37,8 @@ export function useFormationRegeneration({
   const [regenerationMode, setRegenerationMode] =
     useState<FormationRegenerationMode>("full");
   const [selectedTemplateId, setSelectedTemplateId] = useState(
-    formationTemplates.find((template) => template.label === formationLabel)?.id ??
+    formationTemplates.find((template) => template.label === formationLabel)
+      ?.id ??
       formationTemplates[0]?.id ??
       "",
   );

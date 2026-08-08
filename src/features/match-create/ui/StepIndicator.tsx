@@ -3,7 +3,7 @@
  */
 export function StepIndicator({ step }: { step: number }) {
   return (
-    <div className="grid grid-cols-2 gap-2 rounded-2xl bg-surface p-1">
+    <div className="bg-surface grid grid-cols-2 gap-2 rounded-2xl p-1">
       {STEP_ITEMS.map((item) => {
         const active = step === item.value;
 
@@ -14,7 +14,7 @@ export function StepIndicator({ step }: { step: number }) {
               active ? "bg-card text-foreground shadow-sm" : "text-muted"
             }`}
           >
-            <span className="mr-2 text-primary">{item.value}</span>
+            <span className="text-primary mr-2">{item.value}</span>
             {item.label}
           </div>
         );

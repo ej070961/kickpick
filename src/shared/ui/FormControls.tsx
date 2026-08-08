@@ -34,7 +34,7 @@ export function TextField({
     <FieldShell error={error} label={label}>
       <input
         className={cn(
-          "mt-2 min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none transition focus:border-primary",
+          "border-border bg-background text-foreground focus:border-primary mt-2 min-h-11 w-full rounded-lg border px-3 text-sm transition outline-none",
           className,
         )}
         {...props}
@@ -49,10 +49,10 @@ export function TextField({
 function FieldShell({ children, error, label }: FieldShellProps) {
   return (
     <label className="block">
-      <span className="text-sm font-semibold text-foreground">{label}</span>
+      <span className="text-foreground text-sm font-semibold">{label}</span>
       {children}
       {error ? (
-        <span className="mt-1 block text-xs text-mismatch">{error}</span>
+        <span className="text-mismatch mt-1 block text-xs">{error}</span>
       ) : null}
     </label>
   );
@@ -72,7 +72,7 @@ export function SelectField({
     <FieldShell error={error} label={label}>
       <select
         className={cn(
-          "mt-2 min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-semibold text-foreground outline-none transition focus:border-primary",
+          "border-border bg-background text-foreground focus:border-primary mt-2 min-h-11 w-full rounded-lg border px-3 text-sm font-semibold transition outline-none",
           className,
         )}
         {...props}

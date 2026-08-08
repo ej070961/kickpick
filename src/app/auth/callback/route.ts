@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createTeamIfMissing } from "@/features/auth/actions/authActions";
+import { ensureDefaultTeamForUser } from "@/entities/team";
 import { createClient } from "@/shared/api/supabase/server";
 
 export async function GET(request: Request) {
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
           user.email ??
           "KickPick";
 
-        await createTeamIfMissing(`${displayName} 팀`, user.id);
+        await ensureDefaultTeamForUser(user.id, `${displayName} 팀`);
       }
 
       const forwardedHost = request.headers.get("x-forwarded-host");

@@ -23,9 +23,9 @@ export function FormationToolbar({
   return (
     <Panel className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p className="text-xs font-bold uppercase text-muted">경기 포메이션</p>
+        <p className="text-muted text-xs font-bold uppercase">경기 포메이션</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
-          <p className="text-lg font-bold text-foreground">{formationLabel}</p>
+          <p className="text-foreground text-lg font-bold">{formationLabel}</p>
           {hasUnsavedChanges ? (
             <Badge variant="warning">저장 전 변경사항</Badge>
           ) : null}

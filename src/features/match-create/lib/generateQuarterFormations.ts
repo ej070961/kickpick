@@ -154,7 +154,9 @@ function pickQuarterPlayers({
       return a.priorityRank - b.priorityRank;
     });
 
-  selectedPlayers.push(...rest.slice(0, slotsPerQuarter - selectedPlayers.length));
+  selectedPlayers.push(
+    ...rest.slice(0, slotsPerQuarter - selectedPlayers.length),
+  );
 
   if (selectedPlayers.length < slotsPerQuarter) {
     throw new Error("모든 슬롯을 채울 수 없습니다.");

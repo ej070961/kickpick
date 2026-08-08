@@ -1,0 +1,4 @@
+interface:
+  display_name: "Changed Code Review"
+  short_description: "Review changed code for maintainability"
+  default_prompt: "Use $changed-code-review to review the current git changes for maintainability, readability, module boundaries, and performance."

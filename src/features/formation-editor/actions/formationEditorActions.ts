@@ -140,7 +140,9 @@ export async function addMatchRosterPlayer(
   const supabase = await createClient();
   const { data: player, error: playerError } = await supabase
     .from("players")
-    .select("id, name, player_number, main_position, sub_positions, priority_rank")
+    .select(
+      "id, name, player_number, main_position, sub_positions, priority_rank",
+    )
     .eq("id", playerIdResult.data)
     .eq("is_deleted", false)
     .single();
@@ -188,7 +190,9 @@ export async function removeMatchParticipant(
   }
 
   const supabase = await createClient();
-  const { guestPlayerId, playerId } = splitEditorPlayerKey(playerKeyResult.data);
+  const { guestPlayerId, playerId } = splitEditorPlayerKey(
+    playerKeyResult.data,
+  );
   const participantId = guestPlayerId ?? playerId;
 
   if (!participantId) {
@@ -201,7 +205,9 @@ export async function removeMatchParticipant(
   });
 
   if (!clearResult.success) {
-    return { message: clearResult.message ?? "배정된 슬롯을 정리하지 못했습니다." };
+    return {
+      message: clearResult.message ?? "배정된 슬롯을 정리하지 못했습니다.",
+    };
   }
 
   let deleteMatchPlayerQuery = supabase
@@ -382,7 +388,9 @@ export async function regenerateMatchFormation(
     return { message: "포메이션 슬롯은 11개여야 합니다." };
   }
 
-  const contextResult = await getFormationRegenerationContext(matchIdResult.data);
+  const contextResult = await getFormationRegenerationContext(
+    matchIdResult.data,
+  );
 
   if (!contextResult.ok) {
     return { message: contextResult.error };

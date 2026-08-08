@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { Info } from "lucide-react";
-import { formatPlayerName, formatPositions } from "@/features/match-create/lib/playerFormat";
+import {
+  formatPlayerName,
+  formatPositions,
+} from "@/features/match-create/lib/playerFormat";
 import type { MatchCreateParticipant } from "@/features/match-create/model/types";
 import type { QuotaSelectionType } from "@/features/match-create/model/quotaSelection";
 
@@ -37,7 +40,9 @@ export function ReducedQuotaSelector({
   const disabled = requiredCount === 0 || selectedPlayers.length === 0;
   const totalSlots = quarterCount * slotsPerQuarter;
   const baseQuota =
-    selectedPlayers.length > 0 ? Math.floor(totalSlots / selectedPlayers.length) : 0;
+    selectedPlayers.length > 0
+      ? Math.floor(totalSlots / selectedPlayers.length)
+      : 0;
   const increasedPlayerCount =
     selectedPlayers.length > 0 ? totalSlots % selectedPlayers.length : 0;
   const reducedPlayerCount =
@@ -80,13 +85,11 @@ export function ReducedQuotaSelector({
   }
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
+    <section className="border-border bg-card rounded-lg border p-4 shadow-sm">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-1">
-            <h3 className="text-base font-semibold text-foreground">
-              {title}
-            </h3>
+            <h3 className="text-foreground text-base font-semibold">{title}</h3>
             <span
               className="relative inline-flex"
               onMouseEnter={() => setIsHelpOpen(true)}
@@ -100,7 +103,7 @@ export function ReducedQuotaSelector({
                 onClick={() => setIsHelpOpen((current) => !current)}
                 onFocus={() => setIsHelpOpen(true)}
                 onBlur={() => setIsHelpOpen(false)}
-                className="inline-flex size-7 items-center justify-center rounded-full text-muted transition hover:bg-mint-surface hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="text-muted hover:bg-mint-surface hover:text-primary focus-visible:outline-primary inline-flex size-7 items-center justify-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
               >
                 <Info size={16} aria-hidden="true" />
               </button>
@@ -108,11 +111,11 @@ export function ReducedQuotaSelector({
                 <span
                   id={helpId}
                   role="tooltip"
-                  className="absolute left-0 top-9 z-20 w-76 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium leading-relaxed text-foreground shadow-lg sm:left-1/2 sm:-translate-x-1/2"
+                  className="border-border bg-card text-foreground absolute top-9 left-0 z-20 w-76 rounded-lg border px-3 py-2 text-xs leading-relaxed font-medium shadow-lg sm:left-1/2 sm:-translate-x-1/2"
                 >
                   {helpMessage}
                   {gkFixed ? (
-                    <span className="mt-1 block text-muted">
+                    <span className="text-muted mt-1 block">
                       GK 고정 시 골키퍼와 GK 슬롯은 이 계산에서 제외돼요.
                     </span>
                   ) : null}
@@ -120,9 +123,7 @@ export function ReducedQuotaSelector({
               ) : null}
             </span>
           </div>
-          <p className="mt-1 text-sm text-muted">
-            {description}
-          </p>
+          <p className="text-muted mt-1 text-sm">{description}</p>
         </div>
         <p
           className={`text-sm font-semibold ${
@@ -134,34 +135,34 @@ export function ReducedQuotaSelector({
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-4">
-        <div className="rounded-lg border border-border bg-background px-3 py-2">
-          <p className="text-xs font-medium text-muted">포메이션</p>
-          <p className="mt-1 text-sm font-bold text-foreground">
+        <div className="border-border bg-background rounded-lg border px-3 py-2">
+          <p className="text-muted text-xs font-medium">포메이션</p>
+          <p className="text-foreground mt-1 text-sm font-bold">
             {formationLabel}
           </p>
         </div>
-        <div className="rounded-lg border border-border bg-background px-3 py-2">
-          <p className="text-xs font-medium text-muted">쿼터</p>
-          <p className="mt-1 text-sm font-bold text-foreground">
+        <div className="border-border bg-background rounded-lg border px-3 py-2">
+          <p className="text-muted text-xs font-medium">쿼터</p>
+          <p className="text-foreground mt-1 text-sm font-bold">
             {quarterCount}개
           </p>
         </div>
-        <div className="rounded-lg border border-border bg-background px-3 py-2">
-          <p className="text-xs font-medium text-muted">보정 대상</p>
-          <p className="mt-1 text-sm font-bold text-foreground">
+        <div className="border-border bg-background rounded-lg border px-3 py-2">
+          <p className="text-muted text-xs font-medium">보정 대상</p>
+          <p className="text-foreground mt-1 text-sm font-bold">
             {selectedPlayers.length}명
           </p>
         </div>
-        <div className="rounded-lg border border-border bg-background px-3 py-2">
-          <p className="text-xs font-medium text-muted">GK</p>
-          <p className="mt-1 text-sm font-bold text-foreground">
+        <div className="border-border bg-background rounded-lg border px-3 py-2">
+          <p className="text-muted text-xs font-medium">GK</p>
+          <p className="text-foreground mt-1 text-sm font-bold">
             {gkFixed ? "고정" : "자동"}
           </p>
         </div>
       </div>
 
       {disabled ? (
-        <p className="mt-4 rounded-lg border border-dashed border-border p-4 text-sm text-muted">
+        <p className="border-border text-muted mt-4 rounded-lg border border-dashed p-4 text-sm">
           {emptyMessage}
         </p>
       ) : (
@@ -189,18 +190,18 @@ export function ReducedQuotaSelector({
                     checked={checked}
                     disabled={selectionBlocked}
                     onChange={() => toggleQuotaPlayer(player.id)}
-                    className="mt-0.5 size-4 accent-primary"
+                    className="accent-primary mt-0.5 size-4"
                   />
                   <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-foreground">
+                    <span className="text-foreground block text-sm font-semibold">
                       {formatPlayerName(player)}
                     </span>
                     {player.isGuest ? (
-                      <span className="mt-1 inline-flex rounded-md border border-primary/35 bg-card px-1.5 py-0.5 text-[10px] font-bold text-primary">
+                      <span className="border-primary/35 bg-card text-primary mt-1 inline-flex rounded-md border px-1.5 py-0.5 text-[10px] font-bold">
                         용병
                       </span>
                     ) : null}
-                    <span className="mt-1 block text-xs text-muted">
+                    <span className="text-muted mt-1 block text-xs">
                       #{player.priorityRank} / {formatPositions(player)}
                     </span>
                   </span>

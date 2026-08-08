@@ -119,7 +119,9 @@ export function getDefaultQuotaPlayerIds<T extends QuotaCandidate>({
 /**
  * UI 선택값을 서버 액션에 제출할 reducedPlayerIds로 변환합니다.
  */
-export function getReducedPlayerIdsFromQuotaSelection<T extends QuotaCandidate>({
+export function getReducedPlayerIdsFromQuotaSelection<
+  T extends QuotaCandidate,
+>({
   quotaPlayerIds,
   selectedPlayers,
   selectionType,

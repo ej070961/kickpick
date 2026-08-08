@@ -21,7 +21,7 @@ export function AssignmentSummary({
       title="전체 배정 요약"
       description="전체 쿼터 기준 선수별 출전 쿼터입니다."
       actions={
-        <p className="text-sm font-semibold text-primary">
+        <p className="text-primary text-sm font-semibold">
           {quarterCount}쿼터 · {playerCount}명
         </p>
       }
@@ -30,12 +30,12 @@ export function AssignmentSummary({
         {assignmentItems.map(({ player, quarterNumbers }) => (
           <div
             key={player.id}
-            className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            className="border-border bg-background flex min-h-11 items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm"
           >
             <span className="min-w-0">
               <PlayerDisplayName
                 player={player}
-                className="block truncate font-semibold text-foreground"
+                className="text-foreground block truncate font-semibold"
               />
             </span>
             <span className="flex shrink-0 flex-wrap justify-end gap-1">

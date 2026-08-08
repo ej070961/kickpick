@@ -20,10 +20,9 @@ export async function MatchesPage() {
         />
         <Link
           href="/matches/new"
-          className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:brightness-95"
+          className="bg-primary text-primary-foreground inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold shadow-sm transition hover:brightness-95"
         >
-          <PlusCircle size={18} aria-hidden="true" />
-          새 경기 생성
+          <PlusCircle size={18} aria-hidden="true" />새 경기 생성
         </Link>
       </div>
 

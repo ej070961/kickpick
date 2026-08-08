@@ -16,9 +16,7 @@ import type {
 } from "@/features/formation-editor/model/types";
 
 type EditorSelection =
-  | { slotId: string; type: "slot" }
-  | { playerId: string; type: "bench" }
-  | null;
+  { slotId: string; type: "slot" } | { playerId: string; type: "bench" } | null;
 
 type UseFormationEditorStateInput = {
   players: EditorPlayer[];
@@ -143,7 +141,10 @@ export function useFormationEditorState({
    */
   function handleSlotClick(slot: EditorSlot) {
     if (selectedBenchPlayer) {
-      replaceSlotWithBenchPlayer({ player: selectedBenchPlayer, slotId: slot.id });
+      replaceSlotWithBenchPlayer({
+        player: selectedBenchPlayer,
+        slotId: slot.id,
+      });
       return;
     }
 

@@ -35,7 +35,7 @@ export function EditPlayerModal({ player }: { player: Player }) {
       <button
         type="button"
         onClick={openModal}
-        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold text-muted transition hover:border-primary hover:text-primary"
+        className="border-border text-muted hover:border-primary hover:text-primary inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-3 text-sm font-semibold transition"
       >
         <Pencil size={14} aria-hidden="true" />
         편집
@@ -44,18 +44,18 @@ export function EditPlayerModal({ player }: { player: Player }) {
       <dialog
         ref={dialogRef}
         onClick={handleBackdropClick}
-        className="m-auto w-[min(calc(100vw-2rem),28rem)] rounded-2xl bg-card p-0 shadow-xl backdrop:bg-black/50"
+        className="bg-card m-auto w-[min(calc(100vw-2rem),28rem)] rounded-2xl p-0 shadow-xl backdrop:bg-black/50"
       >
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h2 className="min-w-0 text-base font-semibold text-foreground">
+        <div className="border-border flex items-center justify-between border-b px-6 py-4">
+          <h2 className="text-foreground min-w-0 text-base font-semibold">
             선수 편집
-            <span className="ml-2 font-normal text-muted">{player.name}</span>
+            <span className="text-muted ml-2 font-normal">{player.name}</span>
           </h2>
           <button
             type="button"
             onClick={closeModal}
             aria-label="닫기"
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-mint-surface hover:text-foreground"
+            className="text-muted hover:bg-mint-surface hover:text-foreground flex size-8 shrink-0 items-center justify-center rounded-lg transition"
           >
             <X size={18} aria-hidden="true" />
           </button>

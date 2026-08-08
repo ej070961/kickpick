@@ -20,9 +20,7 @@ export function calculateFitScore({
 
   if (slotPlayerPosition === mainPosition) return 10;
   if (subPositions.includes(slotPlayerPosition)) return 5;
-  if (
-    getPositionGroup(slotPlayerPosition) === getPositionGroup(mainPosition)
-  ) {
+  if (getPositionGroup(slotPlayerPosition) === getPositionGroup(mainPosition)) {
     return 3;
   }
 

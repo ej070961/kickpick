@@ -36,15 +36,17 @@ export function FormationField({
           priority
         />
         <div
-          className="pointer-events-none absolute left-3 top-3 z-20 flex items-end gap-1 rounded-md bg-black/70 px-3 py-2 text-white shadow-sm"
+          className="pointer-events-none absolute top-3 left-3 z-20 flex items-end gap-1 rounded-md bg-black/70 px-3 py-2 text-white shadow-sm"
           aria-hidden="true"
         >
-          <span className="text-2xl font-black leading-none">
+          <span className="text-2xl leading-none font-black">
             {quarter.quarterNumber}Q
           </span>
         </div>
         {quarter.slots.map((slot) => {
-          const player = slot.playerId ? playerMap.get(slot.playerId) : undefined;
+          const player = slot.playerId
+            ? playerMap.get(slot.playerId)
+            : undefined;
           const isSelected = selectedSlotId === slot.id;
 
           return (
@@ -60,7 +62,7 @@ export function FormationField({
             >
               <span className="relative block">
                 {isSelected ? (
-                  <span className="absolute left-1/2 top-0 z-10 size-2.5 -translate-x-1/2 -translate-y-2 rounded-full bg-primary shadow-sm" />
+                  <span className="bg-primary absolute top-0 left-1/2 z-10 size-2.5 -translate-x-1/2 -translate-y-2 rounded-full shadow-sm" />
                 ) : null}
                 <Image
                   src="/images/uniform.svg"
@@ -73,13 +75,13 @@ export function FormationField({
                 />
                 {player?.playerNumber !== null &&
                 player?.playerNumber !== undefined ? (
-                  <span className="absolute left-1/2 top-[calc(45%+1px)] -translate-x-1/2 -translate-y-1/2 text-sm font-black leading-none text-white drop-shadow">
+                  <span className="absolute top-[calc(45%+1px)] left-1/2 -translate-x-1/2 -translate-y-1/2 text-sm leading-none font-black text-white drop-shadow">
                     {player.playerNumber}
                   </span>
                 ) : null}
               </span>
               <span
-                className={`mt-0.5 max-w-[5.25rem] truncate rounded px-1.5 py-0.5 text-[10px] font-bold leading-tight ${
+                className={`mt-0.5 max-w-[5.25rem] truncate rounded px-1.5 py-0.5 text-[10px] leading-tight font-bold ${
                   isSelected
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "bg-black/45 text-white"

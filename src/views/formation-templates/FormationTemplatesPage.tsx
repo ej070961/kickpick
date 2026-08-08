@@ -20,19 +20,19 @@ export async function FormationTemplatesPage() {
           {templates.map((template) => (
             <article
               key={template.id}
-              className="rounded-lg border border-border bg-card p-4 shadow-sm"
+              className="border-border bg-card rounded-lg border p-4 shadow-sm"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex size-9 items-center justify-center rounded-lg bg-mint-surface text-primary">
+                    <span className="bg-mint-surface text-primary inline-flex size-9 items-center justify-center rounded-lg">
                       <GalleryVerticalEnd size={17} aria-hidden="true" />
                     </span>
-                    <h3 className="text-base font-bold text-foreground">
+                    <h3 className="text-foreground text-base font-bold">
                       {template.label}
                     </h3>
                   </div>
-                  <p className="mt-2 text-sm text-muted">
+                  <p className="text-muted mt-2 text-sm">
                     {template.slots.length}개 슬롯
                   </p>
                 </div>
@@ -45,7 +45,7 @@ export async function FormationTemplatesPage() {
                 {template.slots.map((slot) => (
                   <span
                     key={slot.name}
-                    className="rounded-md border border-border bg-background px-2 py-1 text-xs font-semibold text-muted"
+                    className="border-border bg-background text-muted rounded-md border px-2 py-1 text-xs font-semibold"
                   >
                     {slot.name}
                   </span>

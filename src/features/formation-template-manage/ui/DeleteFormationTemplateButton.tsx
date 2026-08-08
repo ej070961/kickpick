@@ -24,7 +24,7 @@ export function DeleteFormationTemplateButton({
       <input type="hidden" name="id" value={templateId} />
       <button
         type="submit"
-        className="inline-flex size-9 items-center justify-center rounded-lg border border-border text-muted transition hover:border-mismatch hover:text-mismatch"
+        className="border-border text-muted hover:border-mismatch hover:text-mismatch inline-flex size-9 items-center justify-center rounded-lg border transition"
         aria-label="템플릿 삭제"
       >
         <Trash2 size={16} aria-hidden="true" />

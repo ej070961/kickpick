@@ -26,7 +26,7 @@ export function DeletePlayerButton({ player }: DeletePlayerButtonProps) {
     <form action={deletePlayer} onSubmit={handleSubmit}>
       <input type="hidden" name="id" value={player.id} />
       <SubmitButton
-        className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-mismatch/45 px-3 text-sm font-semibold text-mismatch transition hover:border-mismatch hover:bg-orange-50 disabled:opacity-60"
+        className="border-mismatch/45 text-mismatch hover:border-mismatch inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-3 text-sm font-semibold transition hover:bg-orange-50 disabled:opacity-60"
         pendingLabel="삭제 중"
       >
         <Trash2 size={14} aria-hidden="true" />

@@ -74,7 +74,9 @@ export function PriorityBoard({ players }: PriorityBoardProps) {
     const oldIndex = orderedPlayers.findIndex(
       (player) => player.id === active.id,
     );
-    const newIndex = orderedPlayers.findIndex((player) => player.id === over.id);
+    const newIndex = orderedPlayers.findIndex(
+      (player) => player.id === over.id,
+    );
 
     if (oldIndex >= 0 && newIndex >= 0) {
       movePlayer(oldIndex, newIndex);
@@ -90,7 +92,7 @@ export function PriorityBoard({ players }: PriorityBoardProps) {
 
   if (orderedPlayers.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border bg-card p-6 text-sm text-muted">
+      <div className="border-border bg-card text-muted rounded-lg border border-dashed p-6 text-sm">
         아직 등록된 선수가 없습니다. 첫 선수를 추가해주세요.
       </div>
     );
@@ -98,12 +100,12 @@ export function PriorityBoard({ players }: PriorityBoardProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-base font-semibold text-foreground">
+          <p className="text-foreground text-base font-semibold">
             선수 {orderedPlayers.length}명
           </p>
-          <p className="mt-1 text-sm text-muted">
+          <p className="text-muted mt-1 text-sm">
             드래그로 자동 배치 우선순위를 조정합니다.
           </p>
         </div>
@@ -111,7 +113,7 @@ export function PriorityBoard({ players }: PriorityBoardProps) {
           type="button"
           onClick={handleSave}
           disabled={!isDirty || isPending}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-45"
+          className="bg-primary text-primary-foreground inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold disabled:opacity-45"
         >
           <Save size={18} aria-hidden="true" />
           {isPending ? "저장 중" : isDirty ? "순위 저장" : "저장 완료"}
@@ -162,11 +164,11 @@ function SortablePlayerRow({ index, player }: SortablePlayerRowProps) {
     <li
       ref={setNodeRef}
       style={style}
-      className="grid grid-cols-[44px_minmax(0,1fr)] gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition sm:grid-cols-[44px_64px_minmax(0,1fr)_auto] sm:items-center"
+      className="border-border bg-card grid grid-cols-[44px_minmax(0,1fr)] gap-3 rounded-lg border p-4 shadow-sm transition sm:grid-cols-[44px_64px_minmax(0,1fr)_auto] sm:items-center"
     >
       <button
         type="button"
-        className="flex size-11 touch-none items-center justify-center rounded-lg border border-border bg-background text-muted transition hover:border-primary hover:text-primary"
+        className="border-border bg-background text-muted hover:border-primary hover:text-primary flex size-11 touch-none items-center justify-center rounded-lg border transition"
         aria-label={`${player.name} 순위 드래그`}
         {...attributes}
         {...listeners}
@@ -174,37 +176,37 @@ function SortablePlayerRow({ index, player }: SortablePlayerRowProps) {
         <GripVertical size={18} aria-hidden="true" />
       </button>
 
-      <span className="hidden text-lg font-bold text-primary sm:block">
+      <span className="text-primary hidden text-lg font-bold sm:block">
         #{index + 1}
       </span>
 
       <div className="min-w-0">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <span className="shrink-0 text-base font-bold text-primary sm:hidden">
+          <span className="text-primary shrink-0 text-base font-bold sm:hidden">
             #{index + 1}
           </span>
-          <p className="min-w-0 text-lg font-semibold leading-7 text-foreground">
+          <p className="text-foreground min-w-0 text-lg leading-7 font-semibold">
             {player.playerNumber !== null ? (
-              <span className="mr-2 text-primary">#{player.playerNumber}</span>
+              <span className="text-primary mr-2">#{player.playerNumber}</span>
             ) : null}
             {player.name}
           </p>
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-md bg-primary px-2.5 py-1 text-sm font-semibold text-primary-foreground">
+          <span className="bg-primary text-primary-foreground rounded-md px-2.5 py-1 text-sm font-semibold">
             {player.mainPosition}
           </span>
           {secondaryPositions.length > 0 ? (
             secondaryPositions.map((position) => (
               <span
                 key={position}
-                className="rounded-md border border-border bg-background px-2.5 py-1 text-sm font-medium text-muted"
+                className="border-border bg-background text-muted rounded-md border px-2.5 py-1 text-sm font-medium"
               >
                 {position}
               </span>
             ))
           ) : (
-            <span className="rounded-md border border-dashed border-border px-2.5 py-1 text-sm font-medium text-muted">
+            <span className="border-border text-muted rounded-md border border-dashed px-2.5 py-1 text-sm font-medium">
               부 포지션 없음
             </span>
           )}

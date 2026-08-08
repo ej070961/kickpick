@@ -14,7 +14,9 @@ type DisplayPlayer = {
 export function formatPositions(player: DisplayPlayer) {
   return [
     player.mainPosition,
-    ...player.subPositions.filter((position) => position !== player.mainPosition),
+    ...player.subPositions.filter(
+      (position) => position !== player.mainPosition,
+    ),
   ].join(", ");
 }
 

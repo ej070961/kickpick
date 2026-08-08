@@ -33,7 +33,7 @@ export function CreatePlayerModal() {
       <button
         type="button"
         onClick={openModal}
-        className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90"
+        className="bg-primary text-primary-foreground inline-flex min-h-11 items-center gap-2 rounded-lg px-4 text-sm font-semibold shadow-sm transition hover:opacity-90"
       >
         <PlusCircle size={18} aria-hidden="true" />
         선수 추가
@@ -42,15 +42,15 @@ export function CreatePlayerModal() {
       <dialog
         ref={dialogRef}
         onClick={handleBackdropClick}
-        className="m-auto w-[min(calc(100vw-2rem),28rem)] rounded-2xl bg-card p-0 shadow-xl backdrop:bg-black/50"
+        className="bg-card m-auto w-[min(calc(100vw-2rem),28rem)] rounded-2xl p-0 shadow-xl backdrop:bg-black/50"
       >
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h2 className="text-base font-semibold text-foreground">선수 추가</h2>
+        <div className="border-border flex items-center justify-between border-b px-6 py-4">
+          <h2 className="text-foreground text-base font-semibold">선수 추가</h2>
           <button
             type="button"
             onClick={closeModal}
             aria-label="닫기"
-            className="flex size-8 items-center justify-center rounded-lg text-muted transition hover:bg-mint-surface hover:text-foreground"
+            className="text-muted hover:bg-mint-surface hover:text-foreground flex size-8 items-center justify-center rounded-lg transition"
           >
             <X size={18} aria-hidden="true" />
           </button>

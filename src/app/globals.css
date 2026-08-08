@@ -48,8 +48,16 @@ body {
 
 body {
   background:
-    radial-gradient(circle at 16% 0%, rgb(217 250 244 / 0.95), transparent 28rem),
-    radial-gradient(circle at 86% 8%, rgb(217 250 244 / 0.7), transparent 24rem),
+    radial-gradient(
+      circle at 16% 0%,
+      rgb(217 250 244 / 0.95),
+      transparent 28rem
+    ),
+    radial-gradient(
+      circle at 86% 8%,
+      rgb(217 250 244 / 0.7),
+      transparent 24rem
+    ),
     linear-gradient(180deg, #f9fbff 0%, var(--background) 42rem);
   color: var(--foreground);
   font-family: var(--font-sans);

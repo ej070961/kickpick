@@ -33,14 +33,14 @@ export function Dialog({
       aria-modal="true"
       aria-labelledby={titleId}
     >
-      <div className="max-h-[calc(100dvh-2rem)] w-full max-w-3xl overflow-hidden rounded-lg border border-border bg-card shadow-xl">
-        <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+      <div className="border-border bg-card max-h-[calc(100dvh-2rem)] w-full max-w-3xl overflow-hidden rounded-lg border shadow-xl">
+        <div className="border-border flex items-start justify-between gap-4 border-b px-5 py-4">
           <div>
-            <h2 id={titleId} className="text-lg font-bold text-foreground">
+            <h2 id={titleId} className="text-foreground text-lg font-bold">
               {title}
             </h2>
             {description ? (
-              <p className="mt-1 text-sm text-muted">{description}</p>
+              <p className="text-muted mt-1 text-sm">{description}</p>
             ) : null}
           </div>
           <Button onClick={onClose} size="sm" variant="ghost">
