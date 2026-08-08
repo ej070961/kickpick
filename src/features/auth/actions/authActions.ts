@@ -10,6 +10,10 @@ import { createClient } from "@/shared/api/supabase/server";
 type SupportedOAuthProvider = Extract<Provider, "kakao" | "google">;
 
 const SUPPORTED_OAUTH_PROVIDERS: SupportedOAuthProvider[] = ["kakao", "google"];
+const OAUTH_PROVIDER_SCOPES = {
+  kakao: "profile_nickname profile_image",
+  google: undefined,
+} satisfies Record<SupportedOAuthProvider, string | undefined>;
 
 async function getRequestOrigin() {
   const headerStore = await headers();
@@ -37,6 +41,7 @@ async function startOAuthSignIn(
     provider,
     options: {
       redirectTo: origin ? `${origin}/auth/callback?next=/` : undefined,
+      scopes: OAUTH_PROVIDER_SCOPES[provider],
     },
   });
 
