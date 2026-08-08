@@ -32,8 +32,8 @@ export function TrialLoginButton() {
         role="tooltip"
         className="border-border bg-foreground pointer-events-none absolute top-full left-1/2 z-10 mt-2 hidden w-64 -translate-x-1/2 rounded-lg border px-3 py-2 text-center text-xs leading-5 text-white shadow-md group-focus-within:block group-hover:block"
       >
-        체험 모드 데이터는 현재 브라우저 기준으로 사용할 수 있습니다. 계속
-        보관하려면 나중에 계정 연결이 필요합니다.
+        로그아웃하면 체험 중 저장한 내용을 다시 불러올 수 없어요. 계속 쓰려면
+        Kakao나 Google로 시작해주세요.
       </p>
     </div>
   );
