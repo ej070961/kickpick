@@ -2,12 +2,13 @@ import { LoginForm } from "@/features/auth/ui/LoginForm";
 
 export function LoginPage() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-background px-4">
-      <section className="w-full max-w-sm rounded-2xl border border-white bg-card p-7 shadow-md">
-        <p className="text-sm font-semibold text-primary">KickPick</p>
-        <h1 className="mt-3 text-3xl font-bold text-foreground">로그인</h1>
-        <p className="mt-3 text-sm leading-6 text-muted">
-          팀 단위 계정으로 선수 명단과 경기 배치를 관리합니다.
+    <main className="bg-background grid min-h-dvh place-items-center px-4">
+      <section className="bg-card w-full max-w-sm rounded-2xl border border-white p-7 shadow-md">
+        <p className="text-primary text-sm font-semibold">KickPick</p>
+        <h1 className="text-foreground mt-3 text-3xl font-bold">로그인</h1>
+        <p className="text-muted mt-3 text-sm leading-6">
+          SNS 계정으로 빠르게 시작하거나, 가입 없이 바로 경기 배치를
+          체험해보세요.
         </p>
         <div className="mt-6">
           <LoginForm />
