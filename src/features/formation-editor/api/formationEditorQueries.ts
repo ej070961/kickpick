@@ -18,8 +18,7 @@ type RegenerationContext = {
 export async function getFormationRegenerationContext(
   matchId: string,
 ): Promise<
-  | { context: RegenerationContext; ok: true }
-  | { error: string; ok: false }
+  { context: RegenerationContext; ok: true } | { error: string; ok: false }
 > {
   const supabase = await createClient();
   const { data: matchData, error: matchError } = await supabase

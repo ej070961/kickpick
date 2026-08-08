@@ -15,24 +15,24 @@ export function MatchCard({ match }: MatchCardProps) {
   const displayName = match.name ?? "이름 없는 경기";
 
   return (
-    <article className="group relative rounded-2xl border border-white bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <article className="group bg-card relative rounded-2xl border border-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <Link
         href={`/matches/${match.id}`}
-        className="absolute inset-0 z-10 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        className="focus-visible:ring-primary absolute inset-0 z-10 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
       >
         <span className="sr-only">{displayName} 포메이션 보기</span>
       </Link>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="truncate text-lg font-bold text-foreground">
+          <p className="text-foreground truncate text-lg font-bold">
             {displayName}
           </p>
-          <div className="mt-3 flex flex-wrap gap-2 text-sm text-muted">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1">
+          <div className="text-muted mt-3 flex flex-wrap gap-2 text-sm">
+            <span className="bg-surface inline-flex items-center gap-1.5 rounded-full px-3 py-1">
               <CalendarDays size={15} aria-hidden="true" />
               {formatMatchDate(match)}
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1">
+            <span className="bg-surface inline-flex items-center gap-1.5 rounded-full px-3 py-1">
               <UsersRound size={15} aria-hidden="true" />
               {match.formation} / {match.quarterCount}쿼터
             </span>
@@ -40,11 +40,11 @@ export function MatchCard({ match }: MatchCardProps) {
         </div>
         <ChevronRight
           size={20}
-          className="mt-1 shrink-0 text-muted transition group-hover:translate-x-1 group-hover:text-foreground"
+          className="text-muted group-hover:text-foreground mt-1 shrink-0 transition group-hover:translate-x-1"
           aria-hidden="true"
         />
       </div>
-      <div className="mt-5 flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4 text-sm">
+      <div className="border-border mt-5 flex flex-wrap items-center justify-end gap-3 border-t pt-4 text-sm">
         <div className="relative z-20 flex items-center gap-3">
           <DeleteMatchButton matchId={match.id} matchName={displayName} />
         </div>

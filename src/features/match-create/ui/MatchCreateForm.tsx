@@ -130,9 +130,10 @@ export function MatchCreateForm({
   const setupError =
     selectedPlayers.length < slotsPerQuarter
       ? `${formationPreset?.label ?? "선택한"} 포메이션은 최소 ${slotsPerQuarter}명이 필요합니다.`
-      : gkFixed && !selectedPlayers.some((player) => player.mainPosition === "GK")
+      : gkFixed &&
+          !selectedPlayers.some((player) => player.mainPosition === "GK")
         ? "GK 고정을 사용하려면 참가 선수에 GK가 포함되어야 합니다."
-      : null;
+        : null;
   const canProceed = !setupError && quarterCount >= 1 && quarterCount <= 8;
 
   /**
@@ -235,7 +236,12 @@ export function MatchCreateForm({
       ) : null}
 
       {selectedPlayers.map((player) => (
-        <input key={player.id} type="hidden" name="playerKeys" value={player.id} />
+        <input
+          key={player.id}
+          type="hidden"
+          name="playerKeys"
+          value={player.id}
+        />
       ))}
       <input
         type="hidden"
@@ -284,22 +290,22 @@ export function MatchCreateForm({
             guestCount={guestPlayers.length}
           />
           {setupError ? (
-            <p className="rounded-xl bg-orange-50 px-3 py-2 text-sm text-mismatch">
+            <p className="text-mismatch rounded-xl bg-orange-50 px-3 py-2 text-sm">
               {setupError}
             </p>
           ) : null}
           {state.errors?.playerIds ? (
-            <span className="block text-xs text-mismatch">
+            <span className="text-mismatch block text-xs">
               {state.errors.playerIds[0]}
             </span>
           ) : null}
           {state.errors?.playerKeys ? (
-            <span className="block text-xs text-mismatch">
+            <span className="text-mismatch block text-xs">
               {state.errors.playerKeys[0]}
             </span>
           ) : null}
           {state.errors?.guestPlayers ? (
-            <span className="block text-xs text-mismatch">
+            <span className="text-mismatch block text-xs">
               {state.errors.guestPlayers[0]}
             </span>
           ) : null}
@@ -319,24 +325,24 @@ export function MatchCreateForm({
       )}
 
       {state.errors?.reducedPlayerIds ? (
-        <span className="block text-xs text-mismatch">
+        <span className="text-mismatch block text-xs">
           {state.errors.reducedPlayerIds[0]}
         </span>
       ) : null}
 
       {state.message ? (
-        <p className="rounded-lg bg-orange-50 px-3 py-2 text-sm text-mismatch">
+        <p className="text-mismatch rounded-lg bg-orange-50 px-3 py-2 text-sm">
           {state.message}
         </p>
       ) : null}
 
-      <div className="sticky bottom-0 -mx-4 flex flex-col gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:flex-row sm:justify-end lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0">
+      <div className="border-border bg-background/95 sticky bottom-0 -mx-4 flex flex-col gap-2 border-t px-4 py-3 backdrop-blur sm:flex-row sm:justify-end lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:px-0">
         {step === 1 ? (
           <button
             type="button"
             onClick={proceedToReducedQuotaStep}
             disabled={!canProceed}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-45 sm:w-auto"
+            className="bg-primary text-primary-foreground inline-flex min-h-11 w-full items-center justify-center rounded-lg px-4 text-sm font-semibold disabled:opacity-45 sm:w-auto"
           >
             다음
           </button>
@@ -345,12 +351,12 @@ export function MatchCreateForm({
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground sm:w-auto"
+              className="border-border bg-card text-foreground inline-flex min-h-11 w-full items-center justify-center rounded-lg border px-4 text-sm font-semibold sm:w-auto"
             >
               이전
             </button>
             <SubmitButton
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-60 sm:w-auto"
+              className="bg-primary text-primary-foreground inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold disabled:opacity-60 sm:w-auto"
               disabled={!canCreateMatch}
               pendingLabel="생성 중"
             >

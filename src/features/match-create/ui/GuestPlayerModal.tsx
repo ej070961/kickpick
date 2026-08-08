@@ -121,7 +121,7 @@ export function GuestPlayerModal({
       <button
         type="button"
         onClick={openModal}
-        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+        className="bg-primary text-primary-foreground inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition hover:opacity-90"
       >
         <UserPlus size={18} aria-hidden="true" />
         용병 관리
@@ -130,14 +130,14 @@ export function GuestPlayerModal({
       <dialog
         ref={dialogRef}
         onClick={handleBackdropClick}
-        className="m-auto w-[min(calc(100vw-2rem),44rem)] rounded-2xl bg-card p-0 shadow-xl backdrop:bg-black/50"
+        className="bg-card m-auto w-[min(calc(100vw-2rem),44rem)] rounded-2xl p-0 shadow-xl backdrop:bg-black/50"
       >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div className="border-border flex items-center justify-between border-b px-5 py-4">
           <div>
-            <h4 className="text-base font-semibold text-foreground">
+            <h4 className="text-foreground text-base font-semibold">
               용병 관리
             </h4>
-            <p className="mt-1 text-xs text-muted">
+            <p className="text-muted mt-1 text-xs">
               부족한 인원을 이번 경기용 선수로 추가하세요.
             </p>
           </div>
@@ -145,7 +145,7 @@ export function GuestPlayerModal({
             type="button"
             onClick={closeModal}
             aria-label="닫기"
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-mint-surface hover:text-foreground"
+            className="text-muted hover:bg-mint-surface hover:text-foreground flex size-8 shrink-0 items-center justify-center rounded-lg transition"
           >
             <X size={18} aria-hidden="true" />
           </button>
@@ -154,21 +154,24 @@ export function GuestPlayerModal({
         <div className="grid max-h-[70dvh] gap-5 overflow-y-auto px-5 py-4 md:grid-cols-[minmax(0,1fr)_16rem]">
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-semibold text-foreground">
+              <label className="text-foreground text-sm font-semibold">
                 용병 이름
               </label>
               <input
                 type="text"
                 value={form.name}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, name: event.target.value }))
+                  setForm((current) => ({
+                    ...current,
+                    name: event.target.value,
+                  }))
                 }
-                className="mt-1 min-h-10 w-full rounded-lg border border-border px-3 text-sm outline-none transition focus:border-primary"
+                className="border-border focus:border-primary mt-1 min-h-10 w-full rounded-lg border px-3 text-sm transition outline-none"
               />
             </div>
 
             <div>
-              <label className="text-sm font-semibold text-foreground">
+              <label className="text-foreground text-sm font-semibold">
                 주 포지션
               </label>
               <select
@@ -179,7 +182,7 @@ export function GuestPlayerModal({
                     mainPosition: event.target.value as PlayerPositionCode,
                   }))
                 }
-                className="mt-1 min-h-10 w-full rounded-lg border border-border bg-card px-3 text-sm outline-none transition focus:border-primary"
+                className="border-border bg-card focus:border-primary mt-1 min-h-10 w-full rounded-lg border px-3 text-sm transition outline-none"
               >
                 {PLAYER_POSITION_CODES.map((position) => (
                   <option key={position} value={position}>
@@ -190,7 +193,7 @@ export function GuestPlayerModal({
             </div>
 
             <div>
-              <p className="text-sm font-semibold text-foreground">부 포지션</p>
+              <p className="text-foreground text-sm font-semibold">부 포지션</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {PLAYER_POSITION_CODES.map((position) => {
                   const checked = form.subPositions.has(position);
@@ -210,7 +213,7 @@ export function GuestPlayerModal({
                         checked={checked}
                         disabled={disabled}
                         onChange={() => toggleSubPosition(position)}
-                        className="size-4 accent-primary"
+                        className="accent-primary size-4"
                       />
                       {position}
                     </label>
@@ -220,17 +223,17 @@ export function GuestPlayerModal({
             </div>
 
             {error ? (
-              <p className="rounded-lg bg-orange-50 px-3 py-2 text-sm text-mismatch">
+              <p className="text-mismatch rounded-lg bg-orange-50 px-3 py-2 text-sm">
                 {error}
               </p>
             ) : null}
 
-            <div className="flex justify-end gap-2 border-t border-border pt-4">
+            <div className="border-border flex justify-end gap-2 border-t pt-4">
               {form.editingId ? (
                 <button
                   type="button"
                   onClick={() => setForm(createInitialFormState())}
-                  className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border px-4 text-sm font-semibold text-foreground"
+                  className="border-border text-foreground inline-flex min-h-10 items-center justify-center rounded-lg border px-4 text-sm font-semibold"
                 >
                   새 용병 입력
                 </button>
@@ -238,7 +241,7 @@ export function GuestPlayerModal({
               <button
                 type="button"
                 onClick={submitGuest}
-                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
+                className="bg-primary text-primary-foreground inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold"
               >
                 <Plus size={16} aria-hidden="true" />
                 {form.editingId ? "수정 완료" : "명단에 추가"}
@@ -247,22 +250,20 @@ export function GuestPlayerModal({
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-foreground">
-              추가한 용병
-            </p>
+            <p className="text-foreground text-sm font-semibold">추가한 용병</p>
             {sortedGuests.length > 0 ? (
               <div className="mt-2 space-y-2">
                 {sortedGuests.map((guest) => (
                   <div
                     key={guest.id}
-                    className="rounded-lg border border-border bg-background px-3 py-2"
+                    className="border-border bg-background rounded-lg border px-3 py-2"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-foreground">
+                        <p className="text-foreground truncate text-sm font-semibold">
                           {guest.name}
                         </p>
-                        <p className="mt-1 text-xs text-muted">
+                        <p className="text-muted mt-1 text-xs">
                           {guest.mainPosition}
                         </p>
                       </div>
@@ -271,7 +272,7 @@ export function GuestPlayerModal({
                           type="button"
                           onClick={() => startEdit(guest)}
                           aria-label={`${guest.name} 수정`}
-                          className="flex size-8 items-center justify-center rounded-lg text-muted transition hover:bg-mint-surface hover:text-foreground"
+                          className="text-muted hover:bg-mint-surface hover:text-foreground flex size-8 items-center justify-center rounded-lg transition"
                         >
                           <Pencil size={15} aria-hidden="true" />
                         </button>
@@ -279,7 +280,7 @@ export function GuestPlayerModal({
                           type="button"
                           onClick={() => removeGuest(guest.id)}
                           aria-label={`${guest.name} 삭제`}
-                          className="flex size-8 items-center justify-center rounded-lg text-muted transition hover:bg-orange-50 hover:text-mismatch"
+                          className="text-muted hover:text-mismatch flex size-8 items-center justify-center rounded-lg transition hover:bg-orange-50"
                         >
                           <Trash2 size={15} aria-hidden="true" />
                         </button>
@@ -289,18 +290,18 @@ export function GuestPlayerModal({
                 ))}
               </div>
             ) : (
-              <p className="mt-2 rounded-lg border border-dashed border-border px-3 py-3 text-sm text-muted">
+              <p className="border-border text-muted mt-2 rounded-lg border border-dashed px-3 py-3 text-sm">
                 아직 추가한 용병이 없습니다.
               </p>
             )}
           </div>
         </div>
 
-        <div className="flex justify-end border-t border-border px-5 py-4">
+        <div className="border-border flex justify-end border-t px-5 py-4">
           <button
             type="button"
             onClick={closeModal}
-            className="inline-flex min-h-10 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
+            className="bg-primary text-primary-foreground inline-flex min-h-10 items-center justify-center rounded-lg px-4 text-sm font-semibold"
           >
             완료
           </button>

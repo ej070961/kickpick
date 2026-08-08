@@ -1,6 +1,9 @@
 import type { AssignedSlot, FormationPreset } from "@/entities/formation";
 import type { FormationSlotCode } from "@/entities/position";
-import type { MatchRow, QuarterRow } from "@/features/formation-editor/api/formationEditorRows";
+import type {
+  MatchRow,
+  QuarterRow,
+} from "@/features/formation-editor/api/formationEditorRows";
 import { mapQuarterRowsToPreserveInputs } from "@/features/formation-editor/lib/formationEditorMappers";
 import type { FormationRegenerationMode } from "@/features/formation-editor/model/types";
 import { calculateFitScore } from "@/features/formation-generate/lib/calculateFitScore";
@@ -67,7 +70,10 @@ function getQuarterPlayers({
     .filter((player) => !usedPlayerIds.has(player.id))
     .sort((a, b) => a.priorityRank - b.priorityRank);
 
-  return [...selected, ...benchPlayers.slice(0, slotsPerQuarter - selected.length)];
+  return [
+    ...selected,
+    ...benchPlayers.slice(0, slotsPerQuarter - selected.length),
+  ];
 }
 
 /**

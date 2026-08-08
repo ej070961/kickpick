@@ -48,9 +48,8 @@ export function RosterManagementDialog({
   rosterCandidates,
 }: RosterManagementDialogProps) {
   const [search, setSearch] = useState("");
-  const [guestForm, setGuestForm] = useState<GuestFormState>(
-    createEmptyGuestForm,
-  );
+  const [guestForm, setGuestForm] =
+    useState<GuestFormState>(createEmptyGuestForm);
   const filteredCandidates = useMemo(() => {
     const keyword = search.trim().toLowerCase();
     if (!keyword) return rosterCandidates;
@@ -103,17 +102,17 @@ export function RosterManagementDialog({
     >
       <div className="space-y-4">
         <div>
-          <p className="text-sm font-semibold text-foreground">현재 참가자</p>
+          <p className="text-foreground text-sm font-semibold">현재 참가자</p>
           <div className="mt-2 max-h-64 space-y-2 overflow-auto pr-1">
             {sortedPlayers.map((player) => (
               <div
                 key={player.id}
-                className="flex min-h-11 items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 py-2"
+                className="border-border bg-background flex min-h-11 items-center justify-between gap-2 rounded-lg border px-3 py-2"
               >
                 <span className="min-w-0">
                   <PlayerDisplayName
                     player={player}
-                    className="block truncate text-sm font-semibold text-foreground"
+                    className="text-foreground block truncate text-sm font-semibold"
                   />
                   <span className="mt-1 flex flex-wrap gap-1">
                     <Badge>{player.mainPosition}</Badge>
@@ -148,8 +147,8 @@ export function RosterManagementDialog({
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-background p-3">
-          <p className="text-sm font-semibold text-foreground">팀 선수 추가</p>
+        <div className="border-border bg-background rounded-lg border p-3">
+          <p className="text-foreground text-sm font-semibold">팀 선수 추가</p>
           <TextField
             label="검색"
             placeholder="이름, 등번호, 포지션"
@@ -162,29 +161,31 @@ export function RosterManagementDialog({
                 <button
                   key={player.id}
                   type="button"
-                  className="flex min-h-10 w-full items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 text-left text-sm transition hover:border-primary hover:bg-mint-surface"
-                  onClick={() => onAddRosterPlayer(getIdFromPlayerKey(player.id))}
+                  className="border-border bg-card hover:border-primary hover:bg-mint-surface flex min-h-10 w-full items-center justify-between gap-3 rounded-lg border px-3 text-left text-sm transition"
+                  onClick={() =>
+                    onAddRosterPlayer(getIdFromPlayerKey(player.id))
+                  }
                   disabled={isPending}
                 >
                   <span className="min-w-0">
                     <PlayerDisplayName
                       player={player}
-                      className="block truncate font-semibold text-foreground"
+                      className="text-foreground block truncate font-semibold"
                     />
                   </span>
                   <Badge>{player.mainPosition}</Badge>
                 </button>
               ))
             ) : (
-              <p className="rounded-lg border border-dashed border-border px-3 py-3 text-sm text-muted">
+              <p className="border-border text-muted rounded-lg border border-dashed px-3 py-3 text-sm">
                 추가할 팀 선수가 없습니다.
               </p>
             )}
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-background p-3">
-          <p className="text-sm font-semibold text-foreground">
+        <div className="border-border bg-background rounded-lg border p-3">
+          <p className="text-foreground text-sm font-semibold">
             {guestForm.id ? "용병 수정" : "용병 추가"}
           </p>
           <div className="mt-3 grid gap-3">
@@ -226,7 +227,7 @@ export function RosterManagementDialog({
               ))}
             </SelectField>
             <div>
-              <p className="text-sm font-semibold text-foreground">부 포지션</p>
+              <p className="text-foreground text-sm font-semibold">부 포지션</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {PLAYER_POSITION_CODES.filter(
                   (position) => position !== guestForm.mainPosition,

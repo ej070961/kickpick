@@ -115,7 +115,10 @@ export function FormationEditorClient({
 
       if (!result.success || !result.player) return;
 
-      setEditorPlayers((current) => [...current, result.player as EditorPlayer]);
+      setEditorPlayers((current) => [
+        ...current,
+        result.player as EditorPlayer,
+      ]);
       setAvailableRosterPlayers((current) =>
         current.filter((player) => getIdFromPlayerKey(player.id) !== playerId),
       );
@@ -159,7 +162,9 @@ export function FormationEditorClient({
       if (!result.success || !result.player) return;
 
       setEditorPlayers((current) => {
-        const exists = current.some((player) => player.id === result.player?.id);
+        const exists = current.some(
+          (player) => player.id === result.player?.id,
+        );
 
         return exists
           ? current.map((player) =>
@@ -176,7 +181,7 @@ export function FormationEditorClient({
 
   if (!editor.activeQuarter) {
     return (
-      <div className="rounded-lg border border-dashed border-border bg-card p-6 text-sm text-muted">
+      <div className="border-border bg-card text-muted rounded-lg border border-dashed p-6 text-sm">
         생성된 포메이션이 없습니다.
       </div>
     );

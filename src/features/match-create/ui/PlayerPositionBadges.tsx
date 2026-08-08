@@ -12,7 +12,7 @@ export function PlayerPositionBadges({ player }: { player: Player }) {
     <span className="mt-2 flex flex-wrap gap-1.5 sm:mt-0">
       <span
         aria-label={`주 포지션 ${player.mainPosition}`}
-        className="inline-flex items-center rounded-md border border-primary/35 bg-background px-2 py-1 text-xs font-semibold text-primary"
+        className="border-primary/35 bg-background text-primary inline-flex items-center rounded-md border px-2 py-1 text-xs font-semibold"
       >
         {player.mainPosition}
       </span>
@@ -21,13 +21,13 @@ export function PlayerPositionBadges({ player }: { player: Player }) {
           <span
             key={position}
             aria-label={`부 포지션 ${position}`}
-            className="inline-flex items-center rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-muted"
+            className="border-border bg-background text-muted inline-flex items-center rounded-md border px-2 py-1 text-xs font-medium"
           >
             {position}
           </span>
         ))
       ) : (
-        <span className="rounded-md border border-dashed border-border px-2 py-1 text-xs font-medium text-muted">
+        <span className="border-border text-muted rounded-md border border-dashed px-2 py-1 text-xs font-medium">
           부 포지션 없음
         </span>
       )}

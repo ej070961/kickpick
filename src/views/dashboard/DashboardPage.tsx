@@ -52,15 +52,15 @@ export function DashboardPage() {
             <Link
               key={card.href}
               href={card.href}
-              className="rounded-2xl border border-white bg-card p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              className="bg-card rounded-2xl border border-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
             >
-              <span className="inline-flex size-12 items-center justify-center rounded-xl bg-mint-surface text-primary">
+              <span className="bg-mint-surface text-primary inline-flex size-12 items-center justify-center rounded-xl">
                 <Icon size={20} aria-hidden="true" />
               </span>
-              <h3 className="mt-5 text-lg font-bold text-foreground">
+              <h3 className="text-foreground mt-5 text-lg font-bold">
                 {card.title}
               </h3>
-              <p className="mt-2 text-sm leading-6 text-muted">
+              <p className="text-muted mt-2 text-sm leading-6">
                 {card.description}
               </p>
             </Link>

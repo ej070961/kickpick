@@ -74,7 +74,9 @@ async function getRosterPlayers() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("players")
-    .select("id, name, player_number, main_position, sub_positions, priority_rank")
+    .select(
+      "id, name, player_number, main_position, sub_positions, priority_rank",
+    )
     .eq("is_deleted", false)
     .order("priority_rank", { ascending: true })
     .order("created_at", { ascending: true });
@@ -166,7 +168,9 @@ export async function FormationEditorPage({
   const editorQuarters = quarters.map(mapQuarter);
   const editorPlayers = players
     .map((player) =>
-      mapMatchPlayerRowToEditorPlayer(player as unknown as SharedMatchPlayerRow),
+      mapMatchPlayerRowToEditorPlayer(
+        player as unknown as SharedMatchPlayerRow,
+      ),
     )
     .filter((player): player is EditorPlayer => Boolean(player));
   const participantIds = new Set(editorPlayers.map((player) => player.id));

@@ -34,8 +34,7 @@ export async function replaceFormationSlots({
   quarters: QuarterRow[];
   slotRows: FormationSlotInsertRow[];
 }): Promise<
-  | { insertedSlots: InsertedSlotRow[]; ok: true }
-  | { error: string; ok: false }
+  { insertedSlots: InsertedSlotRow[]; ok: true } | { error: string; ok: false }
 > {
   const supabase = await createClient();
   const quarterFormationIds = quarters.map((quarter) => quarter.id);
@@ -59,5 +58,8 @@ export async function replaceFormationSlots({
     return { error: "새 포메이션 슬롯을 저장하지 못했습니다.", ok: false };
   }
 
-  return { insertedSlots: insertedSlots as unknown as InsertedSlotRow[], ok: true };
+  return {
+    insertedSlots: insertedSlots as unknown as InsertedSlotRow[],
+    ok: true,
+  };
 }

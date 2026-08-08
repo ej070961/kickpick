@@ -99,26 +99,26 @@ export function PlayerForm({
       {player ? <input type="hidden" name="id" value={player.id} /> : null}
 
       <label className="block">
-        <span className="text-sm font-medium text-foreground">선수 이름</span>
+        <span className="text-foreground text-sm font-medium">선수 이름</span>
         <input
           name="name"
           autoFocus
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder="홍길동"
-          className="mt-2 min-h-11 w-full rounded-lg border border-border px-3 text-sm outline-none transition focus:border-primary"
+          className="border-border focus:border-primary mt-2 min-h-11 w-full rounded-lg border px-3 text-sm transition outline-none"
         />
         {state.errors?.name ? (
-          <span className="mt-1 block text-xs text-mismatch">
+          <span className="text-mismatch mt-1 block text-xs">
             {state.errors.name[0]}
           </span>
         ) : null}
       </label>
 
       <label className="block">
-        <span className="text-sm font-medium text-foreground">
+        <span className="text-foreground text-sm font-medium">
           선수 번호
-          <span className="ml-1 font-normal text-muted">(선택)</span>
+          <span className="text-muted ml-1 font-normal">(선택)</span>
         </span>
         <input
           name="playerNumber"
@@ -128,17 +128,17 @@ export function PlayerForm({
           value={playerNumber}
           onChange={(event) => setPlayerNumber(event.target.value)}
           placeholder="예: 10"
-          className="mt-2 min-h-11 w-full rounded-lg border border-border px-3 text-sm outline-none transition focus:border-primary"
+          className="border-border focus:border-primary mt-2 min-h-11 w-full rounded-lg border px-3 text-sm transition outline-none"
         />
         {state.errors?.playerNumber ? (
-          <span className="mt-1 block text-xs text-mismatch">
+          <span className="text-mismatch mt-1 block text-xs">
             {state.errors.playerNumber[0]}
           </span>
         ) : null}
       </label>
 
       <label className="block">
-        <span className="text-sm font-medium text-foreground">주 포지션</span>
+        <span className="text-foreground text-sm font-medium">주 포지션</span>
         <select
           name="mainPosition"
           value={mainPosition}
@@ -147,7 +147,7 @@ export function PlayerForm({
               event.target.value as PlayerPositionCode | "",
             )
           }
-          className="mt-2 min-h-11 w-full rounded-lg border border-border bg-card px-3 text-sm outline-none transition focus:border-primary"
+          className="border-border bg-card focus:border-primary mt-2 min-h-11 w-full rounded-lg border px-3 text-sm transition outline-none"
         >
           {mode === "create" ? (
             <option value="" disabled>
@@ -161,31 +161,31 @@ export function PlayerForm({
           ))}
         </select>
         {state.errors?.mainPosition ? (
-          <span className="mt-1 block text-xs text-mismatch">
+          <span className="text-mismatch mt-1 block text-xs">
             {state.errors.mainPosition[0]}
           </span>
         ) : null}
       </label>
 
       <fieldset>
-        <legend className="text-sm font-medium text-foreground">
+        <legend className="text-foreground text-sm font-medium">
           부 포지션
         </legend>
         <div className="relative mt-2">
           <Search
             size={15}
             aria-hidden="true"
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+            className="text-muted pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
           />
           <input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="포지션 검색"
-            className="min-h-9 w-full rounded-lg border border-border pl-8 pr-3 text-sm outline-none transition focus:border-primary"
+            className="border-border focus:border-primary min-h-9 w-full rounded-lg border pr-3 pl-8 text-sm transition outline-none"
           />
         </div>
-        <div className="mt-2 flex max-h-52 flex-wrap gap-2 overflow-y-auto rounded-lg border border-border p-3">
+        <div className="border-border mt-2 flex max-h-52 flex-wrap gap-2 overflow-y-auto rounded-lg border p-3">
           {filteredPositions.length > 0 ? (
             filteredPositions.map((position) => {
               const disabled = position === mainPosition;
@@ -194,10 +194,10 @@ export function PlayerForm({
               return (
                 <label
                   key={position}
-                  className={`inline-flex min-h-9 select-none items-center gap-2 rounded-lg border border-border px-3 text-xs font-semibold transition ${
+                  className={`border-border inline-flex min-h-9 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition select-none ${
                     disabled
                       ? "cursor-not-allowed opacity-40"
-                      : "cursor-pointer text-muted hover:border-primary hover:text-foreground"
+                      : "text-muted hover:border-primary hover:text-foreground cursor-pointer"
                   }`}
                 >
                   <input
@@ -216,24 +216,24 @@ export function PlayerForm({
               );
             })
           ) : (
-            <span className="py-2 text-xs text-muted">검색 결과 없음</span>
+            <span className="text-muted py-2 text-xs">검색 결과 없음</span>
           )}
         </div>
         {state.errors?.subPositions ? (
-          <span className="mt-1 block text-xs text-mismatch">
+          <span className="text-mismatch mt-1 block text-xs">
             {state.errors.subPositions[0]}
           </span>
         ) : null}
       </fieldset>
 
       {state.message && !state.success ? (
-        <p className="rounded-lg bg-orange-50 px-3 py-2 text-sm text-mismatch">
+        <p className="text-mismatch rounded-lg bg-orange-50 px-3 py-2 text-sm">
           {state.message}
         </p>
       ) : null}
 
       <SubmitButton
-        className="mt-2 min-h-11 w-full rounded-lg bg-primary text-sm font-semibold text-primary-foreground disabled:opacity-60"
+        className="bg-primary text-primary-foreground mt-2 min-h-11 w-full rounded-lg text-sm font-semibold disabled:opacity-60"
         disabled={!canSubmit}
         pendingLabel={pendingLabel}
       >

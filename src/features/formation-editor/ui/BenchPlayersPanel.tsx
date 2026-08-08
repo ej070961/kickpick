@@ -27,7 +27,7 @@ export function BenchPlayersPanel({
       title="현재 쿼터 후보"
       description={`${quarterNumber}Q · 출전 ${activeAssignedPlayerCount}명 · 후보 ${benchPlayers.length}명`}
     >
-      <p className="mt-2 text-xs text-muted">
+      <p className="text-muted mt-2 text-xs">
         {hasSelectedSlot
           ? "후보 카드를 누르면 선택한 유니폼과 교체됩니다."
           : selectedBenchPlayerId
@@ -44,7 +44,7 @@ export function BenchPlayersPanel({
                 key={player.id}
                 type="button"
                 onClick={() => onBenchPlayerClick(player)}
-                className={`flex min-h-10 w-full items-center justify-between gap-3 rounded-lg border px-3 text-left text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                className={`focus-visible:outline-primary flex min-h-10 w-full items-center justify-between gap-3 rounded-lg border px-3 text-left text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
                   isSelected
                     ? "border-primary bg-mint-surface"
                     : "border-border hover:border-primary hover:bg-mint-surface"
@@ -55,7 +55,7 @@ export function BenchPlayersPanel({
                 <span className="min-w-0">
                   <PlayerDisplayName
                     player={player}
-                    className="block truncate font-semibold text-foreground"
+                    className="text-foreground block truncate font-semibold"
                   />
                 </span>
                 <Badge>{player.mainPosition}</Badge>
@@ -64,7 +64,7 @@ export function BenchPlayersPanel({
           })}
         </div>
       ) : (
-        <p className="mt-3 rounded-lg border border-dashed border-border px-3 py-3 text-sm text-muted">
+        <p className="border-border text-muted mt-3 rounded-lg border border-dashed px-3 py-3 text-sm">
           후보 선수가 없습니다.
         </p>
       )}

@@ -193,11 +193,14 @@ export async function createMatch(
     guestPlayers.map((guest) => getGuestPlayerKey(guest.clientId)),
   );
   const hasMissingGuest = playerKeys.some(
-    (playerKey) => isGuestPlayerKey(playerKey) && !guestPlayerKeys.has(playerKey),
+    (playerKey) =>
+      isGuestPlayerKey(playerKey) && !guestPlayerKeys.has(playerKey),
   );
 
   if (hasMissingGuest) {
-    return { errors: { guestPlayers: ["사용할 수 없는 용병이 포함되어 있습니다."] } };
+    return {
+      errors: { guestPlayers: ["사용할 수 없는 용병이 포함되어 있습니다."] },
+    };
   }
 
   let rosterPlayers: FormationPlayer[] = [];
@@ -205,7 +208,9 @@ export async function createMatch(
   if (rosterPlayerIds.length > 0) {
     const { data: playerRows, error: playersError } = await supabase
       .from("players")
-      .select("id, name, player_number, main_position, sub_positions, priority_rank")
+      .select(
+        "id, name, player_number, main_position, sub_positions, priority_rank",
+      )
       .eq("team_id", teamId)
       .eq("is_deleted", false)
       .in("id", rosterPlayerIds);
@@ -237,8 +242,8 @@ export async function createMatch(
       ),
     }),
   );
-  const players = [...rosterPlayers, ...guestFormationPlayers].filter((player) =>
-    playerKeys.includes(player.id),
+  const players = [...rosterPlayers, ...guestFormationPlayers].filter(
+    (player) => playerKeys.includes(player.id),
   );
 
   if (players.length !== playerKeys.length) {
@@ -367,7 +372,9 @@ export async function createMatch(
           : null,
         is_reduced_quota: reducedPlayerIds.includes(player.id),
         match_id: matchId,
-        player_id: isGuestPlayerKey(player.id) ? null : getIdFromPlayerKey(player.id),
+        player_id: isGuestPlayerKey(player.id)
+          ? null
+          : getIdFromPlayerKey(player.id),
         target_quota: generated.targetQuotas.get(player.id) ?? 0,
       })),
     );

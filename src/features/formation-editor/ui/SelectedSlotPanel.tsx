@@ -26,8 +26,8 @@ export function SelectedSlotPanel({
   selectedSlot,
 }: SelectedSlotPanelProps) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-      <h3 className="text-base font-semibold text-foreground">현재 선택</h3>
+    <div className="border-border bg-card rounded-lg border p-4 shadow-sm">
+      <h3 className="text-foreground text-base font-semibold">현재 선택</h3>
       {selectedSlot ? (
         <SelectedItemCard
           description="다른 유니폼 또는 후보 카드를 누르면 교체됩니다."
@@ -47,7 +47,7 @@ export function SelectedSlotPanel({
           title={<PlayerDisplayName player={selectedBenchPlayer} />}
         />
       ) : (
-        <p className="mt-2 rounded-lg border border-dashed border-border px-3 py-3 text-sm text-muted">
+        <p className="border-border text-muted mt-2 rounded-lg border border-dashed px-3 py-3 text-sm">
           유니폼 또는 후보 카드를 선택하면 교체할 수 있습니다.
         </p>
       )}
@@ -64,10 +64,10 @@ function SelectedItemCard({
   title,
 }: SelectedItemCardProps) {
   return (
-    <div className="mt-3 rounded-lg border border-primary bg-mint-surface px-3 py-2">
-      <p className="text-sm font-bold text-foreground">{title}</p>
-      <p className="mt-1 text-sm text-muted">{subtitle}</p>
-      <p className="mt-2 text-xs text-muted">{description}</p>
+    <div className="border-primary bg-mint-surface mt-3 rounded-lg border px-3 py-2">
+      <p className="text-foreground text-sm font-bold">{title}</p>
+      <p className="text-muted mt-1 text-sm">{subtitle}</p>
+      <p className="text-muted mt-2 text-xs">{description}</p>
     </div>
   );
 }

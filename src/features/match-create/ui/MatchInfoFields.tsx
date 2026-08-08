@@ -34,46 +34,46 @@ export function MatchInfoFields({
   state,
 }: MatchInfoFieldsProps) {
   return (
-    <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
-      <h3 className="text-base font-semibold text-foreground">경기 정보</h3>
+    <section className="border-border bg-card rounded-lg border p-4 shadow-sm">
+      <h3 className="text-foreground text-base font-semibold">경기 정보</h3>
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <label className="block md:col-span-2">
-          <span className="text-sm font-medium text-foreground">
+          <span className="text-foreground text-sm font-medium">
             경기명
-            <span className="ml-1 font-normal text-muted">(선택)</span>
+            <span className="text-muted ml-1 font-normal">(선택)</span>
           </span>
           <input
             name="name"
             value={name}
             onChange={(event) => onNameChange(event.target.value)}
-            className="mt-2 min-h-11 w-full rounded-lg border border-border px-3 text-sm outline-none transition focus:border-primary"
+            className="border-border focus:border-primary mt-2 min-h-11 w-full rounded-lg border px-3 text-sm transition outline-none"
             placeholder="비워두면 이름 없이 생성됩니다"
           />
           {state.errors?.name ? (
-            <span className="mt-1 block text-xs text-mismatch">
+            <span className="text-mismatch mt-1 block text-xs">
               {state.errors.name[0]}
             </span>
           ) : null}
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium text-foreground">날짜</span>
+          <span className="text-foreground text-sm font-medium">날짜</span>
           <input
             name="matchDate"
             type="date"
             value={matchDate}
             onChange={(event) => onMatchDateChange(event.target.value)}
-            className="mt-2 min-h-11 w-full rounded-lg border border-border px-3 text-sm outline-none transition focus:border-primary"
+            className="border-border focus:border-primary mt-2 min-h-11 w-full rounded-lg border px-3 text-sm transition outline-none"
           />
           {state.errors?.matchDate ? (
-            <span className="mt-1 block text-xs text-mismatch">
+            <span className="text-mismatch mt-1 block text-xs">
               {state.errors.matchDate[0]}
             </span>
           ) : null}
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium text-foreground">쿼터 수</span>
+          <span className="text-foreground text-sm font-medium">쿼터 수</span>
           <input
             name="quarterCount"
             type="number"
@@ -83,22 +83,22 @@ export function MatchInfoFields({
             onChange={(event) =>
               onQuarterCountChange(Number(event.target.value) || 1)
             }
-            className="mt-2 min-h-11 w-full rounded-lg border border-border px-3 text-sm outline-none transition focus:border-primary"
+            className="border-border focus:border-primary mt-2 min-h-11 w-full rounded-lg border px-3 text-sm transition outline-none"
           />
           {state.errors?.quarterCount ? (
-            <span className="mt-1 block text-xs text-mismatch">
+            <span className="text-mismatch mt-1 block text-xs">
               {state.errors.quarterCount[0]}
             </span>
           ) : null}
         </label>
 
         <label className="block">
-          <span className="text-sm font-medium text-foreground">포메이션</span>
+          <span className="text-foreground text-sm font-medium">포메이션</span>
           <select
             name="formation"
             value={formationKey}
             onChange={(event) => onFormationChange(event.target.value)}
-            className="mt-2 min-h-11 w-full rounded-lg border border-border bg-card px-3 text-sm outline-none transition focus:border-primary"
+            className="border-border bg-card focus:border-primary mt-2 min-h-11 w-full rounded-lg border px-3 text-sm transition outline-none"
           >
             {formationTemplates.map((preset) => (
               <option key={preset.key} value={preset.key}>
@@ -107,18 +107,18 @@ export function MatchInfoFields({
             ))}
           </select>
           {state.errors?.formation ? (
-            <span className="mt-1 block text-xs text-mismatch">
+            <span className="text-mismatch mt-1 block text-xs">
               {state.errors.formation[0]}
             </span>
           ) : null}
         </label>
 
-        <label className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-border px-3 md:mt-7">
+        <label className="border-border flex min-h-11 items-center justify-between gap-3 rounded-lg border px-3 md:mt-7">
           <span>
-            <span className="block text-sm font-semibold text-foreground">
+            <span className="text-foreground block text-sm font-semibold">
               GK 고정
             </span>
-            <span className="block text-xs text-muted">
+            <span className="text-muted block text-xs">
               {gkFixed ? "골키퍼를 모든 쿼터에 고정" : "쿼터별 자동 배치"}
             </span>
           </span>

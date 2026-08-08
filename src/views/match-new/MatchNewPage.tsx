@@ -79,20 +79,20 @@ function mapPlayer(row: PlayerRow): Player {
  */
 function FormationTemplateRequiredState() {
   return (
-    <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center shadow-sm">
-      <span className="mx-auto flex size-12 items-center justify-center rounded-lg bg-mint-surface text-primary">
+    <div className="border-border bg-card rounded-lg border border-dashed p-6 text-center shadow-sm">
+      <span className="bg-mint-surface text-primary mx-auto flex size-12 items-center justify-center rounded-lg">
         <GalleryVerticalEnd size={22} aria-hidden="true" />
       </span>
-      <h3 className="mt-4 text-base font-semibold text-foreground">
+      <h3 className="text-foreground mt-4 text-base font-semibold">
         포메이션 템플릿이 필요합니다
       </h3>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
+      <p className="text-muted mx-auto mt-2 max-w-md text-sm leading-6">
         경기를 생성하려면 먼저 GK 포함 11개 슬롯 템플릿을 만들어야 합니다.
         팀에서 사용할 포메이션을 등록한 뒤 새 경기를 생성해주세요.
       </p>
       <Link
         href="/formations"
-        className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"
+        className="bg-primary text-primary-foreground mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold"
       >
         <GalleryVerticalEnd size={18} aria-hidden="true" />
         템플릿 만들기

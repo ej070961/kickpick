@@ -3,7 +3,12 @@ import type { PlayerPositionCode } from "@/entities/position";
 
 export type MatchCreateParticipant = Pick<
   Player,
-  "id" | "mainPosition" | "name" | "playerNumber" | "priorityRank" | "subPositions"
+  | "id"
+  | "mainPosition"
+  | "name"
+  | "playerNumber"
+  | "priorityRank"
+  | "subPositions"
 > & {
   isGuest?: boolean;
 };
@@ -40,7 +45,9 @@ export function getIdFromPlayerKey(playerKey: string) {
   return playerKey.replace(/^(player|guest):/, "");
 }
 
-export function mapRosterPlayerToParticipant(player: Player): MatchCreateParticipant {
+export function mapRosterPlayerToParticipant(
+  player: Player,
+): MatchCreateParticipant {
   return {
     id: getRosterPlayerKey(player.id),
     mainPosition: player.mainPosition,

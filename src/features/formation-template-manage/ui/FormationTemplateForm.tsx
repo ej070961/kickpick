@@ -41,13 +41,14 @@ export function FormationTemplateForm({ action }: FormationTemplateFormProps) {
   }
 
   return (
-    <form action={formAction} className="rounded-lg border border-border bg-card p-4 shadow-sm">
+    <form
+      action={formAction}
+      className="border-border bg-card rounded-lg border p-4 shadow-sm"
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-base font-semibold text-foreground">
-            새 템플릿
-          </h3>
-          <p className="mt-1 text-sm text-muted">
+          <h3 className="text-foreground text-base font-semibold">새 템플릿</h3>
+          <p className="text-muted mt-1 text-sm">
             GK는 자동 포함됩니다. 필드 슬롯 10개를 선택하세요.
           </p>
         </div>
@@ -63,7 +64,7 @@ export function FormationTemplateForm({ action }: FormationTemplateFormProps) {
       </div>
 
       <label className="mt-4 block">
-        <span className="text-sm font-medium text-foreground">
+        <span className="text-foreground text-sm font-medium">
           포메이션 이름
         </span>
         <input
@@ -71,22 +72,22 @@ export function FormationTemplateForm({ action }: FormationTemplateFormProps) {
           value={name}
           onChange={(event) => setName(event.target.value)}
           placeholder="예: 4-3-3 커스텀"
-          className="mt-2 min-h-11 w-full rounded-lg border border-border px-3 text-sm outline-none transition focus:border-primary"
+          className="border-border focus:border-primary mt-2 min-h-11 w-full rounded-lg border px-3 text-sm transition outline-none"
         />
         {state.errors?.name ? (
-          <span className="mt-1 block text-xs text-mismatch">
+          <span className="text-mismatch mt-1 block text-xs">
             {state.errors.name[0]}
           </span>
         ) : null}
       </label>
 
-      <div className="mt-4 rounded-lg border border-border bg-background px-3 py-2">
-        <p className="text-xs font-medium text-muted">자동 포함</p>
-        <p className="mt-1 text-sm font-bold text-foreground">GK</p>
+      <div className="border-border bg-background mt-4 rounded-lg border px-3 py-2">
+        <p className="text-muted text-xs font-medium">자동 포함</p>
+        <p className="text-foreground mt-1 text-sm font-bold">GK</p>
       </div>
 
       <fieldset className="mt-4">
-        <legend className="text-sm font-medium text-foreground">
+        <legend className="text-foreground text-sm font-medium">
           필드 슬롯
         </legend>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -98,7 +99,7 @@ export function FormationTemplateForm({ action }: FormationTemplateFormProps) {
             return (
               <label
                 key={slot}
-                className={`inline-flex min-h-9 select-none items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition ${
+                className={`inline-flex min-h-9 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition select-none ${
                   checked
                     ? "border-primary bg-mint-surface text-primary"
                     : "border-border text-muted hover:border-primary hover:text-foreground"
@@ -119,7 +120,7 @@ export function FormationTemplateForm({ action }: FormationTemplateFormProps) {
           })}
         </div>
         {state.errors?.slots ? (
-          <span className="mt-1 block text-xs text-mismatch">
+          <span className="text-mismatch mt-1 block text-xs">
             {state.errors.slots[0]}
           </span>
         ) : null}
@@ -130,7 +131,7 @@ export function FormationTemplateForm({ action }: FormationTemplateFormProps) {
           className={`mt-4 rounded-lg px-3 py-2 text-sm ${
             state.success
               ? "bg-mint-surface text-foreground"
-              : "bg-orange-50 text-mismatch"
+              : "text-mismatch bg-orange-50"
           }`}
         >
           {state.message}
@@ -138,7 +139,7 @@ export function FormationTemplateForm({ action }: FormationTemplateFormProps) {
       ) : null}
 
       <SubmitButton
-        className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-45 sm:w-auto"
+        className="bg-primary text-primary-foreground mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold disabled:opacity-45 sm:w-auto"
         disabled={!canSubmit}
         pendingLabel="저장 중"
       >
