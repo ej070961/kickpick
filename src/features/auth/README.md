@@ -24,6 +24,7 @@ auth/
 ## 작업 기준
 
 - OAuth provider를 추가할 때는 `LoginForm.tsx`의 표시 정보와 `actions/authActions.ts`의 허용 provider 목록을 함께 갱신한다.
+- Kakao OAuth는 Biz App 전환 전 `account_email` 동의항목을 사용할 수 없으므로 `profile_nickname profile_image` scope만 요청한다.
 - provider별 스타일 분기는 JSX 안에서 직접 삼항으로 처리하지 않고 설정 객체에서 꺼내 쓴다.
 - 인증 성공 후 팀 workspace 보장은 `entities/team`의 `ensureDefaultTeamForUser`를 사용한다.
 - Route Handler와 Server Action은 client에서 전달받은 user id를 신뢰하지 않고 Supabase 세션 또는 callback 결과에서 user를 조회한다.
