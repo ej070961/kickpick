@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createStarterFormationTemplates } from "@/entities/formation/api/createStarterFormationTemplates";
 import { ensureDefaultTeamForUser } from "@/entities/team";
 import { createClient } from "@/shared/api/supabase/server";
 
@@ -27,7 +28,9 @@ export async function GET(request: Request) {
           user.email ??
           "KickPick";
 
-        await ensureDefaultTeamForUser(user.id, `${displayName} 팀`);
+        await ensureDefaultTeamForUser(user.id, `${displayName} 팀`, {
+          onCreatedTeam: createStarterFormationTemplates,
+        });
       }
 
       const forwardedHost = request.headers.get("x-forwarded-host");

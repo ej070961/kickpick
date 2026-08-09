@@ -5,6 +5,10 @@ import { createClient } from "@/shared/api/supabase/server";
 
 const DEFAULT_TEAM_NAME = "KickPick 팀";
 
+type EnsureDefaultTeamOptions = {
+  onCreatedTeam?: (teamId: string) => Promise<void>;
+};
+
 export async function getCurrentUserId() {
   const supabase = await createClient();
   const {
@@ -22,6 +26,7 @@ export async function getCurrentUserId() {
 export async function ensureDefaultTeamForUser(
   ownerUserId: string,
   teamName = DEFAULT_TEAM_NAME,
+  options: EnsureDefaultTeamOptions = {},
 ) {
   const supabase = await createClient();
   const { data: team, error } = await supabase
@@ -48,7 +53,16 @@ export async function ensureDefaultTeamForUser(
     throw new Error(createError.message);
   }
 
-  return createdTeam.id as string;
+  const createdTeamId = createdTeam.id as string;
+
+  try {
+    await options.onCreatedTeam?.(createdTeamId);
+  } catch (error) {
+    await supabase.from("teams").delete().eq("id", createdTeamId);
+    throw error;
+  }
+
+  return createdTeamId;
 }
 
 /**

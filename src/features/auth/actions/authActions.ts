@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Provider } from "@supabase/supabase-js";
+import { createStarterFormationTemplates } from "@/entities/formation/api/createStarterFormationTemplates";
 import { ensureDefaultTeamForUser } from "@/entities/team";
 import { createClient } from "@/shared/api/supabase/server";
 
@@ -75,7 +76,9 @@ export async function signInAnonymously(): Promise<void> {
   }
 
   try {
-    await ensureDefaultTeamForUser(userId, "KickPick 체험 팀");
+    await ensureDefaultTeamForUser(userId, "KickPick 체험 팀", {
+      onCreatedTeam: createStarterFormationTemplates,
+    });
   } catch {
     redirect("/auth/error");
   }
