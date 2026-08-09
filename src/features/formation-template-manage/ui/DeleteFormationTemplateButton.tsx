@@ -4,7 +4,7 @@ import type { FormEvent } from "react";
 import { Trash2 } from "lucide-react";
 import { deleteFormationTemplate } from "@/features/formation-template-manage/actions/formationTemplateActions";
 
-type DeleteFormationTemplateButtonProps = {
+type Props = {
   templateId: string;
   templateName: string;
 };
@@ -12,7 +12,7 @@ type DeleteFormationTemplateButtonProps = {
 export function DeleteFormationTemplateButton({
   templateId,
   templateName,
-}: DeleteFormationTemplateButtonProps) {
+}: Props) {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     if (!window.confirm(`${templateName} 템플릿을 삭제할까요?`)) {
       event.preventDefault();

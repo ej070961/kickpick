@@ -1,8 +1,8 @@
-import { GalleryVerticalEnd } from "lucide-react";
 import { createFormationTemplate } from "@/features/formation-template-manage/actions/formationTemplateActions";
 import { getFormationTemplates } from "@/features/formation-template-manage/lib/formationTemplateQueries";
-import { DeleteFormationTemplateButton } from "@/features/formation-template-manage/ui/DeleteFormationTemplateButton";
-import { FormationTemplateForm } from "@/features/formation-template-manage/ui/FormationTemplateForm";
+import { AddDialog } from "@/features/formation-template-manage/ui/AddDialog";
+import { TemplateList } from "@/features/formation-template-manage/ui/TemplateList";
+import { TemplateForm } from "@/features/formation-template-manage/ui/TemplateForm";
 import { PageHeader } from "@/shared/ui";
 
 export async function FormationTemplatesPage() {
@@ -11,51 +11,22 @@ export async function FormationTemplatesPage() {
   return (
     <section>
       <PageHeader
-        title="포메이션 템플릿"
-        description="GK를 포함한 11개 포메이션 슬롯 템플릿을 관리합니다."
+        title="포메이션"
+        description="자주 쓰는 배치를 저장해두면 경기 만들기가 빨라져요."
       />
+
+      <div className="-mt-4 mb-4 flex justify-end xl:hidden">
+        <AddDialog />
+      </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="space-y-3">
-          {templates.map((template) => (
-            <article
-              key={template.id}
-              className="border-border bg-card rounded-lg border p-4 shadow-sm"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-mint-surface text-primary inline-flex size-9 items-center justify-center rounded-lg">
-                      <GalleryVerticalEnd size={17} aria-hidden="true" />
-                    </span>
-                    <h3 className="text-foreground text-base font-bold">
-                      {template.label}
-                    </h3>
-                  </div>
-                  <p className="text-muted mt-2 text-sm">
-                    {template.slots.length}개 슬롯
-                  </p>
-                </div>
-                <DeleteFormationTemplateButton
-                  templateId={template.id}
-                  templateName={template.label}
-                />
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {template.slots.map((slot) => (
-                  <span
-                    key={slot.name}
-                    className="border-border bg-background text-muted rounded-md border px-2 py-1 text-xs font-semibold"
-                  >
-                    {slot.name}
-                  </span>
-                ))}
-              </div>
-            </article>
-          ))}
+          <TemplateList templates={templates} />
         </div>
 
-        <FormationTemplateForm action={createFormationTemplate} />
+        <div className="hidden xl:block">
+          <TemplateForm action={createFormationTemplate} />
+        </div>
       </div>
     </section>
   );
