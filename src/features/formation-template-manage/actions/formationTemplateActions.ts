@@ -10,8 +10,9 @@ import {
 import { requireCurrentTeamId } from "@/entities/team";
 import { createClient } from "@/shared/api/supabase/server";
 
-export type FormationTemplateFormState = {
+export type TemplateFormState = {
   errors?: {
+    id?: string[];
     name?: string[];
     slots?: string[];
   };
@@ -23,18 +24,25 @@ const FIELD_SLOT_CODES: FormationSlotCode[] = FORMATION_SLOT_CODES.filter(
   (position) => position !== "GK" && position !== "RC",
 );
 
+const fieldSlotSchema = z.custom<FormationSlotCode>(
+  (value) => typeof value === "string" && isFieldSlotCode(value),
+  "포지션 정보가 올바르지 않습니다.",
+);
 const templateSchema = z.object({
   name: z.string().min(1, "포메이션 이름을 입력해주세요.").trim(),
   slots: z
-    .array(z.string())
-    .refine((slots) => slots.length === 10, "필드 슬롯 10개를 선택해주세요."),
+    .array(fieldSlotSchema)
+    .refine((slots) => slots.length === 10, "포지션 10개를 선택해주세요."),
+});
+const templateUpdateSchema = templateSchema.extend({
+  id: z.string().uuid("수정할 포메이션 정보가 올바르지 않습니다."),
 });
 
 function isFieldSlotCode(value: string): value is FormationSlotCode {
   return FIELD_SLOT_CODES.includes(value as FormationSlotCode);
 }
 
-function parseFieldSlots(formData: FormData) {
+function parseFieldSlots(formData: FormData): FormationSlotCode[] {
   const uniqueSlots = new Set(
     formData
       .getAll("slots")
@@ -46,9 +54,9 @@ function parseFieldSlots(formData: FormData) {
 }
 
 export async function createFormationTemplate(
-  _state: FormationTemplateFormState,
+  _state: TemplateFormState,
   formData: FormData,
-): Promise<FormationTemplateFormState> {
+): Promise<TemplateFormState> {
   const validatedFields = templateSchema.safeParse({
     name: formData.get("name"),
     slots: parseFieldSlots(formData),
@@ -71,21 +79,9 @@ export async function createFormationTemplate(
     return { message: "포메이션 템플릿을 생성하지 못했습니다." };
   }
 
-  const slotRows = ["GK", ...slots].map((slotName, index) => {
-    const name = slotName as FormationSlotCode;
-    const coords = DEFAULT_SLOT_COORDS[name];
-
-    return {
-      formation_template_id: template.id,
-      slot_name: name,
-      sort_order: index,
-      x: coords.x,
-      y: coords.y,
-    };
-  });
   const { error: slotsError } = await supabase
     .from("formation_template_slots")
-    .insert(slotRows);
+    .insert(createTemplateSlotRows(template.id as string, slots));
 
   if (slotsError) {
     await supabase.from("formation_templates").delete().eq("id", template.id);
@@ -99,18 +95,78 @@ export async function createFormationTemplate(
   return { message: "포메이션 템플릿을 생성했습니다.", success: true };
 }
 
+export async function updateFormationTemplate(
+  _state: TemplateFormState,
+  formData: FormData,
+): Promise<TemplateFormState> {
+  const validatedFields = templateUpdateSchema.safeParse({
+    id: formData.get("id"),
+    name: formData.get("name"),
+    slots: parseFieldSlots(formData),
+  });
+
+  if (!validatedFields.success) {
+    return { errors: validatedFields.error.flatten().fieldErrors };
+  }
+
+  const supabase = await createClient();
+  const { id, name, slots } = validatedFields.data;
+  const { error } = await supabase.rpc("replace_formation_template", {
+    p_name: name,
+    p_slots: createTemplateSlotPayload(slots),
+    p_template_id: id,
+  });
+
+  if (error) {
+    return { message: "포메이션 템플릿을 수정하지 못했습니다." };
+  }
+
+  revalidatePath("/formations");
+  revalidatePath("/matches/new");
+  refresh();
+
+  return { message: "포메이션을 수정했습니다.", success: true };
+}
+
 export async function deleteFormationTemplate(formData: FormData) {
   const templateId = z.string().uuid().safeParse(formData.get("id"));
 
   if (!templateId.success) return;
 
   const supabase = await createClient();
+  const teamId = await requireCurrentTeamId();
   await supabase
     .from("formation_templates")
     .update({ is_deleted: true })
-    .eq("id", templateId.data);
+    .eq("id", templateId.data)
+    .eq("team_id", teamId)
+    .eq("is_deleted", false);
 
   revalidatePath("/formations");
   revalidatePath("/matches/new");
   refresh();
+}
+
+function createTemplateSlotRows(
+  templateId: string,
+  fieldSlots: FormationSlotCode[],
+) {
+  return createTemplateSlotPayload(fieldSlots).map((slot) => ({
+    formation_template_id: templateId,
+    ...slot,
+  }));
+}
+
+function createTemplateSlotPayload(fieldSlots: FormationSlotCode[]) {
+  return ["GK", ...fieldSlots].map((slotName, index) => {
+    const name = slotName as FormationSlotCode;
+    const coords = DEFAULT_SLOT_COORDS[name];
+
+    return {
+      slot_name: name,
+      sort_order: index,
+      x: coords.x,
+      y: coords.y,
+    };
+  });
 }

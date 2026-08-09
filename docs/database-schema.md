@@ -79,7 +79,7 @@ Roster for a team. Deletion is soft-delete first via `is_deleted`.
 
 ### `formation_templates`
 
-Team-owned formation template. Templates are user-created; the app does not seed default templates automatically.
+Team-owned formation template. Newly created teams receive three starter templates: `4-2-3-1`, `4-3-3`, and `4-4-2`. Starter templates are stored as normal team templates after creation; the app does not recreate them after a user edits or deletes templates.
 
 | Column       | Type          | Notes                               |
 | ------------ | ------------- | ----------------------------------- |
@@ -89,6 +89,12 @@ Team-owned formation template. Templates are user-created; the app does not seed
 | `is_deleted` | `boolean`     | Soft delete flag                    |
 | `created_at` | `timestamptz` | Insert timestamp                    |
 | `updated_at` | `timestamptz` | Updated by trigger                  |
+
+Expected constraint:
+
+```txt
+unique (team_id, name) where is_deleted = false
+```
 
 ### `formation_template_slots`
 
@@ -108,7 +114,43 @@ Slot definitions for a formation template.
 Expected invariant:
 
 - Each active template has 11 slots.
-- The app's template create form asks for 10 field slots and automatically inserts `GK`.
+- Template create and edit forms ask for 10 field slots and automatically insert `GK`.
+- Template edits keep the parent `formation_templates.id` and atomically replace child slot rows through `replace_formation_template`.
+
+Expected constraints:
+
+```txt
+foreign key (formation_template_id)
+  references formation_templates(id)
+  on delete cascade
+
+unique (formation_template_id, sort_order)
+unique (formation_template_id, slot_name)
+check (sort_order >= 0)
+check (x >= 0 and x <= 100)
+check (y >= 0 and y <= 100)
+```
+
+### `replace_formation_template`
+
+Postgres RPC used by template edit actions to update a template name and replace its slot rows atomically.
+
+Signature:
+
+```txt
+replace_formation_template(
+  p_template_id uuid,
+  p_name text,
+  p_slots jsonb
+)
+```
+
+Expected behavior:
+
+- Runs as `security invoker` so caller permissions and RLS still apply.
+- Verifies the template belongs to the current `auth.uid()` owner's active team template.
+- Validates non-blank name, exactly 11 unique slots, unique sort order, `GK` inclusion, and 0 to 100 coordinate range.
+- Updates `formation_templates.name`, deletes old `formation_template_slots`, and inserts new slot rows in one database transaction.
 
 ### `matches`
 

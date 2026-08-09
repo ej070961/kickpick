@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useId } from "react";
+import { X } from "lucide-react";
 import { Button } from "./Button";
 
 type DialogProps = {
@@ -28,7 +29,7 @@ export function Dialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 px-4 py-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
@@ -43,8 +44,14 @@ export function Dialog({
               <p className="text-muted mt-1 text-sm">{description}</p>
             ) : null}
           </div>
-          <Button onClick={onClose} size="sm" variant="ghost">
-            닫기
+          <Button
+            aria-label="닫기"
+            className="size-9 shrink-0 px-0"
+            onClick={onClose}
+            size="sm"
+            variant="ghost"
+          >
+            <X size={18} aria-hidden="true" />
           </Button>
         </div>
         <div className="max-h-[calc(100dvh-8rem)] overflow-auto px-5 py-4">
