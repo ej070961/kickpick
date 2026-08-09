@@ -264,6 +264,7 @@ features/player-manage/actions/playerActions.ts
 ```ts
 getFormationTemplates();
 createFormationTemplate(formData);
+updateFormationTemplate(formData);
 saveFormationSlots(matchId, slots);
 updatePlayerPriority(input);
 ```
