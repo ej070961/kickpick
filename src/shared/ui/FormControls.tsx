@@ -8,17 +8,17 @@ import { cn } from "@/shared/lib/cn";
 type FieldShellProps = {
   children: ReactNode;
   error?: string;
-  label: string;
+  label: ReactNode;
 };
 
 type TextFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
-  label: string;
+  label: ReactNode;
 };
 
 type SelectFieldProps = SelectHTMLAttributes<HTMLSelectElement> & {
   error?: string;
-  label: string;
+  label: ReactNode;
 };
 
 /**
