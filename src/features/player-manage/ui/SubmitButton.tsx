@@ -1,13 +1,15 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { useFormStatus } from "react-dom";
+import { Button } from "@/shared/ui";
 
 type SubmitButtonProps = {
   children: ReactNode;
-  className: string;
+  className?: string;
   disabled?: boolean;
   pendingLabel?: string;
+  variant?: ComponentProps<typeof Button>["variant"];
 };
 
 /**
@@ -18,12 +20,18 @@ export function SubmitButton({
   className,
   disabled = false,
   pendingLabel = "처리 중",
+  variant,
 }: SubmitButtonProps) {
   const { pending } = useFormStatus();
 
   return (
-    <button type="submit" className={className} disabled={disabled || pending}>
+    <Button
+      type="submit"
+      className={className}
+      disabled={disabled || pending}
+      variant={variant}
+    >
       {pending ? pendingLabel : children}
-    </button>
+    </Button>
   );
 }
