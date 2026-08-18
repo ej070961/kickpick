@@ -1,6 +1,7 @@
 import type { Player } from "@/entities/player";
 import { CreatePlayerModal } from "@/features/player-manage/ui/CreatePlayerModal";
 import { PriorityBoard } from "@/features/priority-reorder/ui/PriorityBoard";
+import { requireCurrentTeamId } from "@/entities/team";
 import { createClient } from "@/shared/api/supabase/server";
 import { PageHeader } from "@/shared/ui";
 
@@ -15,38 +16,6 @@ type PlayerRow = {
   is_deleted: boolean;
   created_at: string;
 };
-
-function mapPlayer(row: PlayerRow): Player {
-  return {
-    id: row.id,
-    teamId: row.team_id,
-    name: row.name,
-    playerNumber: row.player_number,
-    mainPosition: row.main_position,
-    subPositions: row.sub_positions,
-    priorityRank: row.priority_rank,
-    isDeleted: row.is_deleted,
-    createdAt: row.created_at,
-  };
-}
-
-async function getPlayers() {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("players")
-    .select(
-      "id, team_id, name, player_number, main_position, sub_positions, priority_rank, is_deleted, created_at",
-    )
-    .eq("is_deleted", false)
-    .order("priority_rank", { ascending: true })
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return (data ?? []).map((row) => mapPlayer(row as PlayerRow));
-}
 
 /**
  * 선수 관리 페이지입니다.
@@ -64,15 +33,51 @@ export async function PlayersPage() {
     .join("|");
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <PageHeader
-          title="선수 관리"
-          description="선수 정보와 자동 배치 우선순위를 한 번에 관리합니다."
-        />
+    <section>
+      <PageHeader
+        title="선수 관리"
+        description="경기 배치에 사용할 선수 정보와 순서를 정리하세요."
+      />
+
+      <div className="-mt-4 mb-4 flex justify-end">
         <CreatePlayerModal />
       </div>
+
       <PriorityBoard key={playerListVersion} players={players} />
     </section>
   );
+}
+
+async function getPlayers() {
+  const supabase = await createClient();
+  const teamId = await requireCurrentTeamId();
+  const { data, error } = await supabase
+    .from("players")
+    .select(
+      "id, team_id, name, player_number, main_position, sub_positions, priority_rank, is_deleted, created_at",
+    )
+    .eq("team_id", teamId)
+    .eq("is_deleted", false)
+    .order("priority_rank", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []).map((row) => mapPlayer(row as PlayerRow));
+}
+
+function mapPlayer(row: PlayerRow): Player {
+  return {
+    id: row.id,
+    teamId: row.team_id,
+    name: row.name,
+    playerNumber: row.player_number,
+    mainPosition: row.main_position,
+    subPositions: row.sub_positions,
+    priorityRank: row.priority_rank,
+    isDeleted: row.is_deleted,
+    createdAt: row.created_at,
+  };
 }
