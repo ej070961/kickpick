@@ -106,7 +106,7 @@ button {
   width: 1rem;
   height: 1rem;
   flex-shrink: 0;
-  border-radius: 999px;
+  border-radius: 0.25rem;
   border: 1.5px solid var(--border);
   background-color: white;
   cursor: pointer;

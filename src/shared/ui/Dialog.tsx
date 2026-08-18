@@ -3,13 +3,16 @@
 import type { ReactNode } from "react";
 import { useId } from "react";
 import { X } from "lucide-react";
+import { cn } from "@/shared/lib/cn";
 import { Button } from "./Button";
 
 type DialogProps = {
+  bodyClassName?: string;
   children: ReactNode;
   description?: ReactNode;
   isOpen: boolean;
   onClose: () => void;
+  panelClassName?: string;
   title: string;
 };
 
@@ -17,10 +20,12 @@ type DialogProps = {
  * 앱 전반에서 쓰는 기본 모달 레이아웃입니다.
  */
 export function Dialog({
+  bodyClassName,
   children,
   description,
   isOpen,
   onClose,
+  panelClassName,
   title,
 }: DialogProps) {
   const titleId = useId();
@@ -34,7 +39,12 @@ export function Dialog({
       aria-modal="true"
       aria-labelledby={titleId}
     >
-      <div className="border-border bg-card max-h-[calc(100dvh-2rem)] w-full max-w-3xl overflow-hidden rounded-lg border shadow-xl">
+      <div
+        className={cn(
+          "border-border bg-card max-h-[calc(100dvh-2rem)] w-full max-w-3xl overflow-hidden rounded-lg border shadow-xl",
+          panelClassName,
+        )}
+      >
         <div className="border-border flex items-start justify-between gap-4 border-b px-5 py-4">
           <div>
             <h2 id={titleId} className="text-foreground text-lg font-bold">
@@ -54,7 +64,12 @@ export function Dialog({
             <X size={18} aria-hidden="true" />
           </Button>
         </div>
-        <div className="max-h-[calc(100dvh-8rem)] overflow-auto px-5 py-4">
+        <div
+          className={cn(
+            "max-h-[calc(100dvh-8rem)] overflow-auto px-5 py-4",
+            bodyClassName,
+          )}
+        >
           {children}
         </div>
       </div>

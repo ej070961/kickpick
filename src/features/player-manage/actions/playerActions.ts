@@ -6,7 +6,7 @@ import {
   PLAYER_POSITION_CODES,
   type PlayerPositionCode,
 } from "@/entities/position";
-import { ensureCurrentTeamId } from "@/entities/team";
+import { ensureCurrentTeamId, requireCurrentTeamId } from "@/entities/team";
 import { createClient } from "@/shared/api/supabase/server";
 
 export type PlayerFormState = {
@@ -16,6 +16,11 @@ export type PlayerFormState = {
     playerNumber?: string[];
     subPositions?: string[];
   };
+  message?: string;
+  success?: boolean;
+};
+
+export type DeletePlayerState = {
   message?: string;
   success?: boolean;
 };
@@ -129,6 +134,7 @@ export async function updatePlayer(
   }
 
   const supabase = await createClient();
+  const teamId = await requireCurrentTeamId();
   const { id, mainPosition, name, playerNumber, subPositions } =
     validatedFields.data;
 
@@ -141,6 +147,7 @@ export async function updatePlayer(
       sub_positions: subPositions,
     })
     .eq("id", id)
+    .eq("team_id", teamId)
     .eq("is_deleted", false);
 
   if (error) {
@@ -154,18 +161,31 @@ export async function updatePlayer(
   return { message: "저장했습니다.", success: true };
 }
 
-export async function deletePlayer(formData: FormData) {
+export async function deletePlayer(
+  _state: DeletePlayerState,
+  formData: FormData,
+): Promise<DeletePlayerState> {
   const playerId = z.string().uuid().safeParse(formData.get("id"));
 
-  if (!playerId.success) return;
+  if (!playerId.success) {
+    return { message: "선수 정보를 확인하지 못했습니다." };
+  }
 
   const supabase = await createClient();
-  await supabase
+  const teamId = await requireCurrentTeamId();
+  const { error } = await supabase
     .from("players")
     .update({ is_deleted: true })
-    .eq("id", playerId.data);
+    .eq("id", playerId.data)
+    .eq("team_id", teamId);
+
+  if (error) {
+    return { message: "선수를 삭제하지 못했습니다." };
+  }
 
   revalidatePath("/players");
   revalidatePath("/players/priority");
   refresh();
+
+  return { message: "선수를 명단에서 삭제했습니다.", success: true };
 }
