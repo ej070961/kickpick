@@ -49,7 +49,7 @@ const matchCreateSchema = z.object({
     z.object({
       clientId: z.string().uuid(),
       mainPosition: playerPositionSchema,
-      name: z.string().trim().min(1, "용병 이름을 입력해주세요."),
+      name: z.string().trim().min(1, "게스트 이름을 입력해주세요."),
       playerNumber: z.number().int().min(0).max(999).nullable(),
       subPositions: z.array(playerPositionSchema).default([]),
     }),
@@ -82,6 +82,25 @@ type QuarterFormationRow = {
 };
 
 /**
+ * 경기명이 비어 있을 때 날짜 기반 기본 경기명을 만듭니다.
+ */
+function getDefaultMatchName(matchDate: string) {
+  return `${matchDate || getTodayDate()} 경기`;
+}
+
+/**
+ * 서버 기본 타임존 기준의 yyyy-mm-dd 날짜 문자열을 반환합니다.
+ */
+function getTodayDate() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+/**
  * Supabase player row를 포메이션 생성 알고리즘에서 사용하는 선수 모델로 변환합니다.
  */
 function mapPlayer(row: PlayerRow): FormationPlayer {
@@ -96,7 +115,7 @@ function mapPlayer(row: PlayerRow): FormationPlayer {
 }
 
 /**
- * JSON 문자열로 제출된 용병 목록을 서버 검증용 객체로 변환합니다.
+ * JSON 문자열로 제출된 게스트 목록을 서버 검증용 객체로 변환합니다.
  */
 function parseGuestPlayers(value: FormDataEntryValue | null) {
   if (typeof value !== "string" || !value) return [];
@@ -164,6 +183,7 @@ export async function createMatch(
     quarterCount,
     reducedPlayerIds,
   } = validatedFields.data;
+  const matchName = name || getDefaultMatchName(matchDate ?? "");
   const preset = await getFormationTemplate(formation);
 
   if (!preset) {
@@ -199,7 +219,7 @@ export async function createMatch(
 
   if (hasMissingGuest) {
     return {
-      errors: { guestPlayers: ["사용할 수 없는 용병이 포함되어 있습니다."] },
+      errors: { guestPlayers: ["사용할 수 없는 게스트가 포함되어 있습니다."] },
     };
   }
 
@@ -307,7 +327,7 @@ export async function createMatch(
       formation: preset.label,
       gk_fixed: gkFixed,
       match_date: matchDate || null,
-      name: name || null,
+      name: matchName,
       quarter_count: quarterCount,
       status: "generated",
       team_id: teamId,
@@ -345,7 +365,7 @@ export async function createMatch(
         reason: "match_guest_players insert failed",
         supabase,
       });
-      return { message: "용병 정보를 저장하지 못했습니다." };
+      return { message: "게스트 정보를 저장하지 못했습니다." };
     }
 
     if (insertedGuests.length !== guestPlayers.length) {
@@ -354,7 +374,7 @@ export async function createMatch(
         reason: "match_guest_players insert count mismatch",
         supabase,
       });
-      return { message: "용병 정보를 확인하지 못했습니다." };
+      return { message: "게스트 정보를 확인하지 못했습니다." };
     }
 
     insertedGuests.forEach((guest, index) => {

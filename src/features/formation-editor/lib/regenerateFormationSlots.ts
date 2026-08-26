@@ -4,7 +4,7 @@ import type {
   MatchRow,
   QuarterRow,
 } from "@/features/formation-editor/api/formationEditorRows";
-import { mapQuarterRowsToPreserveInputs } from "@/features/formation-editor/lib/formationEditorMappers";
+import { toPreserveQuarterInputs } from "@/features/formation-editor/lib/formationEditorMappers";
 import type { FormationRegenerationMode } from "@/features/formation-editor/model/types";
 import { calculateFitScore } from "@/features/formation-generate/lib/calculateFitScore";
 import { generateQuarterFormations as generateAllQuarterFormations } from "@/features/match-create/lib/generateQuarterFormations";
@@ -184,6 +184,6 @@ export function createRegeneratedFormations({
   return regeneratePreservingQuarterPlayers({
     players,
     preset,
-    quarters: mapQuarterRowsToPreserveInputs(quarters),
+    quarters: toPreserveQuarterInputs(quarters),
   });
 }

@@ -2,6 +2,8 @@ export * from "./Badge";
 export * from "./Button";
 export * from "./ConfirmDialog";
 export * from "./Dialog";
+export * from "./ErrorState";
 export * from "./FormControls";
+export * from "./HelpTooltip";
 export * from "./PageHeader";
 export * from "./Panel";

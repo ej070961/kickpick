@@ -89,7 +89,7 @@ export function FormationField({
               >
                 {player?.name ?? "미배정"}
                 {player?.isGuest ? (
-                  <span className="font-medium"> ・ 용병</span>
+                  <span className="font-medium"> ・ 게스트</span>
                 ) : null}
               </span>
             </button>

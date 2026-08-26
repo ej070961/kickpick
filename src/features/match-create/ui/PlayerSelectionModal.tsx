@@ -236,10 +236,10 @@ export function PlayerSelectionModal({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-foreground text-base font-semibold">
-            이번 경기 선수
+            이번 경기 참가자
           </h3>
           <p className="text-muted mt-1 text-sm">
-            팀 선수와 용병을 합쳐 이번 경기 배치 인원을 준비하세요.
+            등록 선수와 게스트를 합쳐 이번 경기 배치 인원을 준비하세요.
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -248,7 +248,8 @@ export function PlayerSelectionModal({
             onClick={openModal}
             className="border-border text-foreground hover:border-primary hover:text-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold transition"
           >
-            <Users size={18} aria-hidden="true" />팀 선수 선택
+            <Users size={18} aria-hidden="true" />
+            등록 선수 선택
           </button>
           {actionSlot}
         </div>
@@ -256,13 +257,13 @@ export function PlayerSelectionModal({
 
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
         <div className="bg-mint-surface rounded-lg px-3 py-2">
-          <p className="text-muted text-xs font-medium">팀 선수</p>
+          <p className="text-muted text-xs font-medium">등록 선수</p>
           <p className="text-primary text-base font-bold">
             {rosterSelectedCount}명
           </p>
         </div>
         <div className="border-border rounded-lg border px-3 py-2">
-          <p className="text-muted text-xs font-medium">용병</p>
+          <p className="text-muted text-xs font-medium">게스트</p>
           <p className="text-foreground text-base font-bold">{guestCount}명</p>
         </div>
         <div className="border-border rounded-lg border px-3 py-2">
@@ -281,10 +282,10 @@ export function PlayerSelectionModal({
         <div className="border-border flex items-start justify-between gap-4 border-b px-5 py-4">
           <div>
             <h4 className="text-foreground text-base font-semibold">
-              팀 선수 선택
+              등록 선수 선택
             </h4>
             <p className="text-muted mt-1 text-xs">
-              이번 경기에 뛸 팀 선수를 고르고 완료하세요.
+              이번 경기에 뛸 등록 선수를 고르고 완료하세요.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <span className="bg-mint-surface text-primary rounded-full px-3 py-1 text-xs font-semibold">

@@ -35,7 +35,7 @@ type GuestFormState = {
 };
 
 /**
- * 경기 참가 명단에서 팀 선수와 경기 전용 용병을 추가, 수정, 제거합니다.
+ * 경기 참가 명단에서 등록 선수와 경기 전용 게스트를 추가, 수정, 제거합니다.
  */
 export function RosterManagementDialog({
   isOpen,
@@ -98,7 +98,7 @@ export function RosterManagementDialog({
       isOpen={isOpen}
       onClose={onClose}
       title="경기 명단"
-      description={`참가 ${players.length}명 · 추가 가능 ${rosterCandidates.length}명 · 용병 ${guestPlayers.length}명`}
+      description={`참가 ${players.length}명 · 추가 가능 ${rosterCandidates.length}명 · 게스트 ${guestPlayers.length}명`}
     >
       <div className="space-y-4">
         <div>
@@ -124,7 +124,7 @@ export function RosterManagementDialog({
                 <span className="flex shrink-0 gap-1">
                   {player.isGuest ? (
                     <Button
-                      aria-label={`${player.name} 용병 수정`}
+                      aria-label={`${player.name} 게스트 수정`}
                       onClick={() => startEditGuest(player)}
                       size="sm"
                       variant="ghost"
@@ -148,7 +148,9 @@ export function RosterManagementDialog({
         </div>
 
         <div className="border-border bg-background rounded-lg border p-3">
-          <p className="text-foreground text-sm font-semibold">팀 선수 추가</p>
+          <p className="text-foreground text-sm font-semibold">
+            등록 선수 추가
+          </p>
           <TextField
             label="검색"
             placeholder="이름, 등번호, 포지션"
@@ -178,7 +180,7 @@ export function RosterManagementDialog({
               ))
             ) : (
               <p className="border-border text-muted rounded-lg border border-dashed px-3 py-3 text-sm">
-                추가할 팀 선수가 없습니다.
+                추가할 등록 선수가 없습니다.
               </p>
             )}
           </div>
@@ -186,7 +188,7 @@ export function RosterManagementDialog({
 
         <div className="border-border bg-background rounded-lg border p-3">
           <p className="text-foreground text-sm font-semibold">
-            {guestForm.id ? "용병 수정" : "용병 추가"}
+            {guestForm.id ? "게스트 수정" : "게스트 추가"}
           </p>
           <div className="mt-3 grid gap-3">
             <TextField
@@ -269,7 +271,7 @@ export function RosterManagementDialog({
                 onClick={submitGuest}
                 disabled={isPending || guestForm.name.trim().length === 0}
               >
-                {guestForm.id ? "용병 수정" : "용병 추가"}
+                {guestForm.id ? "게스트 수정" : "게스트 추가"}
               </Button>
             </div>
           </div>

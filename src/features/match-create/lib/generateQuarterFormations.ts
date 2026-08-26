@@ -182,7 +182,9 @@ export function generateQuarterFormations({
   const fixedGoalkeeper = gkFixed ? pickFixedGoalkeeper(players) : null;
 
   if (gkFixed && !fixedGoalkeeper) {
-    throw new Error("GK 고정 사용 시 참가 선수에 GK가 포함되어야 합니다.");
+    throw new Error(
+      "골키퍼를 전 쿼터에 고정하려면 참가 선수에 GK가 포함되어야 합니다.",
+    );
   }
 
   const { quotaPlayers } = getQuotaPlayers({
