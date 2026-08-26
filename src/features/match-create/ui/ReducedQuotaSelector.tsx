@@ -116,7 +116,8 @@ export function ReducedQuotaSelector({
                   {helpMessage}
                   {gkFixed ? (
                     <span className="text-muted mt-1 block">
-                      GK 고정 시 골키퍼와 GK 슬롯은 이 계산에서 제외돼요.
+                      골키퍼 전 쿼터 고정 시 골키퍼와 GK 슬롯은 이 계산에서
+                      제외돼요.
                     </span>
                   ) : null}
                 </span>
@@ -198,7 +199,7 @@ export function ReducedQuotaSelector({
                     </span>
                     {player.isGuest ? (
                       <span className="border-primary/35 bg-card text-primary mt-1 inline-flex rounded-md border px-1.5 py-0.5 text-[10px] font-bold">
-                        용병
+                        게스트
                       </span>
                     ) : null}
                     <span className="text-muted mt-1 block text-xs">

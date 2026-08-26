@@ -9,7 +9,7 @@ type QuotaCandidate = {
 };
 
 /**
- * GK 고정 시 모든 쿼터에 배정할 골키퍼를 우선순위 기준으로 선택합니다.
+ * 골키퍼 전 쿼터 고정 시 모든 쿼터에 배정할 골키퍼를 우선순위 기준으로 선택합니다.
  */
 export function pickFixedGoalkeeper<T extends QuotaCandidate>(players: T[]) {
   return players
@@ -18,7 +18,7 @@ export function pickFixedGoalkeeper<T extends QuotaCandidate>(players: T[]) {
 }
 
 /**
- * 쿼터 보정 계산에 참여할 선수 목록을 반환하고, GK 고정 시 고정 GK를 제외합니다.
+ * 쿼터 보정 계산에 참여할 선수 목록을 반환하고, 골키퍼 전 쿼터 고정 시 고정 GK를 제외합니다.
  */
 export function getQuotaPlayers<T extends QuotaCandidate>({
   gkFixed,
@@ -38,7 +38,7 @@ export function getQuotaPlayers<T extends QuotaCandidate>({
 }
 
 /**
- * 쿼터 보정 계산에 사용할 쿼터당 슬롯 수를 반환하고, GK 고정 시 GK 슬롯을 제외합니다.
+ * 쿼터 보정 계산에 사용할 쿼터당 슬롯 수를 반환하고, 골키퍼 전 쿼터 고정 시 GK 슬롯을 제외합니다.
  */
 export function getQuotaSlotsPerQuarter({
   gkFixed,

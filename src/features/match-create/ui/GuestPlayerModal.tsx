@@ -23,7 +23,7 @@ type GuestPlayerFormState = {
 };
 
 /**
- * 경기 생성 중에만 사용하는 용병 선수를 추가, 수정, 삭제합니다.
+ * 경기 생성 중에만 사용하는 게스트 선수를 추가, 수정, 삭제합니다.
  */
 export function GuestPlayerModal({
   guestPlayers,
@@ -90,7 +90,7 @@ export function GuestPlayerModal({
       : null;
 
     if (!name) {
-      setError("이름을 입력해주세요.");
+      setError("게스트 이름을 입력해주세요.");
       return;
     }
 
@@ -124,7 +124,7 @@ export function GuestPlayerModal({
         className="bg-primary text-primary-foreground inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition hover:opacity-90"
       >
         <UserPlus size={18} aria-hidden="true" />
-        용병 관리
+        게스트 관리
       </button>
 
       <dialog
@@ -135,10 +135,10 @@ export function GuestPlayerModal({
         <div className="border-border flex items-center justify-between border-b px-5 py-4">
           <div>
             <h4 className="text-foreground text-base font-semibold">
-              용병 관리
+              게스트 관리
             </h4>
             <p className="text-muted mt-1 text-xs">
-              부족한 인원을 이번 경기용 선수로 추가하세요.
+              등록 명단에 없는 선수를 이번 경기 게스트로 추가하세요.
             </p>
           </div>
           <button
@@ -155,7 +155,7 @@ export function GuestPlayerModal({
           <div className="space-y-4">
             <div>
               <label className="text-foreground text-sm font-semibold">
-                용병 이름
+                게스트 이름
               </label>
               <input
                 type="text"
@@ -235,7 +235,7 @@ export function GuestPlayerModal({
                   onClick={() => setForm(createInitialFormState())}
                   className="border-border text-foreground inline-flex min-h-10 items-center justify-center rounded-lg border px-4 text-sm font-semibold"
                 >
-                  새 용병 입력
+                  새 게스트 입력
                 </button>
               ) : null}
               <button
@@ -250,7 +250,9 @@ export function GuestPlayerModal({
           </div>
 
           <div>
-            <p className="text-foreground text-sm font-semibold">추가한 용병</p>
+            <p className="text-foreground text-sm font-semibold">
+              추가한 게스트
+            </p>
             {sortedGuests.length > 0 ? (
               <div className="mt-2 space-y-2">
                 {sortedGuests.map((guest) => (
@@ -291,7 +293,7 @@ export function GuestPlayerModal({
               </div>
             ) : (
               <p className="border-border text-muted mt-2 rounded-lg border border-dashed px-3 py-3 text-sm">
-                아직 추가한 용병이 없습니다.
+                아직 추가한 게스트가 없습니다.
               </p>
             )}
           </div>
@@ -314,7 +316,7 @@ export function GuestPlayerModal({
 const DEFAULT_MAIN_POSITION: PlayerPositionCode = "CM";
 
 /**
- * 용병 추가 모달을 신규 입력 상태로 초기화합니다.
+ * 게스트 추가 모달을 신규 입력 상태로 초기화합니다.
  */
 function createInitialFormState(): GuestPlayerFormState {
   return {

@@ -1,6 +1,6 @@
 # player-manage
 
-팀 선수 명단을 생성, 수정, 삭제하는 feature입니다. 우선순위 정렬은 `features/priority-reorder`가 담당하지만, 선수 카드에서 편집/삭제 액션을 함께 노출하므로 두 feature가 `/players` 화면에서 조합됩니다.
+등록 선수 명단을 생성, 수정, 삭제하는 feature입니다. 우선순위 정렬은 `features/priority-reorder`가 담당하지만, 선수 카드에서 편집/삭제 액션을 함께 노출하므로 두 feature가 `/players` 화면에서 조합됩니다.
 
 ## 구조
 

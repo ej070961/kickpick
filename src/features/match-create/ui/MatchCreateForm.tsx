@@ -47,7 +47,7 @@ export function MatchCreateForm({
   const [state, action] = useActionState(createMatch, initialState);
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
-  const [matchDate, setMatchDate] = useState("");
+  const [matchDate, setMatchDate] = useState(getTodayDate);
   const [quarterCount, setQuarterCount] = useState(DEFAULT_QUARTER_COUNT);
   const [formationKey, setFormationKey] = useState(
     formationTemplates[0]?.key ?? "",
@@ -132,7 +132,7 @@ export function MatchCreateForm({
       ? `${formationPreset?.label ?? "선택한"} 포메이션은 최소 ${slotsPerQuarter}명이 필요합니다.`
       : gkFixed &&
           !selectedPlayers.some((player) => player.mainPosition === "GK")
-        ? "GK 고정을 사용하려면 참가 선수에 GK가 포함되어야 합니다."
+        ? "골키퍼를 전 쿼터에 고정하려면 참가 선수에 GK가 포함되어야 합니다."
         : null;
   const canProceed = !setupError && quarterCount >= 1 && quarterCount <= 8;
 
@@ -189,7 +189,7 @@ export function MatchCreateForm({
   }
 
   /**
-   * GK 고정 여부 변경 후 GK 제외 계산 기준에 맞춰 쿼터 보정 선택값을 갱신합니다.
+   * 골키퍼 전 쿼터 고정 여부 변경 후 GK 제외 계산 기준에 맞춰 쿼터 보정 선택값을 갱신합니다.
    */
   function handleGkFixedChange(value: boolean) {
     setGkFixed(value);
@@ -205,7 +205,7 @@ export function MatchCreateForm({
   }
 
   /**
-   * 용병 변경 후 참가자 전체 기준으로 보정 대상 기본 선택값을 갱신합니다.
+   * 게스트 변경 후 참가자 전체 기준으로 보정 대상 기본 선택값을 갱신합니다.
    */
   function handleGuestPlayersChange(nextGuestPlayers: GuestPlayerDraft[]) {
     setGuestPlayers(nextGuestPlayers);
@@ -373,6 +373,18 @@ export function MatchCreateForm({
 const initialState: MatchCreateState = {};
 const DEFAULT_QUARTER_COUNT = 4;
 const DEFAULT_GK_FIXED = true;
+
+/**
+ * 날짜 입력 기본값으로 사용할 브라우저 기준 yyyy-mm-dd 문자열을 만듭니다.
+ */
+function getTodayDate() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
 
 /**
  * 현재 경기 설정값을 기준으로 기본 쿼터 보정 선수 선택값을 계산합니다.
