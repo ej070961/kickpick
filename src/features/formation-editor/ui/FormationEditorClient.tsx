@@ -1,189 +1,69 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
-import { exportElementAsPng } from "@/features/formation-export/lib/exportElementAsPng";
-import {
-  addMatchRosterPlayer,
-  removeMatchParticipant,
-  saveFormationSlots,
-  saveMatchGuestPlayer,
-} from "@/features/formation-editor/actions/formationEditorActions";
-import { sanitizeFileName } from "@/features/formation-editor/lib/formationEditorFormat";
-import type {
-  EditorPlayer,
-  EditorQuarter,
-  FormationEditorTemplate,
-  GuestPlayerFormInput,
-  RosterCandidate,
-} from "@/features/formation-editor/model/types";
+import { useState } from "react";
+import type { FormationEditorInitialProps } from "@/features/formation-editor/model/types";
+import { useEditorRoster } from "@/features/formation-editor/model/useEditorRoster";
+import { useEditorSave } from "@/features/formation-editor/model/useEditorSave";
 import { useFormationEditorState } from "@/features/formation-editor/model/useFormationEditorState";
 import { useFormationRegeneration } from "@/features/formation-editor/model/useFormationRegeneration";
-import { getIdFromPlayerKey } from "@/features/match-create/model/types";
+import { useFormationExport } from "@/features/formation-editor/model/useFormationExport";
+import { ErrorState } from "@/shared/ui";
 import { AssignmentSummary } from "./AssignmentSummary";
-import { BenchPlayersPanel } from "./BenchPlayersPanel";
-import { FormationEditorActions } from "./FormationEditorActions";
-import { FormationField } from "./FormationField";
+import { FormationEditorMainArea } from "./FormationEditorMainArea";
+import { FormationEditorSidePanel } from "./FormationEditorSidePanel";
 import { FormationRegenerationDialog } from "./FormationRegenerationDialog";
 import { FormationToolbar } from "./FormationToolbar";
-import { QuarterTabs } from "./QuarterTabs";
 import { RosterManagementDialog } from "./RosterManagementDialog";
-import { SelectedSlotPanel } from "./SelectedSlotPanel";
-
-type FormationEditorClientProps = {
-  fileBaseName: string;
-  formationLabel: string;
-  formationTemplates: FormationEditorTemplate[];
-  matchId: string;
-  players: EditorPlayer[];
-  quarters: EditorQuarter[];
-  rosterCandidates: RosterCandidate[];
-};
 
 /**
  * 쿼터별 포메이션을 편집하고 저장/PNG 내보내기를 연결하는 클라이언트 컨테이너입니다.
  */
 export function FormationEditorClient({
-  fileBaseName,
-  formationLabel,
   formationTemplates,
-  matchId,
+  match,
   players,
   quarters,
   rosterCandidates,
-}: FormationEditorClientProps) {
-  const exportRef = useRef<HTMLDivElement>(null);
-  const [isSavePending, startSaveTransition] = useTransition();
-  const [isRosterPending, startRosterTransition] = useTransition();
+}: FormationEditorInitialProps) {
   const [isRosterDialogOpen, setIsRosterDialogOpen] = useState(false);
-  const [editorPlayers, setEditorPlayers] = useState(players);
-  const [availableRosterPlayers, setAvailableRosterPlayers] =
-    useState(rosterCandidates);
-  const editor = useFormationEditorState({ players: editorPlayers, quarters });
+  const roster = useEditorRoster({
+    initialPlayers: players,
+    initialRosterCandidates: rosterCandidates,
+    matchId: match.id,
+  });
+  const editor = useFormationEditorState({ players: roster.players, quarters });
+  const rosterCallbacks = {
+    onMessage: editor.setMessage,
+    onQuartersChanged: editor.replaceEditedQuarters,
+  };
+  const save = useEditorSave({
+    editedQuarters: editor.editedQuarters,
+    matchId: match.id,
+    onMessage: editor.setMessage,
+    onSaved: editor.markSaved,
+  });
+  const exportImage = useFormationExport({
+    activeQuarter: editor.activeQuarter,
+    fileBaseName: match.exportFileBaseName,
+  });
   const regeneration = useFormationRegeneration({
-    formationLabel,
+    formationLabel: match.formationLabel,
     formationTemplates,
-    matchId,
+    matchId: match.id,
     onMessage: editor.setMessage,
     onRegenerated: ({ quarters: nextQuarters }) => {
       editor.replaceEditedQuarters(nextQuarters);
     },
   });
   const isPending =
-    isSavePending || isRosterPending || regeneration.isRegenerationPending;
-
-  /**
-   * 현재 편집된 모든 슬롯 변경사항을 서버 액션으로 저장합니다.
-   */
-  function handleSave() {
-    const slots = editor.editedQuarters.flatMap((quarter) =>
-      quarter.slots.map((slot) => ({
-        fitScore: slot.fitScore,
-        id: slot.id,
-        isManual: slot.isManual,
-        playerId: slot.playerId,
-      })),
-    );
-
-    startSaveTransition(async () => {
-      const result = await saveFormationSlots(matchId, slots);
-      editor.setMessage(result.message);
-      if (result.success) {
-        editor.markSaved();
-      }
-    });
-  }
-
-  /**
-   * 현재 활성 쿼터의 축구장 영역을 PNG 파일로 내보냅니다.
-   */
-  async function handleExport() {
-    if (!exportRef.current || !editor.activeQuarter) return;
-
-    await exportElementAsPng({
-      element: exportRef.current,
-      fileName: `${sanitizeFileName(fileBaseName)}_${editor.activeQuarter.quarterNumber}Q.png`,
-    });
-  }
-
-  /**
-   * 팀 선수를 경기 명단에 추가하고 후보 목록에서 제거합니다.
-   */
-  function handleAddRosterPlayer(playerId: string) {
-    startRosterTransition(async () => {
-      const result = await addMatchRosterPlayer(matchId, playerId);
-      editor.setMessage(result.message);
-
-      if (!result.success || !result.player) return;
-
-      setEditorPlayers((current) => [
-        ...current,
-        result.player as EditorPlayer,
-      ]);
-      setAvailableRosterPlayers((current) =>
-        current.filter((player) => getIdFromPlayerKey(player.id) !== playerId),
-      );
-    });
-  }
-
-  /**
-   * 참가자를 명단에서 제거하고 배정 슬롯을 서버 결과 기준으로 갱신합니다.
-   */
-  function handleRemoveParticipant(player: EditorPlayer) {
-    startRosterTransition(async () => {
-      const result = await removeMatchParticipant(matchId, player.id);
-      editor.setMessage(result.message);
-
-      if (!result.success || !result.quarters) return;
-
-      setEditorPlayers((current) =>
-        current.filter((item) => item.id !== player.id),
-      );
-
-      if (!player.isGuest) {
-        setAvailableRosterPlayers((current) =>
-          [...current, { ...player, isGuest: false as const }].sort(
-            (a, b) => a.priorityRank - b.priorityRank,
-          ),
-        );
-      }
-
-      editor.replaceEditedQuarters(result.quarters);
-    });
-  }
-
-  /**
-   * 용병을 추가하거나 수정하고 참가자 목록과 슬롯 fit score를 갱신합니다.
-   */
-  function handleSaveGuestPlayer(input: GuestPlayerFormInput) {
-    startRosterTransition(async () => {
-      const result = await saveMatchGuestPlayer(matchId, input);
-      editor.setMessage(result.message);
-
-      if (!result.success || !result.player) return;
-
-      setEditorPlayers((current) => {
-        const exists = current.some(
-          (player) => player.id === result.player?.id,
-        );
-
-        return exists
-          ? current.map((player) =>
-              player.id === result.player?.id ? result.player : player,
-            )
-          : [...current, result.player as EditorPlayer];
-      });
-
-      if (result.quarters) {
-        editor.replaceEditedQuarters(result.quarters);
-      }
-    });
-  }
+    save.isPending || roster.isPending || regeneration.isRegenerationPending;
 
   if (!editor.activeQuarter) {
     return (
-      <div className="border-border bg-card text-muted rounded-lg border border-dashed p-6 text-sm">
-        생성된 포메이션이 없습니다.
-      </div>
+      <ErrorState
+        title="생성된 포메이션이 없습니다"
+        description="경기 생성 과정에서 쿼터별 포메이션이 만들어지지 않았습니다. 경기 목록으로 돌아가 다시 생성해주세요."
+      />
     );
   }
 
@@ -200,62 +80,52 @@ export function FormationEditorClient({
 
       <AssignmentSummary
         assignmentItems={editor.assignmentItems}
-        playerCount={editorPlayers.length}
+        playerCount={roster.players.length}
         quarterCount={editor.editedQuarters.length}
       />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_370px]">
-        <div>
-          <QuarterTabs
-            activeQuarterNumber={editor.activeQuarter.quarterNumber}
-            quarters={editor.editedQuarters}
-            onQuarterChange={(quarterNumber) => {
-              editor.setActiveQuarterNumber(quarterNumber);
-              editor.clearSelection();
-            }}
-          />
+        <FormationEditorMainArea
+          activeQuarter={editor.activeQuarter}
+          editedQuarters={editor.editedQuarters}
+          exportRef={exportImage.ref}
+          playerMap={editor.playerMap}
+          selectedSlotId={editor.selectedSlotId}
+          onClearSelection={editor.clearSelection}
+          onQuarterChange={editor.setActiveQuarterNumber}
+          onSlotClick={editor.handleSlotClick}
+        />
 
-          <FormationField
-            exportRef={exportRef}
-            playerMap={editor.playerMap}
-            quarter={editor.activeQuarter}
-            selectedSlotId={editor.selectedSlotId}
-            onSlotClick={editor.handleSlotClick}
-          />
-        </div>
-
-        <aside className="space-y-3">
-          <SelectedSlotPanel
-            selectedBenchPlayer={editor.selectedBenchPlayer}
-            selectedPlayer={editor.selectedPlayer}
-            selectedSlot={editor.selectedSlot}
-          />
-          <BenchPlayersPanel
-            activeAssignedPlayerCount={editor.activeAssignedPlayerIds.size}
-            benchPlayers={editor.benchPlayers}
-            hasSelectedSlot={Boolean(editor.selectedSlotId)}
-            quarterNumber={editor.activeQuarter.quarterNumber}
-            selectedBenchPlayerId={editor.selectedBenchPlayerId}
-            onBenchPlayerClick={editor.handleBenchPlayerClick}
-          />
-          <FormationEditorActions
-            isPending={isPending}
-            message={editor.message}
-            onExport={handleExport}
-            onSave={handleSave}
-          />
-        </aside>
+        <FormationEditorSidePanel
+          activeAssignedPlayerCount={editor.activeAssignedPlayerIds.size}
+          activeQuarterNumber={editor.activeQuarter.quarterNumber}
+          benchPlayers={editor.benchPlayers}
+          hasSelectedSlot={Boolean(editor.selectedSlotId)}
+          isPending={isPending}
+          message={editor.message}
+          selectedBenchPlayer={editor.selectedBenchPlayer}
+          selectedBenchPlayerId={editor.selectedBenchPlayerId}
+          selectedPlayer={editor.selectedPlayer}
+          selectedSlot={editor.selectedSlot}
+          onBenchPlayerClick={editor.handleBenchPlayerClick}
+          onExport={exportImage.downloadCurrent}
+          onSave={save.submit}
+        />
       </div>
 
       <RosterManagementDialog
         isOpen={isRosterDialogOpen}
         isPending={isPending}
-        players={editorPlayers}
-        rosterCandidates={availableRosterPlayers}
-        onAddRosterPlayer={handleAddRosterPlayer}
+        players={roster.players}
+        rosterCandidates={roster.candidates}
+        onAddRosterPlayer={(playerId) =>
+          roster.addPlayer(playerId, rosterCallbacks)
+        }
         onClose={() => setIsRosterDialogOpen(false)}
-        onRemoveParticipant={handleRemoveParticipant}
-        onSaveGuestPlayer={handleSaveGuestPlayer}
+        onRemoveParticipant={(player) =>
+          roster.removePlayer(player, rosterCallbacks)
+        }
+        onSaveGuestPlayer={(input) => roster.saveGuest(input, rosterCallbacks)}
       />
 
       <FormationRegenerationDialog

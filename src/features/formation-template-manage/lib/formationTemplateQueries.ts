@@ -34,14 +34,14 @@ function mapTemplate(row: TemplateRow): FormationTemplate {
   };
 }
 
-export async function getFormationTemplates() {
-  const teamId = await requireCurrentTeamId();
+export async function getFormationTemplates(teamId?: string) {
+  const currentTeamId = teamId ?? (await requireCurrentTeamId());
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("formation_templates")
     .select("id, name, formation_template_slots(slot_name, sort_order, x, y)")
-    .eq("team_id", teamId)
+    .eq("team_id", currentTeamId)
     .eq("is_deleted", false)
     .order("created_at", { ascending: true });
 

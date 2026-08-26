@@ -9,7 +9,7 @@ import {
 } from "@/features/formation-editor/api/formationEditorMutations";
 import {
   getFormationRegenerationContext,
-  getInsertedSlotRowsByMatch,
+  getEditorQuartersByMatch,
 } from "@/features/formation-editor/api/formationEditorQueries";
 import type {
   MatchPlayerRow,
@@ -17,10 +17,10 @@ import type {
 } from "@/features/formation-editor/api/formationEditorRows";
 import {
   createFormationSlotRows,
-  mapInsertedSlotRowsToEditorQuarters,
-  mapMatchPlayerRowToFormationPlayer,
-  mapRosterPlayerRowToCandidate,
-  splitEditorPlayerKey,
+  splitPlayerKey,
+  toFormationPlayer,
+  toInsertedEditorQuarters,
+  toRosterCandidate,
 } from "@/features/formation-editor/lib/formationEditorMappers";
 import { createRegeneratedFormations } from "@/features/formation-editor/lib/regenerateFormationSlots";
 import type {
@@ -65,7 +65,7 @@ const guestPlayerSchema = z.object({
 function createRegenerationPlayers(matchPlayers: MatchPlayerRow[]) {
   const playerPairs = matchPlayers.map((row) => ({
     isReducedQuota: row.is_reduced_quota,
-    player: mapMatchPlayerRowToFormationPlayer(row),
+    player: toFormationPlayer(row),
   }));
 
   return {
@@ -95,7 +95,7 @@ export async function saveFormationSlots(matchId: string, slots: unknown) {
   const supabase = await createClient();
   const updates = await Promise.all(
     slotsResult.data.map((slot) => {
-      const { guestPlayerId, playerId } = splitEditorPlayerKey(slot.playerId);
+      const { guestPlayerId, playerId } = splitPlayerKey(slot.playerId);
 
       return supabase
         .from("formation_slots")
@@ -166,7 +166,7 @@ export async function addMatchRosterPlayer(
 
   return {
     message: "선수를 경기 명단에 추가했습니다.",
-    player: mapRosterPlayerRowToCandidate(player as unknown as RosterPlayerRow),
+    player: toRosterCandidate(player as unknown as RosterPlayerRow),
     success: true,
   };
 }
@@ -190,9 +190,7 @@ export async function removeMatchParticipant(
   }
 
   const supabase = await createClient();
-  const { guestPlayerId, playerId } = splitEditorPlayerKey(
-    playerKeyResult.data,
-  );
+  const { guestPlayerId, playerId } = splitPlayerKey(playerKeyResult.data);
   const participantId = guestPlayerId ?? playerId;
 
   if (!participantId) {
@@ -233,7 +231,7 @@ export async function removeMatchParticipant(
       .eq("match_id", matchIdResult.data);
 
     if (deleteGuestError) {
-      return { message: "용병 정보를 삭제하지 못했습니다." };
+      return { message: "게스트 정보를 삭제하지 못했습니다." };
     }
   }
 
@@ -253,7 +251,7 @@ export async function removeMatchParticipant(
 }
 
 /**
- * 경기 전용 용병을 추가하거나 기존 용병 정보를 수정합니다.
+ * 경기 전용 게스트를 추가하거나 기존 게스트 정보를 수정합니다.
  */
 export async function saveMatchGuestPlayer(
   matchId: string,
@@ -268,7 +266,7 @@ export async function saveMatchGuestPlayer(
   const inputResult = guestPlayerSchema.safeParse(input);
 
   if (!matchIdResult.success || !inputResult.success) {
-    return { message: "용병 정보가 올바르지 않습니다." };
+    return { message: "게스트 정보가 올바르지 않습니다." };
   }
 
   const guest = normalizeGuestInput(inputResult.data);
@@ -291,7 +289,7 @@ export async function saveMatchGuestPlayer(
       .single();
 
     if (updateError || !updatedGuest) {
-      return { message: "용병 정보를 수정하지 못했습니다." };
+      return { message: "게스트 정보를 수정하지 못했습니다." };
     }
 
     priorityRank = updatedGuest.priority_rank as number;
@@ -316,7 +314,7 @@ export async function saveMatchGuestPlayer(
       .single();
 
     if (insertGuestError || !insertedGuest) {
-      return { message: "용병 정보를 추가하지 못했습니다." };
+      return { message: "게스트 정보를 추가하지 못했습니다." };
     }
 
     guestId = insertedGuest.id as string;
@@ -330,7 +328,7 @@ export async function saveMatchGuestPlayer(
       });
 
     if (matchPlayerError) {
-      return { message: "용병을 경기 명단에 추가하지 못했습니다." };
+      return { message: "게스트를 경기 명단에 추가하지 못했습니다." };
     }
   }
 
@@ -343,7 +341,9 @@ export async function saveMatchGuestPlayer(
   revalidatePath(`/matches/${matchIdResult.data}`);
 
   return {
-    message: guest.id ? "용병 정보를 수정했습니다." : "용병을 추가했습니다.",
+    message: guest.id
+      ? "게스트 정보를 수정했습니다."
+      : "게스트를 추가했습니다.",
     player: {
       id: getGuestPlayerKey(guestId),
       isGuest: true,
@@ -460,7 +460,7 @@ export async function regenerateMatchFormation(
   return {
     formationLabel: preset.label,
     message: "포메이션을 변경하고 재배정했습니다.",
-    quarters: mapInsertedSlotRowsToEditorQuarters({
+    quarters: toInsertedEditorQuarters({
       quarterNumberByFormationId,
       rows: replaceResult.insertedSlots,
     }),
@@ -472,17 +472,14 @@ export async function regenerateMatchFormation(
  * match id 기준 최신 쿼터 슬롯을 편집기 상태로 변환합니다.
  */
 async function getEditorQuarters(matchId: string) {
-  const result = await getInsertedSlotRowsByMatch(matchId);
+  const result = await getEditorQuartersByMatch(matchId);
 
   if (!result.ok) {
     return { message: result.error, success: false as const };
   }
 
   return {
-    quarters: mapInsertedSlotRowsToEditorQuarters({
-      quarterNumberByFormationId: result.quarterNumberByFormationId,
-      rows: result.rows,
-    }),
+    quarters: result.quarters,
     success: true as const,
   };
 }
@@ -498,7 +495,7 @@ async function clearParticipantSlots({
   playerKey: string;
 }) {
   const supabase = await createClient();
-  const { guestPlayerId, playerId } = splitEditorPlayerKey(playerKey);
+  const { guestPlayerId, playerId } = splitPlayerKey(playerKey);
   const participantId = guestPlayerId ?? playerId;
   const slotColumn = guestPlayerId ? "guest_player_id" : "player_id";
 
@@ -540,7 +537,7 @@ async function clearParticipantSlots({
 }
 
 /**
- * 용병 입력값에서 주 포지션과 중복되는 부 포지션을 제거합니다.
+ * 게스트 입력값에서 주 포지션과 중복되는 부 포지션을 제거합니다.
  */
 function normalizeGuestInput(
   input: z.infer<typeof guestPlayerSchema>,
@@ -555,7 +552,7 @@ function normalizeGuestInput(
 }
 
 /**
- * 새 용병이 기존 참가자보다 낮은 우선순위를 갖도록 다음 priority rank를 계산합니다.
+ * 새 게스트가 기존 참가자보다 낮은 우선순위를 갖도록 다음 priority rank를 계산합니다.
  */
 async function getNextGuestPriorityRank(matchId: string) {
   const contextResult = await getFormationRegenerationContext(matchId);
@@ -565,7 +562,7 @@ async function getNextGuestPriorityRank(matchId: string) {
   const maxRank = Math.max(
     0,
     ...contextResult.context.matchPlayers
-      .map(mapMatchPlayerRowToFormationPlayer)
+      .map(toFormationPlayer)
       .filter((player): player is FormationPlayer => Boolean(player))
       .map((player) => player.priorityRank),
   );
@@ -574,7 +571,7 @@ async function getNextGuestPriorityRank(matchId: string) {
 }
 
 /**
- * 용병 포지션 수정 후 이미 배정된 슬롯의 fit score를 최신 포지션 기준으로 갱신합니다.
+ * 게스트 포지션 수정 후 이미 배정된 슬롯의 fit score를 최신 포지션 기준으로 갱신합니다.
  */
 async function updateGuestSlotFitScores({
   guest,

@@ -4,7 +4,9 @@ import type {
   RosterCandidate,
 } from "@/features/formation-editor/model/types";
 import type {
+  FormationQuarterRow,
   FormationSlotInsertRow,
+  FormationSlotRow,
   InsertedSlotRow,
   MatchPlayerRow,
   QuarterRow,
@@ -22,7 +24,7 @@ import {
 /**
  * 편집기 내부 player key를 DB 저장용 roster/guest id 컬럼으로 분리합니다.
  */
-export function splitEditorPlayerKey(playerKey: string | null) {
+export function splitPlayerKey(playerKey: string | null) {
   if (!playerKey) return { guestPlayerId: null, playerId: null };
 
   const [type, id] = playerKey.split(":");
@@ -35,9 +37,7 @@ export function splitEditorPlayerKey(playerKey: string | null) {
 /**
  * 경기 참가자 row를 자동 배치 알고리즘이 사용하는 선수 모델로 변환합니다.
  */
-export function mapMatchPlayerRowToFormationPlayer(
-  row: MatchPlayerRow,
-): FormationPlayer | null {
+export function toFormationPlayer(row: MatchPlayerRow): FormationPlayer | null {
   if (row.match_guest_players) {
     return {
       id: getGuestPlayerKey(row.match_guest_players.id),
@@ -64,10 +64,8 @@ export function mapMatchPlayerRowToFormationPlayer(
 /**
  * 경기 참가자 row를 편집기 클라이언트에서 사용하는 선수 모델로 변환합니다.
  */
-export function mapMatchPlayerRowToEditorPlayer(
-  row: MatchPlayerRow,
-): EditorPlayer | null {
-  const player = mapMatchPlayerRowToFormationPlayer(row);
+export function toEditorPlayer(row: MatchPlayerRow): EditorPlayer | null {
+  const player = toFormationPlayer(row);
 
   if (!player) return null;
 
@@ -83,11 +81,9 @@ export function mapMatchPlayerRowToEditorPlayer(
 }
 
 /**
- * 팀 선수 row를 경기 편집기에서 추가 가능한 후보 선수 모델로 변환합니다.
+ * 등록 선수 row를 경기 편집기에서 추가 가능한 후보 선수 모델로 변환합니다.
  */
-export function mapRosterPlayerRowToCandidate(
-  row: RosterPlayerRow,
-): RosterCandidate {
+export function toRosterCandidate(row: RosterPlayerRow): RosterCandidate {
   return {
     id: getRosterPlayerKey(row.id),
     mainPosition: row.main_position,
@@ -116,7 +112,7 @@ export function createFormationSlotRows({
     if (!quarterFormationId) return [];
 
     return formationItem.slots.map((slot) => {
-      const { guestPlayerId, playerId } = splitEditorPlayerKey(slot.playerId);
+      const { guestPlayerId, playerId } = splitPlayerKey(slot.playerId);
 
       return {
         fit_score: slot.fitScore,
@@ -135,8 +131,8 @@ export function createFormationSlotRows({
 /**
  * DB 슬롯 row를 편집기 클라이언트가 사용하는 슬롯 모델로 변환합니다.
  */
-export function mapInsertedSlotRowToEditorSlot(
-  row: InsertedSlotRow,
+export function toEditorSlot(
+  row: FormationSlotRow | InsertedSlotRow,
 ): EditorQuarter["slots"][number] {
   return {
     fitScore: row.fit_score,
@@ -153,10 +149,29 @@ export function mapInsertedSlotRowToEditorSlot(
   };
 }
 
+export function toEditorQuarter(row: FormationQuarterRow): EditorQuarter {
+  return {
+    quarterNumber: row.quarter_number,
+    slots: [...row.formation_slots]
+      .sort((a, b) => Number(a.y) - Number(b.y))
+      .map(toEditorSlot),
+  };
+}
+
+export function toEditorQuarters(rows: FormationQuarterRow[]): EditorQuarter[] {
+  return rows.map(toEditorQuarter);
+}
+
+export function toInsertedEditorSlot(
+  row: InsertedSlotRow,
+): EditorQuarter["slots"][number] {
+  return toEditorSlot(row);
+}
+
 /**
  * 저장 직후 반환된 슬롯 row를 쿼터 단위 편집기 상태로 그룹핑합니다.
  */
-export function mapInsertedSlotRowsToEditorQuarters({
+export function toInsertedEditorQuarters({
   quarterNumberByFormationId,
   rows,
 }: {
@@ -172,7 +187,7 @@ export function mapInsertedSlotRowsToEditorQuarters({
     if (!quarterNumber) continue;
 
     const slots = slotsByQuarterNumber.get(quarterNumber) ?? [];
-    slots.push(mapInsertedSlotRowToEditorSlot(row));
+    slots.push(toInsertedEditorSlot(row));
     slotsByQuarterNumber.set(quarterNumber, slots);
   }
 
@@ -187,7 +202,7 @@ export function mapInsertedSlotRowsToEditorQuarters({
 /**
  * 기존 쿼터 row에서 재배정 시 보존할 선수 key 목록을 추출합니다.
  */
-export function mapQuarterRowsToPreserveInputs(quarters: QuarterRow[]) {
+export function toPreserveQuarterInputs(quarters: QuarterRow[]) {
   return quarters.map((quarter) => ({
     playerIds: quarter.formation_slots
       .map((slot) =>
