@@ -39,17 +39,18 @@ KickPick의 1차 인증 리팩터링은 다음 방향으로 진행한다.
 
 ### Kakao 로그인
 
-Kakao 로그인은 Supabase OAuth provider를 통해 처리한다.
+Kakao 로그인은 Kakao OIDC authorize/token 교환 후 Supabase `signInWithIdToken`으로 처리한다.
 
-사용자가 Kakao 버튼을 누르면 앱은 Supabase에 OAuth 로그인을 요청한다. Supabase는 사용자를 Kakao 인증 화면으로 보낸 뒤, 인증이 끝나면 다시 KickPick의 `/auth/callback`으로 돌려보낸다. callback route는 Supabase 세션을 만든 뒤 현재 사용자의 팀 workspace가 없으면 새로 만든다.
+사용자가 Kakao 버튼을 누르면 앱은 Kakao 인가 URL을 직접 만들고, Kakao 인증이 끝나면 `/auth/kakao/callback`으로 돌아온다. callback route는 Kakao token endpoint에서 `id_token`을 받은 뒤 Supabase 세션을 만들고, 현재 사용자의 팀 workspace가 없으면 새로 만든다.
 
 프론트엔드 관점에서는 다음 흐름으로 이해하면 된다.
 
 ```txt
 로그인 버튼 클릭
-  -> Supabase OAuth 요청
+  -> Kakao OIDC 요청
   -> Kakao 인증 화면
-  -> /auth/callback
+  -> /auth/kakao/callback
+  -> Supabase signInWithIdToken
   -> Supabase 세션 저장
   -> 팀 workspace 보장
   -> 대시보드 이동
@@ -184,20 +185,29 @@ ensureDefaultTeamForUser(userId, teamName);
 getCurrentTeamId();
 ```
 
-### 2단계: Kakao OAuth 추가
+### 2단계: Kakao OIDC 추가
 
-Supabase Dashboard에서 Kakao provider를 활성화한다. Kakao Developers에서도 앱과 redirect URI를 설정해야 한다.
+Kakao Developers에서 OpenID Connect를 활성화하고 redirect URI를 설정한다. Kakao Login Client Secret을 활성화한 경우 서버 환경변수 `KAKAO_CLIENT_SECRET`도 설정한다.
 
-앱 코드에서는 provider 값을 `kakao`로 넘긴다.
+앱 코드에서는 Kakao 인가 URL을 직접 만든다.
 
 ```ts
-await supabase.auth.signInWithOAuth({
+const authorizeUrl = new URL("https://kauth.kakao.com/oauth/authorize");
+authorizeUrl.searchParams.set("scope", "openid,profile_nickname,profile_image");
+```
+
+callback route에서는 Kakao token endpoint에서 받은 `id_token`으로 Supabase 세션을 만든다.
+
+```ts
+await supabase.auth.signInWithIdToken({
   provider: "kakao",
-  options: {
-    redirectTo: `${origin}/auth/callback?next=/`,
-  },
+  token: idToken,
+  access_token: accessToken,
+  nonce,
 });
 ```
+
+Kakao authorize 요청에는 `state`를 포함해 callback을 검증한다. Supabase는 `signInWithIdToken`에 전달된 raw nonce를 SHA-256으로 해시해 `id_token`의 nonce claim과 비교하므로, Kakao에는 해시된 nonce를 보내고 Supabase에는 raw nonce를 넘긴다.
 
 ### 3단계: 익명 체험 추가
 

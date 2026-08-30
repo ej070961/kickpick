@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { Provider } from "@supabase/supabase-js";
@@ -11,10 +12,9 @@ import { createClient } from "@/shared/api/supabase/server";
 type SupportedOAuthProvider = Extract<Provider, "kakao" | "google">;
 
 const SUPPORTED_OAUTH_PROVIDERS: SupportedOAuthProvider[] = ["kakao", "google"];
-const OAUTH_PROVIDER_SCOPES = {
-  kakao: "profile_nickname profile_image",
-  google: undefined,
-} satisfies Record<SupportedOAuthProvider, string | undefined>;
+const KAKAO_AUTH_STATE_COOKIE = "kickpick-kakao-oauth-state";
+const KAKAO_AUTH_NONCE_COOKIE = "kickpick-kakao-oauth-nonce";
+const KAKAO_OIDC_SCOPES = "openid,profile_nickname,profile_image";
 
 async function getRequestOrigin() {
   const headerStore = await headers();
@@ -36,13 +36,16 @@ function isSupportedOAuthProvider(
 async function startOAuthSignIn(
   provider: SupportedOAuthProvider,
 ): Promise<void> {
+  if (provider === "kakao") {
+    return startKakaoOidcSignIn();
+  }
+
   const supabase = await createClient();
   const origin = await getRequestOrigin();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
       redirectTo: origin ? `${origin}/auth/callback?next=/` : undefined,
-      scopes: OAUTH_PROVIDER_SCOPES[provider],
     },
   });
 
@@ -51,6 +54,51 @@ async function startOAuthSignIn(
   }
 
   redirect(data.url);
+}
+
+async function startKakaoOidcSignIn(): Promise<void> {
+  const clientId = process.env.KAKAO_REST_API_KEY;
+  const origin = await getRequestOrigin();
+
+  if (!clientId || !origin) {
+    redirect("/auth/error");
+  }
+
+  const state = crypto.randomUUID();
+  const nonce = crypto.randomUUID();
+  const hashedNonce = await createSha256HexDigest(nonce);
+  const cookieStore = await cookies();
+  const cookieOptions = {
+    httpOnly: true,
+    maxAge: 60 * 10,
+    path: "/",
+    sameSite: "lax" as const,
+    secure: process.env.NODE_ENV === "production",
+  };
+
+  cookieStore.set(KAKAO_AUTH_STATE_COOKIE, state, cookieOptions);
+  cookieStore.set(KAKAO_AUTH_NONCE_COOKIE, nonce, cookieOptions);
+
+  const authorizeUrl = new URL("https://kauth.kakao.com/oauth/authorize");
+  authorizeUrl.searchParams.set("client_id", clientId);
+  authorizeUrl.searchParams.set("redirect_uri", `${origin}/auth/kakao/callback`);
+  authorizeUrl.searchParams.set("response_type", "code");
+  authorizeUrl.searchParams.set("scope", KAKAO_OIDC_SCOPES);
+  authorizeUrl.searchParams.set("state", state);
+  authorizeUrl.searchParams.set("nonce", hashedNonce);
+
+  redirect(authorizeUrl.toString());
+}
+
+async function createSha256HexDigest(value: string): Promise<string> {
+  const hashBuffer = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 /**
