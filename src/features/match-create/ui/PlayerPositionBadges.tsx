@@ -16,21 +16,31 @@ export function PlayerPositionBadges({ player }: { player: Player }) {
       >
         {player.mainPosition}
       </span>
-      {subPositions.length > 0 ? (
-        subPositions.map((position) => (
-          <span
-            key={position}
-            aria-label={`부 포지션 ${position}`}
-            className="border-border bg-background text-muted inline-flex items-center rounded-md border px-2 py-1 text-xs font-medium"
-          >
-            {position}
-          </span>
-        ))
-      ) : (
-        <span className="border-border text-muted rounded-md border border-dashed px-2 py-1 text-xs font-medium">
-          부 포지션 없음
-        </span>
-      )}
+      <SubPositionBadges subPositions={subPositions} />
     </span>
   );
+}
+
+function SubPositionBadges({
+  subPositions,
+}: {
+  subPositions: Player["subPositions"];
+}) {
+  if (subPositions.length === 0) {
+    return (
+      <span className="border-border text-muted rounded-md border border-dashed px-2 py-1 text-xs font-medium">
+        부 포지션 없음
+      </span>
+    );
+  }
+
+  return subPositions.map((position) => (
+    <span
+      key={position}
+      aria-label={`부 포지션 ${position}`}
+      className="border-border bg-background text-muted inline-flex items-center rounded-md border px-2 py-1 text-xs font-medium"
+    >
+      {position}
+    </span>
+  ));
 }

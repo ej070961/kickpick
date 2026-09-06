@@ -28,7 +28,7 @@ export async function MatchNewPage() {
     <section>
       <PageHeader
         title="새 경기 생성"
-        description="참가 선수, 쿼터 수, GK 고정 여부, 포메이션을 선택하고 자동 배치 초안을 생성합니다."
+        description="경기 조건과 참가 명단을 정하고, 바로 수정 가능한 쿼터별 라인업을 만들어보세요."
       />
       {formationTemplates.length > 0 ? (
         <MatchCreateForm
