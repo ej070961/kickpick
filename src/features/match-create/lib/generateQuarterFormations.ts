@@ -176,15 +176,13 @@ export function generateQuarterFormations({
   reducedPlayerIds,
 }: GenerateQuarterFormationsInput): QuotaResult {
   if (players.length < preset.slots.length) {
-    throw new Error("포메이션 슬롯 수보다 참가 선수가 적습니다.");
+    throw new Error("현재 포메이션에 필요한 참가 인원이 부족해요.");
   }
 
   const fixedGoalkeeper = gkFixed ? pickFixedGoalkeeper(players) : null;
 
   if (gkFixed && !fixedGoalkeeper) {
-    throw new Error(
-      "골키퍼를 전 쿼터에 고정하려면 참가 선수에 GK가 포함되어야 합니다.",
-    );
+    throw new Error("GK 고정을 사용하려면 참가 명단에 골키퍼가 있어야 해요.");
   }
 
   const { quotaPlayers } = getQuotaPlayers({

@@ -68,7 +68,7 @@ a,
 input,
 select,
 textarea {
-  font: inherit;
+  font-family: inherit;
 }
 
 input,

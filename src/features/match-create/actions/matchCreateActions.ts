@@ -56,7 +56,7 @@ const matchCreateSchema = z.object({
   ),
   matchDate: z.string().optional(),
   name: z.string().optional(),
-  playerKeys: z.array(playerKeySchema).min(1, "참가 선수를 선택해주세요."),
+  playerKeys: z.array(playerKeySchema).min(1, "참가 명단을 선택해주세요."),
   quarterCount: z.coerce
     .number()
     .int()
@@ -152,7 +152,7 @@ async function cleanupCreatedMatch({
 }
 
 /**
- * 경기 생성 formData를 검증하고 경기, 참가 선수, 쿼터별 포메이션 슬롯을 저장합니다.
+ * 경기 생성 formData를 검증하고 경기, 참가 명단, 쿼터별 포메이션 슬롯을 저장합니다.
  */
 export async function createMatch(
   _state: MatchCreateState,
@@ -198,7 +198,7 @@ export async function createMatch(
     return {
       errors: {
         playerIds: [
-          `${preset.label} 포메이션은 최소 ${preset.slots.length}명이 필요합니다.`,
+          `${preset.label} 포메이션은 최소 ${preset.slots.length}명이 필요해요.`,
         ],
       },
     };
@@ -206,7 +206,7 @@ export async function createMatch(
 
   const supabase = await createClient();
   const teamId = await requireCurrentTeamId();
-  const rosterPlayerIds = playerKeys
+  const registeredPlayerIds = playerKeys
     .filter((playerKey) => !isGuestPlayerKey(playerKey))
     .map(getIdFromPlayerKey);
   const guestPlayerKeys = new Set(
@@ -225,7 +225,7 @@ export async function createMatch(
 
   let rosterPlayers: FormationPlayer[] = [];
 
-  if (rosterPlayerIds.length > 0) {
+  if (registeredPlayerIds.length > 0) {
     const { data: playerRows, error: playersError } = await supabase
       .from("players")
       .select(
@@ -233,10 +233,10 @@ export async function createMatch(
       )
       .eq("team_id", teamId)
       .eq("is_deleted", false)
-      .in("id", rosterPlayerIds);
+      .in("id", registeredPlayerIds);
 
     if (playersError) {
-      return { message: "참가 선수 정보를 불러오지 못했습니다." };
+      return { message: "참가 명단을 불러오지 못했습니다." };
     }
 
     rosterPlayers = (playerRows ?? []).map((row) =>
@@ -244,7 +244,7 @@ export async function createMatch(
     );
   }
 
-  if (rosterPlayers.length !== rosterPlayerIds.length) {
+  if (rosterPlayers.length !== registeredPlayerIds.length) {
     return { message: "선택한 선수 중 사용할 수 없는 선수가 있습니다." };
   }
 
@@ -267,7 +267,7 @@ export async function createMatch(
   );
 
   if (players.length !== playerKeys.length) {
-    return { message: "참가 선수 목록을 확인하지 못했습니다." };
+    return { message: "참가 명단을 확인하지 못했습니다." };
   }
 
   const { quotaPlayers } = getQuotaPlayers({ gkFixed, players });
@@ -284,7 +284,7 @@ export async function createMatch(
   if (reducedPlayerIds.length !== requiredReducedCount) {
     return {
       errors: {
-        reducedPlayerIds: ["쿼터 보정 선수 선택값이 올바르지 않습니다."],
+        reducedPlayerIds: ["출전 시간 조정 대상이 올바르지 않아요."],
       },
     };
   }
@@ -297,7 +297,9 @@ export async function createMatch(
   if (hasInvalidReducedPlayer) {
     return {
       errors: {
-        reducedPlayerIds: ["쿼터 보정 대상 선수 중에서만 선택할 수 있습니다."],
+        reducedPlayerIds: [
+          "출전 시간 계산에 포함된 선수 중에서만 선택할 수 있어요.",
+        ],
       },
     };
   }
@@ -405,7 +407,7 @@ export async function createMatch(
       reason: "match_players insert failed",
       supabase,
     });
-    return { message: "참가 선수 배정을 저장하지 못했습니다." };
+    return { message: "참가 명단 배정을 저장하지 못했습니다." };
   }
 
   const { data: quarterFormations, error: quarterError } = await supabase
