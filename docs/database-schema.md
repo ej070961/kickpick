@@ -131,6 +131,25 @@ check (x >= 0 and x <= 100)
 check (y >= 0 and y <= 100)
 ```
 
+### `save_formation_slots`
+
+Postgres RPC used to save every formation slot for a match in one transaction.
+
+Signature:
+
+```txt
+save_formation_slots(p_match_id uuid, p_slots jsonb)
+```
+
+Expected behavior:
+
+- Runs as `security invoker` so caller permissions and RLS still apply.
+- Verifies the match is visible to the caller.
+- Requires a JSON array with unique slot IDs and exactly the slot count belonging to the match.
+- Updates assignments, fit scores, and manual flags only for slots under the specified match.
+- Raises an error if any input row is invalid or any slot cannot be updated; the transaction rolls back as a whole.
+- Revokes execution from `public` and `anon`; grants execution to `authenticated` and `service_role`.
+
 ### `replace_formation_template`
 
 Postgres RPC used by template edit actions to update a template name and replace its slot rows atomically.

@@ -25,6 +25,31 @@ export async function updateMatchFormationLabel({
 }
 
 /**
+ * 경기의 모든 포메이션 슬롯 변경을 한 데이터베이스 트랜잭션으로 저장합니다.
+ */
+export async function saveFormationSlotsAtomically({
+  matchId,
+  slots,
+}: {
+  matchId: string;
+  slots: {
+    fit_score: number | null;
+    guest_player_id: string | null;
+    id: string;
+    is_manual: boolean;
+    player_id: string | null;
+  }[];
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("save_formation_slots", {
+    p_match_id: matchId,
+    p_slots: slots,
+  });
+
+  return error ? "포메이션을 저장하지 못했습니다." : null;
+}
+
+/**
  * 기존 formation_slots를 삭제하고 재생성된 슬롯 row로 교체합니다.
  */
 export async function replaceFormationSlots({

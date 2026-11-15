@@ -1,4 +1,5 @@
-import { Badge, Button, Panel } from "@/shared/ui";
+import { Badge, Panel } from "@/shared/ui";
+import { MatchSettingsMenu } from "./MatchSettingsMenu";
 
 type FormationToolbarProps = {
   formationLabel: string;
@@ -26,28 +27,17 @@ export function FormationToolbar({
         <p className="text-muted text-xs font-bold uppercase">경기 포메이션</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <p className="text-foreground text-lg font-bold">{formationLabel}</p>
-          {hasUnsavedChanges ? (
-            <Badge variant="warning">저장 전 변경사항</Badge>
-          ) : null}
+          {hasUnsavedChanges && (
+            <Badge variant="warning">변경사항을 저장해 주세요</Badge>
+          )}
         </div>
       </div>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Button
-          onClick={onOpenRosterManagement}
-          disabled={isPending}
-          variant="secondary"
-        >
-          선수 명단 수정
-        </Button>
-        <Button
-          onClick={onOpenRegeneration}
-          disabled={isPending || !hasTemplates}
-          variant="secondary"
-          className="border-primary text-primary hover:bg-mint-surface"
-        >
-          포메이션 변경
-        </Button>
-      </div>
+      <MatchSettingsMenu
+        hasTemplates={hasTemplates}
+        isDisabled={isPending}
+        onOpenRegeneration={onOpenRegeneration}
+        onOpenRosterManagement={onOpenRosterManagement}
+      />
     </Panel>
   );
 }

@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import type { FormationEditorInitialProps } from "@/features/formation-editor/model/types";
+import type {
+  FormationEditorInitialProps,
+  QuarterSwapResult,
+} from "@/features/formation-editor/model/types";
 import { useEditorRoster } from "@/features/formation-editor/model/useEditorRoster";
 import { useEditorSave } from "@/features/formation-editor/model/useEditorSave";
 import { useFormationEditorState } from "@/features/formation-editor/model/useFormationEditorState";
@@ -13,6 +16,7 @@ import { FormationEditorMainArea } from "./FormationEditorMainArea";
 import { FormationEditorSidePanel } from "./FormationEditorSidePanel";
 import { FormationRegenerationDialog } from "./FormationRegenerationDialog";
 import { FormationToolbar } from "./FormationToolbar";
+import { QuarterSwapDialog } from "./QuarterSwapDialog";
 import { RosterManagementDialog } from "./RosterManagementDialog";
 
 /**
@@ -26,6 +30,8 @@ export function FormationEditorClient({
   rosterCandidates,
 }: FormationEditorInitialProps) {
   const [isRosterDialogOpen, setIsRosterDialogOpen] = useState(false);
+  const [isQuarterSwapDialogOpen, setIsQuarterSwapDialogOpen] = useState(false);
+  const [quarterSwapError, setQuarterSwapError] = useState<string | null>(null);
   const roster = useEditorRoster({
     initialPlayers: players,
     initialRosterCandidates: rosterCandidates,
@@ -33,8 +39,9 @@ export function FormationEditorClient({
   });
   const editor = useFormationEditorState({ players: roster.players, quarters });
   const rosterCallbacks = {
+    onGuestUpdated: editor.refreshGuestAssignmentScores,
     onMessage: editor.setMessage,
-    onQuartersChanged: editor.replaceEditedQuarters,
+    onParticipantRemoved: editor.clearParticipantAssignments,
   };
   const save = useEditorSave({
     editedQuarters: editor.editedQuarters,
@@ -57,6 +64,21 @@ export function FormationEditorClient({
   });
   const isPending =
     save.isPending || roster.isPending || regeneration.isRegenerationPending;
+
+  const closeQuarterSwap = () => {
+    setQuarterSwapError(null);
+    setIsQuarterSwapDialogOpen(false);
+  };
+
+  const confirmQuarterSwap = (first: number, second: number) => {
+    const result = editor.swapQuarterAssignments(first, second);
+
+    if (result.ok) {
+      closeQuarterSwap();
+    } else {
+      setQuarterSwapError(SWAP_ERROR_MESSAGES[result.reason]);
+    }
+  };
 
   if (!editor.activeQuarter) {
     return (
@@ -89,15 +111,19 @@ export function FormationEditorClient({
           activeQuarter={editor.activeQuarter}
           editedQuarters={editor.editedQuarters}
           exportRef={exportImage.ref}
+          isPending={isPending}
           playerMap={editor.playerMap}
           selectedSlotId={editor.selectedSlotId}
           onClearSelection={editor.clearSelection}
+          onOpenQuarterSwap={() => setIsQuarterSwapDialogOpen(true)}
           onQuarterChange={editor.setActiveQuarterNumber}
-          onSlotClick={editor.handleSlotClick}
+          onSlotClick={(slot) => {
+            if (!isPending) editor.handleSlotClick(slot);
+          }}
         />
 
         <FormationEditorSidePanel
-          activeAssignedPlayerCount={editor.activeAssignedPlayerIds.size}
+          activeAssignedPlayerCount={editor.activeAssignedPlayerCount}
           activeQuarterNumber={editor.activeQuarter.quarterNumber}
           benchPlayers={editor.benchPlayers}
           hasSelectedSlot={Boolean(editor.selectedSlotId)}
@@ -107,7 +133,9 @@ export function FormationEditorClient({
           selectedBenchPlayerId={editor.selectedBenchPlayerId}
           selectedPlayer={editor.selectedPlayer}
           selectedSlot={editor.selectedSlot}
-          onBenchPlayerClick={editor.handleBenchPlayerClick}
+          onBenchPlayerClick={(player) => {
+            if (!isPending) editor.handleBenchPlayerClick(player);
+          }}
           onExport={exportImage.downloadCurrent}
           onSave={save.submit}
         />
@@ -128,6 +156,18 @@ export function FormationEditorClient({
         onSaveGuestPlayer={(input) => roster.saveGuest(input, rosterCallbacks)}
       />
 
+      {isQuarterSwapDialogOpen && (
+        <QuarterSwapDialog
+          errorMessage={quarterSwapError}
+          isPending={isPending}
+          onClose={closeQuarterSwap}
+          onConfirm={confirmQuarterSwap}
+          quarterNumbers={editor.editedQuarters.map(
+            ({ quarterNumber }) => quarterNumber,
+          )}
+        />
+      )}
+
       <FormationRegenerationDialog
         currentFormationLabel={regeneration.currentFormationLabel}
         hasUnsavedChanges={editor.hasUnsavedChanges}
@@ -144,3 +184,12 @@ export function FormationEditorClient({
     </div>
   );
 }
+
+const SWAP_ERROR_MESSAGES: Record<
+  Extract<QuarterSwapResult, { ok: false }>["reason"],
+  string
+> = {
+  same_quarter: "서로 다른 두 쿼터를 선택해주세요.",
+  quarter_not_found: "선택한 쿼터를 찾을 수 없습니다. 다시 선택해주세요.",
+  incompatible_positions: "두 쿼터의 포지션 구성이 달라 교환할 수 없습니다.",
+};
