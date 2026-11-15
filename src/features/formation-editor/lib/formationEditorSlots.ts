@@ -2,6 +2,7 @@ import type { FormationSlotCode } from "@/entities/position";
 import { calculateFitScore } from "@/features/formation-generate/lib/calculateFitScore";
 import type {
   EditorPlayer,
+  EditorQuarter,
   EditorSlot,
 } from "@/features/formation-editor/model/types";
 
@@ -19,6 +20,27 @@ export function scoreSlot(
     slotPosition: slotName,
     subPositions: player.subPositions,
   });
+}
+
+/** 참가자의 현재 배정만 갱신하고 나머지 슬롯과 쿼터는 기존 참조를 유지합니다. */
+export function updateParticipantSlots(
+  quarters: EditorQuarter[],
+  playerId: string,
+  updateSlot: (slot: EditorSlot) => EditorSlot,
+) {
+  const updatedQuarters = quarters.map((quarter) => {
+    const slots = quarter.slots.map((slot) =>
+      slot.playerId === playerId ? updateSlot(slot) : slot,
+    );
+
+    return slots.some((slot, index) => slot !== quarter.slots[index])
+      ? { ...quarter, slots }
+      : quarter;
+  });
+
+  return updatedQuarters.some((quarter, index) => quarter !== quarters[index])
+    ? updatedQuarters
+    : quarters;
 }
 
 /**
@@ -69,6 +91,70 @@ export function swapSlotPlayers({
 
     return item;
   });
+}
+
+/**
+ * 같은 포지션 슬롯을 기준으로 두 쿼터의 선수 배정을 교환합니다.
+ */
+export function exchangeSlotAssignments({
+  firstQuarterSlots,
+  playerMap,
+  secondQuarterSlots,
+}: {
+  firstQuarterSlots: EditorSlot[];
+  playerMap: Map<string, EditorPlayer>;
+  secondQuarterSlots: EditorSlot[];
+}): {
+  firstQuarterSlots: EditorSlot[];
+  secondQuarterSlots: EditorSlot[];
+} | null {
+  const firstSlotsByName = new Map(
+    firstQuarterSlots.map((slot) => [slot.name, slot]),
+  );
+  const secondSlotsByName = new Map(
+    secondQuarterSlots.map((slot) => [slot.name, slot]),
+  );
+
+  if (
+    firstSlotsByName.size === 0 ||
+    firstSlotsByName.size !== firstQuarterSlots.length ||
+    secondSlotsByName.size !== secondQuarterSlots.length ||
+    firstSlotsByName.size !== secondSlotsByName.size ||
+    [...firstSlotsByName.keys()].some(
+      (slotName) => !secondSlotsByName.has(slotName),
+    )
+  ) {
+    return null;
+  }
+
+  const transferAssignments = (
+    destinationSlots: EditorSlot[],
+    sourceSlotsByName: Map<EditorSlot["name"], EditorSlot>,
+  ) =>
+    destinationSlots.map((destination) => {
+      const source = sourceSlotsByName.get(destination.name);
+      const player = source?.playerId
+        ? playerMap.get(source.playerId)
+        : undefined;
+
+      return {
+        ...destination,
+        fitScore: scoreSlot(destination.name, player),
+        isManual: true,
+        playerId: source?.playerId ?? null,
+      };
+    });
+
+  return {
+    firstQuarterSlots: transferAssignments(
+      firstQuarterSlots,
+      secondSlotsByName,
+    ),
+    secondQuarterSlots: transferAssignments(
+      secondQuarterSlots,
+      firstSlotsByName,
+    ),
+  };
 }
 
 /**

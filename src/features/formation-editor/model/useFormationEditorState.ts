@@ -2,8 +2,11 @@
 
 import { useMemo, useState } from "react";
 import {
+  exchangeSlotAssignments,
   replaceSlotPlayer,
+  scoreSlot,
   swapSlotPlayers,
+  updateParticipantSlots,
 } from "@/features/formation-editor/lib/formationEditorSlots";
 import {
   calculateAssignmentItems,
@@ -13,6 +16,7 @@ import type {
   EditorPlayer,
   EditorQuarter,
   EditorSlot,
+  QuarterSwapResult,
 } from "@/features/formation-editor/model/types";
 
 type EditorSelection =
@@ -137,6 +141,54 @@ export function useFormationEditorState({
   }
 
   /**
+   * 두 쿼터의 같은 포지션 슬롯에 배정된 선수를 바꾸고 저장 전 상태로 표시합니다.
+   */
+  function swapQuarterAssignments(
+    firstQuarterNumber: number,
+    secondQuarterNumber: number,
+  ): QuarterSwapResult {
+    if (firstQuarterNumber === secondQuarterNumber) {
+      return { ok: false, reason: "same_quarter" };
+    }
+
+    const firstQuarter = editedQuarters.find(
+      (quarter) => quarter.quarterNumber === firstQuarterNumber,
+    );
+    const secondQuarter = editedQuarters.find(
+      (quarter) => quarter.quarterNumber === secondQuarterNumber,
+    );
+
+    if (!firstQuarter || !secondQuarter) {
+      return { ok: false, reason: "quarter_not_found" };
+    }
+
+    const swapped = exchangeSlotAssignments({
+      firstQuarterSlots: firstQuarter.slots,
+      playerMap,
+      secondQuarterSlots: secondQuarter.slots,
+    });
+
+    if (!swapped) return { ok: false, reason: "incompatible_positions" };
+
+    setEditedQuarters((current) =>
+      current.map((quarter) => {
+        if (quarter.quarterNumber === firstQuarterNumber) {
+          return { ...quarter, slots: swapped.firstQuarterSlots };
+        }
+
+        if (quarter.quarterNumber === secondQuarterNumber) {
+          return { ...quarter, slots: swapped.secondQuarterSlots };
+        }
+
+        return quarter;
+      }),
+    );
+    setHasUnsavedChanges(true);
+    clearSelection();
+    return { ok: true };
+  }
+
+  /**
    * 슬롯 선택, 선택 해제, 슬롯 간 교환, 후보 선선택 교체를 처리합니다.
    */
   function handleSlotClick(slot: EditorSlot) {
@@ -179,6 +231,33 @@ export function useFormationEditorState({
     setSelection({ playerId: player.id, type: "bench" });
   }
 
+  /** 제거된 참가자를 저장 전 배치를 포함한 현재 초안에서 비웁니다. */
+  function clearParticipantAssignments(playerId: string) {
+    setEditedQuarters((current) =>
+      updateParticipantSlots(current, playerId, (slot) => ({
+        ...slot,
+        fitScore: null,
+        isManual: true,
+        playerId: null,
+      })),
+    );
+    setSelection((current) =>
+      current?.type === "bench" && current.playerId === playerId
+        ? null
+        : current,
+    );
+  }
+
+  /** 수정된 게스트가 초안에서 뛰는 포지션을 기준으로 적합도를 갱신합니다. */
+  function refreshGuestAssignmentScores(player: EditorPlayer) {
+    setEditedQuarters((current) =>
+      updateParticipantSlots(current, player.id, (slot) => {
+        const fitScore = scoreSlot(slot.name, player);
+        return fitScore === slot.fitScore ? slot : { ...slot, fitScore };
+      }),
+    );
+  }
+
   /**
    * 서버에서 받은 새 쿼터 목록으로 로컬 편집 상태를 교체합니다.
    */
@@ -196,11 +275,11 @@ export function useFormationEditorState({
   }
 
   return {
-    activeAssignedPlayerIds,
+    activeAssignedPlayerCount: activeAssignedPlayerIds.size,
     activeQuarter,
-    activeQuarterNumber,
     assignmentItems,
     benchPlayers,
+    clearParticipantAssignments,
     clearSelection,
     editedQuarters,
     handleBenchPlayerClick,
@@ -209,6 +288,7 @@ export function useFormationEditorState({
     markSaved: () => setHasUnsavedChanges(false),
     message,
     playerMap,
+    refreshGuestAssignmentScores,
     replaceEditedQuarters,
     selectedBenchPlayer,
     selectedBenchPlayerId,
@@ -217,5 +297,6 @@ export function useFormationEditorState({
     selectedSlotId,
     setActiveQuarterNumber,
     setMessage,
+    swapQuarterAssignments,
   };
 }

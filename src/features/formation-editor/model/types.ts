@@ -37,6 +37,14 @@ export type EditorSlot = {
   y: number;
 };
 
+/** 편집 상태에 쿼터 교환을 적용한 결과입니다. */
+export type QuarterSwapResult =
+  | { ok: true }
+  | {
+      ok: false;
+      reason: "same_quarter" | "quarter_not_found" | "incompatible_positions";
+    };
+
 export type EditorQuarter = {
   /** 화면에 표시하고 탭 선택에 사용하는 쿼터 번호입니다. */
   quarterNumber: number;

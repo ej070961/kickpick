@@ -8,7 +8,6 @@ import {
 } from "@/features/formation-editor/actions/formationEditorActions";
 import type {
   EditorPlayer,
-  EditorQuarter,
   GuestPlayerFormInput,
   RosterCandidate,
 } from "@/features/formation-editor/model/types";
@@ -21,8 +20,9 @@ type UseEditorRosterInput = {
 };
 
 type RosterActionCallbacks = {
+  onGuestUpdated: (player: EditorPlayer) => void;
   onMessage: (message: string) => void;
-  onQuartersChanged: (quarters: EditorQuarter[]) => void;
+  onParticipantRemoved: (playerId: string) => void;
 };
 
 /**
@@ -59,7 +59,7 @@ export function useEditorRoster({
       const result = await removeMatchParticipant(matchId, player.id);
       callbacks.onMessage(result.message);
 
-      if (!result.success || !result.quarters) return;
+      if (!result.success) return;
 
       setPlayers((current) => current.filter((item) => item.id !== player.id));
 
@@ -71,7 +71,7 @@ export function useEditorRoster({
         );
       }
 
-      callbacks.onQuartersChanged(result.quarters);
+      callbacks.onParticipantRemoved(player.id);
     });
   }
 
@@ -85,21 +85,16 @@ export function useEditorRoster({
 
       if (!result.success || !result.player) return;
 
-      setPlayers((current) => {
-        const exists = current.some(
-          (player) => player.id === result.player?.id,
-        );
-
-        return exists
+      const savedPlayer = result.player;
+      setPlayers((current) =>
+        current.some((player) => player.id === savedPlayer.id)
           ? current.map((player) =>
-              player.id === result.player?.id ? result.player : player,
+              player.id === savedPlayer.id ? savedPlayer : player,
             )
-          : [...current, result.player as EditorPlayer];
-      });
+          : [...current, savedPlayer],
+      );
 
-      if (result.quarters) {
-        callbacks.onQuartersChanged(result.quarters);
-      }
+      if (input.id) callbacks.onGuestUpdated(savedPlayer);
     });
   }
 

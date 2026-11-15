@@ -15,7 +15,7 @@ export function QuarterTabs({
   quarters,
 }: QuarterTabsProps) {
   return (
-    <div className="mb-4 flex flex-wrap gap-2">
+    <div className="flex min-w-0 flex-1 flex-wrap gap-2">
       {quarters.map((quarter) => (
         <button
           key={quarter.quarterNumber}

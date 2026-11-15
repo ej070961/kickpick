@@ -10,6 +10,7 @@ type DialogProps = {
   bodyClassName?: string;
   children: ReactNode;
   description?: ReactNode;
+  isCloseDisabled?: boolean;
   isOpen: boolean;
   onClose: () => void;
   panelClassName?: string;
@@ -23,6 +24,7 @@ export function Dialog({
   bodyClassName,
   children,
   description,
+  isCloseDisabled = false,
   isOpen,
   onClose,
   panelClassName,
@@ -50,13 +52,14 @@ export function Dialog({
             <h2 id={titleId} className="text-foreground text-lg font-bold">
               {title}
             </h2>
-            {description ? (
+            {description && (
               <p className="text-muted mt-1 text-sm">{description}</p>
-            ) : null}
+            )}
           </div>
           <Button
             aria-label="닫기"
             className="size-9 shrink-0 px-0"
+            disabled={isCloseDisabled}
             onClick={onClose}
             size="sm"
             variant="ghost"

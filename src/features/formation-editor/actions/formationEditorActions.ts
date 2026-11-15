@@ -5,6 +5,7 @@ import { z } from "zod";
 import { PLAYER_POSITION_CODES } from "@/entities/position";
 import {
   replaceFormationSlots,
+  saveFormationSlotsAtomically,
   updateMatchFormationLabel,
 } from "@/features/formation-editor/api/formationEditorMutations";
 import {
@@ -92,27 +93,22 @@ export async function saveFormationSlots(matchId: string, slots: unknown) {
     return { message: "저장할 포메이션 데이터가 올바르지 않습니다." };
   }
 
-  const supabase = await createClient();
-  const updates = await Promise.all(
-    slotsResult.data.map((slot) => {
+  const saveError = await saveFormationSlotsAtomically({
+    matchId: matchIdResult.data,
+    slots: slotsResult.data.map((slot) => {
       const { guestPlayerId, playerId } = splitPlayerKey(slot.playerId);
 
-      return supabase
-        .from("formation_slots")
-        .update({
-          fit_score: slot.fitScore,
-          guest_player_id: guestPlayerId,
-          is_manual: slot.isManual,
-          player_id: playerId,
-        })
-        .eq("id", slot.id);
+      return {
+        fit_score: slot.fitScore,
+        guest_player_id: guestPlayerId,
+        id: slot.id,
+        is_manual: slot.isManual,
+        player_id: playerId,
+      };
     }),
-  );
-  const failed = updates.find(({ error }) => error);
+  });
 
-  if (failed?.error) {
-    return { message: "포메이션을 저장하지 못했습니다." };
-  }
+  if (saveError) return { message: saveError };
 
   revalidatePath(`/matches/${matchIdResult.data}`);
 
