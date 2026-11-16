@@ -26,6 +26,7 @@ app -> views -> widgets -> features -> entities -> shared
 - 하위 계층은 상위 계층을 import하지 않는다.
 - `shared`는 특정 도메인을 알면 안 된다.
 - entity끼리 직접 결합하지 않는다. 여러 도메인을 조합해야 하면 `features`, `widgets`, `views`에서 처리한다.
+- 여러 feature에서 공유하는 도메인 타입과 ID 변환 규칙은 소유 entity에 둔다. 예를 들어 경기 참가자 key는 `entities/match`에서 제공한다.
 - 서버 액션은 사용자 행동 단위 feature에 둔다.
 - 화면별 데이터 로드는 현재 구현처럼 `views`에서 수행하는 것을 기본으로 한다.
 
@@ -148,6 +149,7 @@ calculateFitScore.ts
 - `Modal`
 - `Badge`
 - `EmptyState`
+- `Toast`
 
 `ConfirmDialog`는 `onConfirm`이 있을 때 기본 확인/취소 버튼을 렌더링한다. 확인 버튼의 문구와 강조 유형을 바꿀 수 있다. 진행 중에는 확인·취소·닫기를 비활성화하고 확인 버튼에 스피너를 표시한다. 사용자 정의 폼이 버튼을 직접 렌더링할 때는 `children`만 전달한다. 도메인 규칙과 설명은 호출하는 feature가 소유한다.
 
@@ -234,6 +236,8 @@ Next.js App Router에서 FSD의 화면 조립 계층은 `src/views`로 둔다.
 
 - Supabase에서 온 데이터는 server state로 보고, local state에 불필요하게 복제하지 않는다.
 - 포메이션 편집 중인 임시 배치는 feature 내부 state로 관리하고 저장 시 DB에 반영한다.
+- Next.js App Router의 feature store는 모듈 전역 singleton으로 만들지 않는다. 화면 경계의 Provider에서 인스턴스를 생성해 요청과 경기 화면 사이에 상태가 공유되지 않게 한다.
+- Store에는 여러 영역이 공유하는 편집 초안과 도메인 액션을 둔다. 다이얼로그, 검색, 폼 입력 같은 단일 UI 상태와 비동기 작업 pending은 해당 컴포넌트 또는 작업 hook에 둔다.
 - 자동 배치 알고리즘은 입력과 출력이 명확한 순수 함수로 유지한다.
 
 ## 8. Form 컨벤션
@@ -322,7 +326,7 @@ shared/ui/IconButton
 
 ## 13. 포메이션 편집기 구현 패턴
 
-포메이션 편집기는 `features/formation-editor/README.md`의 구조를 기준으로 관리한다. `FormationEditorClient`는 상태와 이벤트 연결을 담당하고, 화면 섹션은 `ui/` 하위 컴포넌트로 분리한다.
+포메이션 편집기는 `features/formation-editor/README.md`의 구조를 기준으로 관리한다. `FormationEditorClient`는 여러 화면 영역이 함께 쓰는 작업 상태와 이벤트를 조립하고, 단일 하위 영역에만 속하는 작업 상태는 그 영역 가까이에 둔다. 화면 섹션은 `ui/` 하위 컴포넌트로 분리하며, 하위 컴포넌트에는 필요한 의존성만 전달한다.
 
 규칙:
 

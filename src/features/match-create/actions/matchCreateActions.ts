@@ -6,6 +6,12 @@ import {
   PLAYER_POSITION_CODES,
   type PlayerPositionCode,
 } from "@/entities/position";
+import {
+  getGuestPlayerKey,
+  getIdFromPlayerKey,
+  getRosterPlayerKey,
+  isGuestPlayerKey,
+} from "@/entities/match";
 import { requireCurrentTeamId } from "@/entities/team";
 import { getFormationTemplate } from "@/features/formation-template-manage/lib/formationTemplateQueries";
 import {
@@ -17,12 +23,6 @@ import {
   getQuotaSlotsPerQuarter,
   getRequiredReducedPlayerCount,
 } from "@/features/match-create/model/quotaSelection";
-import {
-  getGuestPlayerKey,
-  getIdFromPlayerKey,
-  getRosterPlayerKey,
-  isGuestPlayerKey,
-} from "@/features/match-create/model/types";
 import { createClient } from "@/shared/api/supabase/server";
 
 export type MatchCreateState = {

@@ -15,7 +15,7 @@ export async function FormationEditorPage({ matchId }: Props) {
         title={data.match.name}
         description={`${data.match.formationLabel} / ${data.match.quarterCount}쿼터 자동 배치 초안입니다.`}
       />
-      <FormationEditorClient {...data.editor} />
+      <FormationEditorClient {...data} />
     </section>
   );
 }

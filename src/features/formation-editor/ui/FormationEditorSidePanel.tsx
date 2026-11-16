@@ -1,45 +1,81 @@
-import type {
-  EditorPlayer,
-  EditorSlot,
-} from "@/features/formation-editor/model/types";
+import { useMemo } from "react";
+import { sortPlayersForBench } from "@/features/formation-editor/lib/formationEditorSummary";
+import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
 import { BenchPlayersPanel } from "./BenchPlayersPanel";
 import { FormationEditorActions } from "./FormationEditorActions";
 import { SelectedSlotPanel } from "./SelectedSlotPanel";
 
 type Props = {
-  activeAssignedPlayerCount: number;
-  activeQuarterNumber: number;
-  benchPlayers: EditorPlayer[];
-  hasSelectedSlot: boolean;
-  isPending: boolean;
-  message: string | null;
-  onBenchPlayerClick: (player: EditorPlayer) => void;
-  onExport: () => void;
-  onSave: () => void;
-  selectedBenchPlayer: EditorPlayer | undefined;
-  selectedBenchPlayerId: string | null;
-  selectedPlayer: EditorPlayer | undefined;
-  selectedSlot: EditorSlot | undefined;
+  isBusy: boolean;
+  isSaving: boolean;
+  isExportPending: boolean;
+  onCopy: () => Promise<string | null>;
+  onDownloadAll: () => void;
+  onSave: () => Promise<string | null>;
 };
 
 /**
- * 선택 상태, 후보 선수, 저장/내보내기 액션을 묶은 편집기 보조 패널입니다.
+ * 편집기 store에서 보조 패널에 필요한 상태를 선택하고 하위 영역을 조립합니다.
  */
 export function FormationEditorSidePanel({
-  activeAssignedPlayerCount,
-  activeQuarterNumber,
-  benchPlayers,
-  hasSelectedSlot,
-  isPending,
-  message,
-  onBenchPlayerClick,
-  onExport,
+  isBusy,
+  isSaving,
+  isExportPending,
+  onCopy,
+  onDownloadAll,
   onSave,
-  selectedBenchPlayer,
-  selectedBenchPlayerId,
-  selectedPlayer,
-  selectedSlot,
 }: Props) {
+  const players = useFormationEditorStore((state) => state.players);
+  const quarters = useFormationEditorStore((state) => state.quarters);
+  const activeQuarterNumber = useFormationEditorStore(
+    (state) => state.activeQuarterNumber,
+  );
+  const selection = useFormationEditorStore((state) => state.selection);
+  const feedbackMessage = useFormationEditorStore(
+    (state) => state.feedbackMessage,
+  );
+  const handleBenchPlayerClick = useFormationEditorStore(
+    (state) => state.handleBenchPlayerClick,
+  );
+
+  const activeQuarter = quarters.find(
+    (quarter) => quarter.quarterNumber === activeQuarterNumber,
+  );
+  const playerMap = useMemo(
+    () => new Map(players.map((player) => [player.id, player])),
+    [players],
+  );
+  const selectedSlotId = selection?.type === "slot" ? selection.slotId : null;
+  const selectedBenchPlayerId =
+    selection?.type === "bench" ? selection.playerId : null;
+  const selectedSlot = activeQuarter?.slots.find(
+    (slot) => slot.id === selectedSlotId,
+  );
+  const selectedPlayer = selectedSlot?.playerId
+    ? playerMap.get(selectedSlot.playerId)
+    : undefined;
+  const selectedBenchPlayer = selectedBenchPlayerId
+    ? playerMap.get(selectedBenchPlayerId)
+    : undefined;
+  const assignedPlayerIds = useMemo(
+    () =>
+      new Set(
+        activeQuarter?.slots
+          .map((slot) => slot.playerId)
+          .filter((playerId): playerId is NonNullable<typeof playerId> =>
+            Boolean(playerId),
+          ) ?? [],
+      ),
+    [activeQuarter],
+  );
+  const benchPlayers = useMemo(
+    () =>
+      sortPlayersForBench(
+        players.filter((player) => !assignedPlayerIds.has(player.id)),
+      ),
+    [assignedPlayerIds, players],
+  );
+
   return (
     <aside className="space-y-3">
       <SelectedSlotPanel
@@ -48,17 +84,21 @@ export function FormationEditorSidePanel({
         selectedSlot={selectedSlot}
       />
       <BenchPlayersPanel
-        activeAssignedPlayerCount={activeAssignedPlayerCount}
+        activeAssignedPlayerCount={assignedPlayerIds.size}
         benchPlayers={benchPlayers}
-        hasSelectedSlot={hasSelectedSlot}
+        isDisabled={isBusy}
+        hasSelectedSlot={Boolean(selectedSlotId)}
         quarterNumber={activeQuarterNumber}
-        selectedBenchPlayerId={selectedBenchPlayerId}
-        onBenchPlayerClick={onBenchPlayerClick}
+        selectedBenchPlayerId={selectedBenchPlayerId ?? null}
+        onBenchPlayerClick={(player) => handleBenchPlayerClick(player.id)}
       />
       <FormationEditorActions
-        isPending={isPending}
-        message={message}
-        onExport={onExport}
+        isBusy={isBusy}
+        isSaving={isSaving}
+        isExportPending={isExportPending}
+        message={feedbackMessage}
+        onCopy={onCopy}
+        onDownloadAll={onDownloadAll}
         onSave={onSave}
       />
     </aside>

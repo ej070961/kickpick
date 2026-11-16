@@ -11,3 +11,9 @@ export type Player = {
   isDeleted: boolean;
   createdAt: string;
 };
+
+/** 등록 선수와 경기 게스트가 화면에 공유하는 기본 프로필 정보입니다. */
+export type PlayerProfile = Pick<
+  Player,
+  "mainPosition" | "name" | "playerNumber" | "priorityRank" | "subPositions"
+>;

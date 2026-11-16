@@ -12,14 +12,12 @@ import type {
   QuarterRow,
   RosterPlayerRow,
 } from "@/features/formation-editor/api/formationEditorRows";
+import type { MatchParticipantKey } from "@/entities/match";
 import type {
   FormationPlayer,
   GeneratedQuarterFormation,
 } from "@/features/match-create/lib/generateQuarterFormations";
-import {
-  getGuestPlayerKey,
-  getRosterPlayerKey,
-} from "@/features/match-create/model/types";
+import { getGuestPlayerKey, getRosterPlayerKey } from "@/entities/match";
 
 /**
  * 편집기 내부 player key를 DB 저장용 roster/guest id 컬럼으로 분리합니다.
@@ -70,7 +68,9 @@ export function toEditorPlayer(row: MatchPlayerRow): EditorPlayer | null {
   if (!player) return null;
 
   return {
-    id: player.id,
+    id: row.match_guest_players
+      ? getGuestPlayerKey(row.match_guest_players.id)
+      : getRosterPlayerKey(row.players!.id),
     isGuest: Boolean(row.match_guest_players),
     mainPosition: player.mainPosition,
     name: player.name,
@@ -86,6 +86,7 @@ export function toEditorPlayer(row: MatchPlayerRow): EditorPlayer | null {
 export function toRosterCandidate(row: RosterPlayerRow): RosterCandidate {
   return {
     id: getRosterPlayerKey(row.id),
+    isGuest: false,
     mainPosition: row.main_position,
     name: row.name,
     playerNumber: row.player_number,
@@ -212,7 +213,7 @@ export function toPreserveQuarterInputs(quarters: QuarterRow[]) {
             ? getRosterPlayerKey(slot.player_id)
             : null,
       )
-      .filter((playerId): playerId is string => Boolean(playerId)),
+      .filter((playerId): playerId is MatchParticipantKey => Boolean(playerId)),
     quarterNumber: quarter.quarter_number,
   }));
 }
