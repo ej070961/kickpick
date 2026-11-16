@@ -2,9 +2,10 @@ import type { EditorPlayer } from "@/features/formation-editor/model/types";
 import { Badge, Panel } from "@/shared/ui";
 import { PlayerDisplayName } from "./PlayerDisplayName";
 
-type BenchPlayersPanelProps = {
+type Props = {
   activeAssignedPlayerCount: number;
   benchPlayers: EditorPlayer[];
+  isDisabled: boolean;
   hasSelectedSlot: boolean;
   onBenchPlayerClick: (player: EditorPlayer) => void;
   quarterNumber: number;
@@ -17,11 +18,12 @@ type BenchPlayersPanelProps = {
 export function BenchPlayersPanel({
   activeAssignedPlayerCount,
   benchPlayers,
+  isDisabled,
   hasSelectedSlot,
   onBenchPlayerClick,
   quarterNumber,
   selectedBenchPlayerId,
-}: BenchPlayersPanelProps) {
+}: Props) {
   return (
     <Panel
       title="현재 쿼터 후보"
@@ -44,6 +46,7 @@ export function BenchPlayersPanel({
                 key={player.id}
                 type="button"
                 onClick={() => onBenchPlayerClick(player)}
+                disabled={isDisabled}
                 className={`focus-visible:outline-primary flex min-h-10 w-full items-center justify-between gap-3 rounded-lg border px-3 text-left text-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
                   isSelected
                     ? "border-primary bg-mint-surface"

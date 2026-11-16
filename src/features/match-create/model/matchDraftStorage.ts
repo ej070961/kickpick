@@ -197,7 +197,7 @@ function sanitizePlaytimeAdjustmentPlayerIds({
     formationTemplates,
     players,
   });
-  const candidateIdSet = new Set(
+  const candidateIdSet = new Set<string>(
     summary.playtimeAdjustmentCandidates.map((player) => player.id),
   );
   const uniquePlayerIds = [...new Set(draft.playtimeAdjustmentPlayerIds)];

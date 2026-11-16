@@ -4,20 +4,15 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { regenerateMatchFormation } from "@/features/formation-editor/actions/formationEditorActions";
 import type {
-  EditorQuarter,
   FormationEditorTemplate,
   FormationRegenerationMode,
 } from "@/features/formation-editor/model/types";
+import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
 
 type UseFormationRegenerationInput = {
   formationLabel: string;
   formationTemplates: FormationEditorTemplate[];
   matchId: string;
-  onMessage: (message: string) => void;
-  onRegenerated: (input: {
-    formationLabel: string;
-    quarters: EditorQuarter[];
-  }) => void;
 };
 
 /**
@@ -27,8 +22,6 @@ export function useFormationRegeneration({
   formationLabel,
   formationTemplates,
   matchId,
-  onMessage,
-  onRegenerated,
 }: UseFormationRegenerationInput) {
   const router = useRouter();
   const [currentFormationLabel, setCurrentFormationLabel] =
@@ -43,13 +36,19 @@ export function useFormationRegeneration({
       "",
   );
   const [isRegenerationPending, startRegenerationTransition] = useTransition();
+  const setFeedbackMessage = useFormationEditorStore(
+    (state) => state.setFeedbackMessage,
+  );
+  const applyRegeneratedQuarters = useFormationEditorStore(
+    (state) => state.applyRegeneratedQuarters,
+  );
 
   /**
    * 선택한 템플릿과 재배정 모드로 서버 슬롯을 교체하고 화면 상태를 갱신합니다.
    */
   function submitRegeneration() {
     if (!selectedTemplateId) {
-      onMessage("변경할 포메이션을 선택해주세요.");
+      setFeedbackMessage("변경할 포메이션을 선택해주세요.");
       return;
     }
 
@@ -59,7 +58,7 @@ export function useFormationRegeneration({
         templateId: selectedTemplateId,
       });
 
-      onMessage(result.message);
+      setFeedbackMessage(result.message);
 
       if (!result.success || !result.quarters || !result.formationLabel) {
         return;
@@ -67,10 +66,7 @@ export function useFormationRegeneration({
 
       setCurrentFormationLabel(result.formationLabel);
       setIsRegenerationOpen(false);
-      onRegenerated({
-        formationLabel: result.formationLabel,
-        quarters: result.quarters,
-      });
+      applyRegeneratedQuarters(result.quarters);
       router.refresh();
     });
   }

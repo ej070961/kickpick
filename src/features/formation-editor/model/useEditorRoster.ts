@@ -11,90 +11,86 @@ import type {
   GuestPlayerFormInput,
   RosterCandidate,
 } from "@/features/formation-editor/model/types";
-import { getIdFromPlayerKey } from "@/features/match-create/model/types";
+import { getIdFromPlayerKey, getRosterPlayerKey } from "@/entities/match";
+import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
 
 type UseEditorRosterInput = {
-  initialPlayers: EditorPlayer[];
   initialRosterCandidates: RosterCandidate[];
   matchId: string;
-};
-
-type RosterActionCallbacks = {
-  onGuestUpdated: (player: EditorPlayer) => void;
-  onMessage: (message: string) => void;
-  onParticipantRemoved: (playerId: string) => void;
 };
 
 /**
  * 경기 참가 명단 추가, 제거, 게스트 저장에 따른 선수 목록과 쿼터 상태 갱신을 관리합니다.
  */
 export function useEditorRoster({
-  initialPlayers,
   initialRosterCandidates,
   matchId,
 }: UseEditorRosterInput) {
-  const [players, setPlayers] = useState(initialPlayers);
   const [candidates, setCandidates] = useState(initialRosterCandidates);
   const [isPending, startTransition] = useTransition();
+  const upsertPlayer = useFormationEditorStore((state) => state.upsertPlayer);
+  const removeParticipantFromDraft = useFormationEditorStore(
+    (state) => state.removeParticipantFromDraft,
+  );
+  const refreshGuestAssignments = useFormationEditorStore(
+    (state) => state.refreshGuestAssignments,
+  );
+  const setFeedbackMessage = useFormationEditorStore(
+    (state) => state.setFeedbackMessage,
+  );
 
-  function addPlayer(playerId: string, callbacks: RosterActionCallbacks) {
+  function addPlayer(playerId: string) {
     startTransition(async () => {
       const result = await addMatchRosterPlayer(matchId, playerId);
-      callbacks.onMessage(result.message);
+      setFeedbackMessage(result.message);
 
       if (!result.success || !result.player) return;
 
-      setPlayers((current) => [...current, result.player as EditorPlayer]);
+      upsertPlayer({ ...result.player, isGuest: false });
       setCandidates((current) =>
         current.filter((player) => getIdFromPlayerKey(player.id) !== playerId),
       );
     });
   }
 
-  function removePlayer(
-    player: EditorPlayer,
-    callbacks: RosterActionCallbacks,
-  ) {
+  function removePlayer(player: EditorPlayer) {
     startTransition(async () => {
       const result = await removeMatchParticipant(matchId, player.id);
-      callbacks.onMessage(result.message);
+      setFeedbackMessage(result.message);
 
       if (!result.success) return;
 
-      setPlayers((current) => current.filter((item) => item.id !== player.id));
+      removeParticipantFromDraft(player.id);
 
       if (!player.isGuest) {
+        const candidate: RosterCandidate = {
+          id: getRosterPlayerKey(getIdFromPlayerKey(player.id)),
+          isGuest: false,
+          mainPosition: player.mainPosition,
+          name: player.name,
+          playerNumber: player.playerNumber,
+          priorityRank: player.priorityRank,
+          subPositions: player.subPositions,
+        };
         setCandidates((current) =>
-          [...current, { ...player, isGuest: false as const }].sort(
+          [...current, candidate].sort(
             (a, b) => a.priorityRank - b.priorityRank,
           ),
         );
       }
-
-      callbacks.onParticipantRemoved(player.id);
     });
   }
 
-  function saveGuest(
-    input: GuestPlayerFormInput,
-    callbacks: RosterActionCallbacks,
-  ) {
+  function saveGuest(input: GuestPlayerFormInput) {
     startTransition(async () => {
       const result = await saveMatchGuestPlayer(matchId, input);
-      callbacks.onMessage(result.message);
+      setFeedbackMessage(result.message);
 
       if (!result.success || !result.player) return;
 
       const savedPlayer = result.player;
-      setPlayers((current) =>
-        current.some((player) => player.id === savedPlayer.id)
-          ? current.map((player) =>
-              player.id === savedPlayer.id ? savedPlayer : player,
-            )
-          : [...current, savedPlayer],
-      );
-
-      if (input.id) callbacks.onGuestUpdated(savedPlayer);
+      if (input.id) refreshGuestAssignments(savedPlayer);
+      else upsertPlayer(savedPlayer);
     });
   }
 
@@ -102,7 +98,6 @@ export function useEditorRoster({
     addPlayer,
     candidates,
     isPending,
-    players,
     removePlayer,
     saveGuest,
   };

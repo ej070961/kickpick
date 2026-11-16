@@ -1,25 +1,14 @@
-import type { Player } from "@/entities/player";
-import type { PlayerPositionCode } from "@/entities/position";
+import type { MatchParticipantKey } from "@/entities/match";
+import { getGuestPlayerKey, getRosterPlayerKey } from "@/entities/match";
+import type { Player, PlayerProfile } from "@/entities/player";
 
-export type MatchCreateParticipant = Pick<
-  Player,
-  | "id"
-  | "mainPosition"
-  | "name"
-  | "playerNumber"
-  | "priorityRank"
-  | "subPositions"
-> & {
+export type MatchCreateParticipant = PlayerProfile & {
+  id: MatchParticipantKey;
   isGuest?: boolean;
 };
 
-export type GuestPlayerDraft = {
+export type GuestPlayerDraft = PlayerProfile & {
   id: string;
-  mainPosition: PlayerPositionCode;
-  name: string;
-  playerNumber: number | null;
-  priorityRank: number;
-  subPositions: PlayerPositionCode[];
 };
 
 export type SerializedGuestPlayer = Omit<
@@ -28,22 +17,6 @@ export type SerializedGuestPlayer = Omit<
 > & {
   clientId: string;
 };
-
-export function getRosterPlayerKey(playerId: string) {
-  return `player:${playerId}`;
-}
-
-export function getGuestPlayerKey(guestId: string) {
-  return `guest:${guestId}`;
-}
-
-export function isGuestPlayerKey(playerKey: string) {
-  return playerKey.startsWith("guest:");
-}
-
-export function getIdFromPlayerKey(playerKey: string) {
-  return playerKey.replace(/^(player|guest):/, "");
-}
 
 export function mapRosterPlayerToParticipant(
   player: Player,

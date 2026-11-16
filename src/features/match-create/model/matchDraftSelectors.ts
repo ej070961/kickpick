@@ -90,7 +90,7 @@ export function getMatchDraftSummary({
     quarterCount: draft.info.quarterCount,
     slotsPerQuarter: playtimeSlotsPerQuarter,
   });
-  const playtimeAdjustmentCandidateIdSet = new Set(
+  const playtimeAdjustmentCandidateIdSet = new Set<string>(
     quotaPlayers.map((player) => player.id),
   );
   const hasValidPlaytimeAdjustmentSelection =

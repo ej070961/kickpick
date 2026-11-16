@@ -1,28 +1,24 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState } from "react";
 import { saveFormationSlots } from "@/features/formation-editor/actions/formationEditorActions";
-import type { EditorQuarter } from "@/features/formation-editor/model/types";
+import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
 
 type UseEditorSaveInput = {
-  editedQuarters: EditorQuarter[];
   matchId: string;
-  onMessage: (message: string) => void;
-  onSaved: () => void;
 };
 
 /**
  * 편집된 슬롯 배정을 서버에 저장하는 action 흐름을 관리합니다.
  */
-export function useEditorSave({
-  editedQuarters,
-  matchId,
-  onMessage,
-  onSaved,
-}: UseEditorSaveInput) {
-  const [isPending, startTransition] = useTransition();
+export function useEditorSave({ matchId }: UseEditorSaveInput) {
+  const [isPending, setIsPending] = useState(false);
+  const editedQuarters = useFormationEditorStore((state) => state.quarters);
+  const markSaved = useFormationEditorStore((state) => state.markSaved);
 
-  function submit() {
+  async function submit(): Promise<string | null> {
+    if (isPending) return null;
+
     const slots = editedQuarters.flatMap((quarter) =>
       quarter.slots.map((slot) => ({
         fitScore: slot.fitScore,
@@ -32,14 +28,21 @@ export function useEditorSave({
       })),
     );
 
-    startTransition(async () => {
+    setIsPending(true);
+
+    try {
       const result = await saveFormationSlots(matchId, slots);
-      onMessage(result.message);
 
       if (result.success) {
-        onSaved();
+        markSaved();
       }
-    });
+
+      return result.message;
+    } catch {
+      return "저장 중 오류가 발생했어요. 다시 시도해주세요.";
+    } finally {
+      setIsPending(false);
+    }
   }
 
   return {

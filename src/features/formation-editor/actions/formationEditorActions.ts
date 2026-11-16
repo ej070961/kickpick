@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getGuestPlayerKey } from "@/entities/match";
 import { PLAYER_POSITION_CODES } from "@/entities/position";
 import {
   replaceFormationSlots,
@@ -33,7 +34,6 @@ import type {
 import { calculateFitScore } from "@/features/formation-generate/lib/calculateFitScore";
 import { getFormationTemplate } from "@/features/formation-template-manage/lib/formationTemplateQueries";
 import type { FormationPlayer } from "@/features/match-create/lib/generateQuarterFormations";
-import { getGuestPlayerKey } from "@/features/match-create/model/types";
 import { createClient } from "@/shared/api/supabase/server";
 
 const slotUpdateSchema = z.array(

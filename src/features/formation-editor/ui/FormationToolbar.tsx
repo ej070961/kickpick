@@ -1,10 +1,10 @@
 import { Badge, Panel } from "@/shared/ui";
+import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
 import { MatchSettingsMenu } from "./MatchSettingsMenu";
 
-type FormationToolbarProps = {
+type Props = {
   formationLabel: string;
   hasTemplates: boolean;
-  hasUnsavedChanges: boolean;
   isPending: boolean;
   onOpenRegeneration: () => void;
   onOpenRosterManagement: () => void;
@@ -16,11 +16,14 @@ type FormationToolbarProps = {
 export function FormationToolbar({
   formationLabel,
   hasTemplates,
-  hasUnsavedChanges,
   isPending,
   onOpenRegeneration,
   onOpenRosterManagement,
-}: FormationToolbarProps) {
+}: Props) {
+  const hasUnsavedChanges = useFormationEditorStore(
+    (state) => state.hasUnsavedChanges,
+  );
+
   return (
     <Panel className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>

@@ -11,7 +11,6 @@ import type {
   EditorPlayer,
   EditorQuarter,
   FormationEditorInitialProps,
-  FormationEditorMatch,
   RosterCandidate,
 } from "@/features/formation-editor/model/types";
 import type {
@@ -24,13 +23,6 @@ import type {
   RosterPlayerRow,
 } from "./formationEditorRows";
 
-export type FormationEditorData = {
-  /** 편집기 client에 그대로 전달할 초기 props입니다. */
-  editor: FormationEditorInitialProps;
-  /** 페이지 헤더와 export에서 공통으로 사용하는 경기 정보입니다. */
-  match: FormationEditorMatch;
-};
-
 type RegenerationContext = {
   match: MatchRow;
   matchPlayers: MatchPlayerRow[];
@@ -42,7 +34,7 @@ type RegenerationContext = {
  */
 export async function getFormationEditorData(
   matchId: string,
-): Promise<FormationEditorData> {
+): Promise<FormationEditorInitialProps> {
   const teamId = await requireCurrentTeamId();
   const [{ match, players, quarters }, formationTemplates, rosterPlayers] =
     await Promise.all([
@@ -68,17 +60,14 @@ export async function getFormationEditorData(
     .filter((player) => !participantIds.has(player.id));
 
   return {
-    editor: {
-      formationTemplates: formationTemplates.map((template) => ({
-        id: template.id,
-        label: template.label,
-      })),
-      match: editorMatch,
-      players: editorPlayers,
-      quarters: toEditorQuarters(quarters),
-      rosterCandidates,
-    },
+    formationTemplates: formationTemplates.map((template) => ({
+      id: template.id,
+      label: template.label,
+    })),
     match: editorMatch,
+    players: editorPlayers,
+    quarters: toEditorQuarters(quarters),
+    rosterCandidates,
   };
 }
 

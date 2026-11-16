@@ -11,18 +11,18 @@ import type {
   GuestPlayerFormInput,
   RosterCandidate,
 } from "@/features/formation-editor/model/types";
-import { getIdFromPlayerKey } from "@/features/match-create/model/types";
+import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
+import { getIdFromPlayerKey } from "@/entities/match";
 import { Badge, Button, Dialog, SelectField, TextField } from "@/shared/ui";
 import { PlayerDisplayName } from "./PlayerDisplayName";
 
-type RosterManagementDialogProps = {
+type Props = {
   isOpen: boolean;
   isPending: boolean;
   onClose: () => void;
   onAddRosterPlayer: (playerId: string) => void;
   onRemoveParticipant: (player: EditorPlayer) => void;
   onSaveGuestPlayer: (input: GuestPlayerFormInput) => void;
-  players: EditorPlayer[];
   rosterCandidates: RosterCandidate[];
 };
 
@@ -44,9 +44,9 @@ export function RosterManagementDialog({
   onAddRosterPlayer,
   onRemoveParticipant,
   onSaveGuestPlayer,
-  players,
   rosterCandidates,
-}: RosterManagementDialogProps) {
+}: Props) {
+  const players = useFormationEditorStore((state) => state.players);
   const [search, setSearch] = useState("");
   const [guestForm, setGuestForm] =
     useState<GuestFormState>(createEmptyGuestForm);

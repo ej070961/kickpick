@@ -2,11 +2,11 @@ import type {
   FormationEditorTemplate,
   FormationRegenerationMode,
 } from "@/features/formation-editor/model/types";
+import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
 import { Button, SelectField } from "@/shared/ui";
 
-type FormationRegenerationDialogProps = {
+type Props = {
   currentFormationLabel: string;
-  hasUnsavedChanges: boolean;
   isPending: boolean;
   isOpen: boolean;
   mode: FormationRegenerationMode;
@@ -23,7 +23,6 @@ type FormationRegenerationDialogProps = {
  */
 export function FormationRegenerationDialog({
   currentFormationLabel,
-  hasUnsavedChanges,
   isPending,
   isOpen,
   mode,
@@ -33,7 +32,11 @@ export function FormationRegenerationDialog({
   onTemplateChange,
   selectedTemplateId,
   templates,
-}: FormationRegenerationDialogProps) {
+}: Props) {
+  const hasUnsavedChanges = useFormationEditorStore(
+    (state) => state.hasUnsavedChanges,
+  );
+
   if (!isOpen) return null;
 
   return (

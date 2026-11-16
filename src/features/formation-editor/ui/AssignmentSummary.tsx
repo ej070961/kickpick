@@ -2,26 +2,26 @@
 
 import { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import type { AssignmentSummaryItem } from "@/features/formation-editor/model/types";
+import { useMemo } from "react";
+import { calculateAssignmentItems } from "@/features/formation-editor/lib/formationEditorSummary";
+import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
 import { Badge, Button, Panel } from "@/shared/ui";
 import { PlayerDisplayName } from "./PlayerDisplayName";
-
-type AssignmentSummaryProps = {
-  assignmentItems: AssignmentSummaryItem[];
-  playerCount: number;
-  quarterCount: number;
-};
 
 /**
  * 전체 쿼터 기준 선수별 출전 쿼터 목록을 요약해서 보여줍니다.
  */
-export function AssignmentSummary({
-  assignmentItems,
-  playerCount,
-  quarterCount,
-}: AssignmentSummaryProps) {
+export function AssignmentSummary() {
   const [isExpanded, setIsExpanded] = useState(true);
   const summaryId = useId();
+  const players = useFormationEditorStore((state) => state.players);
+  const quarters = useFormationEditorStore((state) => state.quarters);
+  const assignmentItems = useMemo(
+    () => calculateAssignmentItems({ players, quarters }),
+    [players, quarters],
+  );
+  const playerCount = players.length;
+  const quarterCount = quarters.length;
 
   return (
     <Panel
@@ -31,7 +31,7 @@ export function AssignmentSummary({
         <Button
           aria-controls={summaryId}
           aria-expanded={isExpanded}
-          className="min-h-10 gap-2 px-2 text-primary"
+          className="text-primary min-h-10 gap-2 px-2"
           onClick={() => setIsExpanded((expanded) => !expanded)}
           variant="ghost"
         >
