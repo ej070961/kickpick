@@ -3,7 +3,7 @@ import { CreatePlayerModal } from "@/features/player-manage/ui/CreatePlayerModal
 import { PriorityBoard } from "@/features/priority-reorder/ui/PriorityBoard";
 import { requireCurrentTeamId } from "@/entities/team";
 import { createClient } from "@/shared/api/supabase/server";
-import { PageHeader } from "@/shared/ui";
+import { PageHeader, PageLayout } from "@/shared/ui";
 
 type PlayerRow = {
   id: string;
@@ -33,18 +33,18 @@ export async function PlayersPage() {
     .join("|");
 
   return (
-    <section>
+    <PageLayout>
       <PageHeader
         title="선수 관리"
         description="경기 배치에 사용할 선수 정보와 순서를 정리하세요."
       />
 
-      <div className="-mt-4 mb-4 flex justify-end">
+      <div className="flex justify-end">
         <CreatePlayerModal />
       </div>
 
       <PriorityBoard key={playerListVersion} players={players} />
-    </section>
+    </PageLayout>
   );
 }
 

@@ -8,11 +8,10 @@ type PageHeaderProps = {
  */
 export function PageHeader({ title, description }: PageHeaderProps) {
   return (
-    <div className="mb-8">
-      <p className="text-primary mb-4 text-sm font-bold">KickPick</p>
-      <h2 className="text-foreground text-3xl font-bold tracking-normal md:text-4xl">
+    <div>
+      <h1 className="text-foreground text-3xl font-bold tracking-normal md:text-4xl">
         {title}
-      </h2>
+      </h1>
       <p className="text-muted mt-4 max-w-2xl text-base leading-7">
         {description}
       </p>

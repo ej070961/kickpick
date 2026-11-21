@@ -5,7 +5,7 @@ import {
   ListChecks,
   Users,
 } from "lucide-react";
-import { PageHeader } from "@/shared/ui";
+import { PageHeader, PageLayout } from "@/shared/ui";
 
 const cards = [
   {
@@ -39,7 +39,7 @@ const cards = [
  */
 export function DashboardPage() {
   return (
-    <section>
+    <PageLayout>
       <PageHeader
         title="대시보드"
         description="KickPick MVP의 핵심 플로우를 빠르게 확인하고 다음 작업으로 이동합니다."
@@ -67,6 +67,6 @@ export function DashboardPage() {
           );
         })}
       </div>
-    </section>
+    </PageLayout>
   );
 }

@@ -4,7 +4,7 @@ import type { Player } from "@/entities/player";
 import { getFormationTemplates } from "@/features/formation-template-manage/lib/formationTemplateQueries";
 import { MatchCreateForm } from "@/features/match-create/ui/MatchCreateForm";
 import { createClient } from "@/shared/api/supabase/server";
-import { PageHeader } from "@/shared/ui";
+import { PageHeader, PageLayout } from "@/shared/ui";
 
 type PlayerRow = {
   id: string;
@@ -25,7 +25,7 @@ export async function MatchNewPage() {
   ]);
 
   return (
-    <section>
+    <PageLayout>
       <PageHeader
         title="새 경기 생성"
         description="경기 조건과 참가 명단을 정하고, 바로 수정 가능한 쿼터별 라인업을 만들어보세요."
@@ -38,7 +38,7 @@ export async function MatchNewPage() {
       ) : (
         <FormationTemplateRequiredState />
       )}
-    </section>
+    </PageLayout>
   );
 }
 

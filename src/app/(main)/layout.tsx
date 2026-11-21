@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { TopBar } from "@/widgets/top-bar";
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default function MainLayout({ children }: { children: ReactNode }) {
   return (
     <div className="bg-background text-foreground min-h-dvh">
       <div className="flex min-h-dvh flex-col">
