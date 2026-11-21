@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useMemo } from "react";
 import { calculateAssignmentItems } from "@/features/formation-editor/lib/formationEditorSummary";
+import { toQuarterList } from "@/features/formation-editor/lib/formationEditorQuarters";
 import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
 import { Badge, Button, Panel } from "@/shared/ui";
 import { PlayerDisplayName } from "./PlayerDisplayName";
@@ -15,7 +16,13 @@ export function AssignmentSummary() {
   const [isExpanded, setIsExpanded] = useState(true);
   const summaryId = useId();
   const players = useFormationEditorStore((state) => state.players);
-  const quarters = useFormationEditorStore((state) => state.quarters);
+  const quartersByNumber = useFormationEditorStore(
+    (state) => state.quartersByNumber,
+  );
+  const quarters = useMemo(
+    () => toQuarterList(quartersByNumber),
+    [quartersByNumber],
+  );
   const assignmentItems = useMemo(
     () => calculateAssignmentItems({ players, quarters }),
     [players, quarters],

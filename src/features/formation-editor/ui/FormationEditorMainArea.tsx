@@ -1,44 +1,34 @@
-import type { RefObject } from "react";
-import { ArrowLeftRight } from "lucide-react";
-import { Button } from "@/shared/ui";
+import { useMemo, type RefObject } from "react";
 import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
-import { useMemo } from "react";
 import { FormationField } from "./FormationField";
-import { QuarterTabs } from "./QuarterTabs";
+import { QuarterAssignmentsPanel } from "./QuarterAssignmentsPanel";
 
 type Props = {
   exportRef: RefObject<HTMLDivElement | null>;
   isPending: boolean;
-  onOpenQuarterSwap: () => void;
 };
 
-/**
- * 쿼터 탭과 축구장 필드로 구성된 편집기 주 작업 영역입니다.
- */
-export function FormationEditorMainArea({
-  exportRef,
-  isPending,
-  onOpenQuarterSwap,
-}: Props) {
+/** 쿼터 순서 카드, 축구장 필드로 구성된 편집기 주 작업 영역입니다. */
+export function FormationEditorMainArea({ exportRef, isPending }: Props) {
   const players = useFormationEditorStore((state) => state.players);
-  const quarters = useFormationEditorStore((state) => state.quarters);
-  const activeQuarterNumber = useFormationEditorStore(
-    (state) => state.activeQuarterNumber,
+  const quartersByNumber = useFormationEditorStore(
+    (state) => state.quartersByNumber,
+  );
+  const selectedQuarter = useFormationEditorStore(
+    (state) => state.selectedQuarter,
   );
   const selectedSlotId = useFormationEditorStore((state) =>
     state.selection?.type === "slot" ? state.selection.slotId : null,
   );
-  const selectQuarter = useFormationEditorStore((state) => state.selectQuarter);
   const handleSlotClick = useFormationEditorStore(
     (state) => state.handleSlotClick,
   );
-  const activeQuarter = useMemo(
-    () =>
-      quarters.find(
-        (quarter) => quarter.quarterNumber === activeQuarterNumber,
-      ) ?? quarters[0],
-    [activeQuarterNumber, quarters],
-  );
+  const activeQuarter = useMemo(() => {
+    const quarter = quartersByNumber[selectedQuarter];
+    return quarter
+      ? { quarterNumber: selectedQuarter, slots: quarter.slots }
+      : null;
+  }, [quartersByNumber, selectedQuarter]);
   const playerMap = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
     [players],
@@ -47,25 +37,8 @@ export function FormationEditorMainArea({
   if (!activeQuarter) return null;
 
   return (
-    <div>
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <QuarterTabs
-          activeQuarterNumber={activeQuarterNumber}
-          quarters={quarters}
-          onQuarterChange={selectQuarter}
-        />
-        <Button
-          aria-label="쿼터 배치 교환"
-          className="size-11 shrink-0 px-0 text-gray-500"
-          disabled={isPending}
-          onClick={onOpenQuarterSwap}
-          title="쿼터 배치 교환"
-          variant="secondary"
-        >
-          <ArrowLeftRight aria-hidden="true" size={16} />
-        </Button>
-      </div>
-
+    <div className="grid gap-4 xl:grid-cols-[240px_minmax(0,1fr)]">
+      <QuarterAssignmentsPanel isDisabled={isPending} />
       <FormationField
         exportRef={exportRef}
         playerMap={playerMap}

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
+import { toQuarterList } from "@/features/formation-editor/lib/formationEditorQuarters";
 import { FormationField } from "./FormationField";
 
 type Props = {
@@ -12,7 +13,13 @@ type Props = {
 /** 전체 쿼터 내보내기에서 캡처할 필드를 화면 밖에 렌더링합니다. */
 export function FormationExportFields({ registerQuarterElement }: Props) {
   const players = useFormationEditorStore((state) => state.players);
-  const quarters = useFormationEditorStore((state) => state.quarters);
+  const quartersByNumber = useFormationEditorStore(
+    (state) => state.quartersByNumber,
+  );
+  const quarters = useMemo(
+    () => toQuarterList(quartersByNumber),
+    [quartersByNumber],
+  );
   const playerMap = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
     [players],

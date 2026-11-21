@@ -2,7 +2,6 @@ import type {
   FormationEditorTemplate,
   FormationRegenerationMode,
 } from "@/features/formation-editor/model/types";
-import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
 import { Button, SelectField } from "@/shared/ui";
 
 type Props = {
@@ -33,10 +32,6 @@ export function FormationRegenerationDialog({
   selectedTemplateId,
   templates,
 }: Props) {
-  const hasUnsavedChanges = useFormationEditorStore(
-    (state) => state.hasUnsavedChanges,
-  );
-
   if (!isOpen) return null;
 
   return (
@@ -68,13 +63,6 @@ export function FormationRegenerationDialog({
             닫기
           </Button>
         </div>
-
-        {hasUnsavedChanges ? (
-          <div className="border-warning bg-warning/15 text-foreground mt-4 rounded-lg border px-3 py-2 text-sm">
-            저장되지 않은 편집이 있습니다. 포메이션을 변경하면 현재 화면의
-            미저장 수정은 재배정 결과로 대체됩니다.
-          </div>
-        ) : null}
 
         <div className="mt-4 grid gap-4">
           <div>

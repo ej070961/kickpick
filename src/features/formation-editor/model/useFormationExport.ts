@@ -7,6 +7,7 @@ import {
   renderElementAsPng,
 } from "@/features/formation-export/lib/exportElementAsPng";
 import { sanitizeFileName } from "@/features/formation-editor/lib/formationEditorFormat";
+import { toQuarterList } from "@/features/formation-editor/lib/formationEditorQuarters";
 import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
 
 type UseFormationExportInput = {
@@ -20,10 +21,13 @@ export function useFormationExport({ fileBaseName }: UseFormationExportInput) {
   const ref = useRef<HTMLDivElement>(null);
   const quarterRefs = useRef(new Map<number, HTMLDivElement>());
   const [isExportPending, setIsExportPending] = useState(false);
-  const activeQuarterNumber = useFormationEditorStore(
-    (state) => state.activeQuarterNumber,
+  const selectedQuarter = useFormationEditorStore(
+    (state) => state.selectedQuarter,
   );
-  const quarters = useFormationEditorStore((state) => state.quarters);
+  const quartersByNumber = useFormationEditorStore(
+    (state) => state.quartersByNumber,
+  );
+  const quarters = toQuarterList(quartersByNumber);
   const setFeedbackMessage = useFormationEditorStore(
     (state) => state.setFeedbackMessage,
   );
@@ -45,7 +49,7 @@ export function useFormationExport({ fileBaseName }: UseFormationExportInput) {
       if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
         downloadBlob(
           blob,
-          `${sanitizeFileName(fileBaseName)}_${activeQuarterNumber}Q.png`,
+          `${sanitizeFileName(fileBaseName)}_${selectedQuarter}Q.png`,
         );
         return "이미지 복사를 지원하지 않아 PNG로 저장했어요.";
       }
@@ -58,7 +62,7 @@ export function useFormationExport({ fileBaseName }: UseFormationExportInput) {
       } catch {
         downloadBlob(
           blob,
-          `${sanitizeFileName(fileBaseName)}_${activeQuarterNumber}Q.png`,
+          `${sanitizeFileName(fileBaseName)}_${selectedQuarter}Q.png`,
         );
         return "복사할 수 없어 PNG로 저장했어요.";
       }
