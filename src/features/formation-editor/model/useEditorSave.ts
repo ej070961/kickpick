@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { saveFormationSlots } from "@/features/formation-editor/actions/formationEditorActions";
+import { toQuarterList } from "@/features/formation-editor/lib/formationEditorQuarters";
 import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
 
 type UseEditorSaveInput = {
@@ -13,13 +14,14 @@ type UseEditorSaveInput = {
  */
 export function useEditorSave({ matchId }: UseEditorSaveInput) {
   const [isPending, setIsPending] = useState(false);
-  const editedQuarters = useFormationEditorStore((state) => state.quarters);
-  const markSaved = useFormationEditorStore((state) => state.markSaved);
+  const quartersByNumber = useFormationEditorStore(
+    (state) => state.quartersByNumber,
+  );
 
   async function submit(): Promise<string | null> {
     if (isPending) return null;
 
-    const slots = editedQuarters.flatMap((quarter) =>
+    const slots = toQuarterList(quartersByNumber).flatMap((quarter) =>
       quarter.slots.map((slot) => ({
         fitScore: slot.fitScore,
         id: slot.id,
@@ -32,10 +34,6 @@ export function useEditorSave({ matchId }: UseEditorSaveInput) {
 
     try {
       const result = await saveFormationSlots(matchId, slots);
-
-      if (result.success) {
-        markSaved();
-      }
 
       return result.message;
     } catch {

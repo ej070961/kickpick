@@ -1,10 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type {
-  FormationEditorInitialProps,
-  QuarterSwapResult,
-} from "@/features/formation-editor/model/types";
+import type { FormationEditorInitialProps } from "@/features/formation-editor/model/types";
 import {
   FormationEditorStoreProvider,
   useFormationEditorStore,
@@ -20,7 +17,6 @@ import { FormationEditorSidePanel } from "./FormationEditorSidePanel";
 import { FormationExportFields } from "./FormationExportFields";
 import { FormationRegenerationDialog } from "./FormationRegenerationDialog";
 import { FormationToolbar } from "./FormationToolbar";
-import { QuarterSwapDialog } from "./QuarterSwapDialog";
 import { RosterManagementDialog } from "./RosterManagementDialog";
 
 /** 경기 데이터마다 분리된 편집기 store와 편집 화면을 연결합니다. */
@@ -55,10 +51,7 @@ export function FormationEditorClient({
   );
 }
 
-type WorkspaceProps = Omit<
-  FormationEditorInitialProps,
-  "players" | "quarters"
->;
+type WorkspaceProps = Omit<FormationEditorInitialProps, "players" | "quarters">;
 
 /** 편집기 작업 hook과 store 구독 컴포넌트를 조립합니다. */
 function FormationEditorWorkspace({
@@ -67,11 +60,6 @@ function FormationEditorWorkspace({
   rosterCandidates,
 }: WorkspaceProps) {
   const [isRosterDialogOpen, setIsRosterDialogOpen] = useState(false);
-  const [isQuarterSwapDialogOpen, setIsQuarterSwapDialogOpen] = useState(false);
-  const [quarterSwapError, setQuarterSwapError] = useState<string | null>(null);
-  const swapQuarterAssignments = useFormationEditorStore(
-    (state) => state.swapQuarterAssignments,
-  );
   const roster = useEditorRoster({
     initialRosterCandidates: rosterCandidates,
     matchId: match.id,
@@ -91,21 +79,6 @@ function FormationEditorWorkspace({
     regeneration.isRegenerationPending ||
     exportImage.isExportPending;
 
-  const closeQuarterSwap = () => {
-    setQuarterSwapError(null);
-    setIsQuarterSwapDialogOpen(false);
-  };
-
-  const confirmQuarterSwap = (first: number, second: number) => {
-    const result = swapQuarterAssignments(first, second);
-
-    if (result.ok) {
-      closeQuarterSwap();
-    } else {
-      setQuarterSwapError(SWAP_ERROR_MESSAGES[result.reason]);
-    }
-  };
-
   return (
     <div className="space-y-4">
       <FormationToolbar
@@ -122,7 +95,6 @@ function FormationEditorWorkspace({
         <FormationEditorMainArea
           exportRef={exportImage.ref}
           isPending={isBusy}
-          onOpenQuarterSwap={() => setIsQuarterSwapDialogOpen(true)}
         />
 
         <FormationEditorSidePanel
@@ -149,15 +121,6 @@ function FormationEditorWorkspace({
         onSaveGuestPlayer={roster.saveGuest}
       />
 
-      {isQuarterSwapDialogOpen && (
-        <QuarterSwapDialog
-          errorMessage={quarterSwapError}
-          isPending={isBusy}
-          onClose={closeQuarterSwap}
-          onConfirm={confirmQuarterSwap}
-        />
-      )}
-
       <FormationRegenerationDialog
         currentFormationLabel={regeneration.currentFormationLabel}
         isPending={isBusy}
@@ -173,12 +136,3 @@ function FormationEditorWorkspace({
     </div>
   );
 }
-
-const SWAP_ERROR_MESSAGES: Record<
-  Extract<QuarterSwapResult, { ok: false }>["reason"],
-  string
-> = {
-  same_quarter: "서로 다른 두 쿼터를 선택해주세요.",
-  quarter_not_found: "선택한 쿼터를 찾을 수 없습니다. 다시 선택해주세요.",
-  incompatible_positions: "두 쿼터의 포지션 구성이 달라 교환할 수 없습니다.",
-};

@@ -22,8 +22,15 @@ export type EditorQuarter = Omit<QuarterFormation, "slots"> & {
   slots: EditorSlot[];
 };
 
-/** 편집 상태에 쿼터 교환을 적용한 결과입니다. */
-export type QuarterSwapResult =
+export type EditorQuarterEntry = {
+  lineupId: number;
+  slots: EditorSlot[];
+};
+
+export type EditorQuartersByNumber = Record<number, EditorQuarterEntry>;
+
+/** 쿼터 간 선수 배정 작업 결과입니다. */
+export type QuarterAssignmentResult =
   | { ok: true }
   | {
       ok: false;

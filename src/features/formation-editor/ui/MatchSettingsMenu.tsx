@@ -2,11 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
-import {
-  LayoutGrid,
-  SlidersHorizontal,
-  UsersRound,
-} from "lucide-react";
+import { LayoutGrid, SlidersHorizontal, UsersRound } from "lucide-react";
 import { Button } from "@/shared/ui";
 
 type Props = {

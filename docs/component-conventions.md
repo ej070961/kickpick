@@ -143,6 +143,7 @@ calculateFitScore.ts
 예:
 
 - `PageHeader`
+- `PageLayout`
 - `Button`
 - `Input`
 - `Select`
@@ -295,12 +296,19 @@ updatePlayerPriority(input);
 - hover에만 의존하는 필수 액션
 - 텍스트가 버튼/카드 밖으로 넘치는 상태 방치
 
+페이지 화면 구성 규칙:
+
+- `(main)/layout.tsx`는 `MainLayout`으로 이름 붙이고, 상단 바와 페이지 공통 너비/여백 및 `<main>` landmark를 제공한다.
+- `PageLayout`은 화면 단위의 헤더와 본문을 세로로 배치하는 순수 래퍼이며 `gap`으로 간격을 관리한다. 개별 화면에서 헤더 여백을 보정하는 음수 margin은 두지 않는다.
+- `PageHeader`는 페이지 제목과 설명을 표시하고 제목은 `<h1>`로 렌더링한다. 외부 레이아웃이 간격을 소유하므로 자체적인 하단 margin을 두지 않는다.
+- 화면 전체를 감싸는 용도만으로 `<section>`을 사용하지 않는다. 제목이 있는 독립된 주제별 콘텐츠 묶음에 `<section>`을 사용하고, 단순한 페이지 배치에는 `PageLayout`을 사용한다.
+
 ## 11. 모바일 컴포넌트 패턴
 
 - 모달은 모바일에서 넓은 터치 타겟과 스크롤 안정성을 우선한다.
 - 목록 액션은 모바일에서 row action menu 또는 bottom action sheet로 전환할 수 있다.
 - 하단 주요 액션은 sticky action bar 패턴을 사용한다.
-- 포메이션 편집기는 field, quarter tabs, candidate list, action area의 역할을 명확히 나눈다.
+- 포메이션 편집기는 quarter assignments panel, field, candidate list, action area의 역할을 명확히 나눈다.
 - 드래그앤드롭 기능은 가능한 경우 클릭 또는 버튼 기반 대체 조작을 제공한다.
 
 권장 컴포넌트:
@@ -332,9 +340,12 @@ shared/ui/IconButton
 
 - 좌표 계산과 알고리즘은 UI에서 분리한다.
 - 슬롯 교체와 선수 교체는 예측 가능한 순수 업데이트로 처리한다.
+- Store의 쿼터 배정은 쿼터 번호 키 Record로 관리하고, 배열 순회가 필요한 경계에서만 번호순 배열로 변환한다. 선택 상태는 `selectedQuarter`로 두며 쿼터 객체를 별도 저장하지 않는다.
+- 배치 교환은 고정 쿼터 키의 슬롯 ID를 유지하고, 같은 포지션의 선수 배정과 편집기 내부 `lineupId`를 원자적으로 맞바꾼다.
+- 쿼터 선택·교환·복사 패널은 feature store를 직접 구독한다. 부모 화면은 패널이 소유하지 않는 pending 상태만 전달한다.
 - 저장은 `features/formation-editor/actions/formationEditorActions.ts` 서버 액션으로 처리한다.
 - 내보내기는 `features/formation-export/lib/exportElementAsPng.ts`를 통해 DOM 캡처로 처리한다.
-- 요약, 쿼터 탭, 필드, 선택 패널, 후보 목록, 액션 영역은 각각 독립 컴포넌트로 유지한다.
+- 요약, 쿼터 배치 패널, 필드, 선택 패널, 후보 목록, 액션 영역은 각각 독립 컴포넌트로 유지한다.
 
 ## 14. 테스트 기준
 

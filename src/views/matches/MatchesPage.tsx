@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
-import { PageHeader } from "@/shared/ui";
+import { PageHeader, PageLayout } from "@/shared/ui";
 import { getMatches } from "@/views/matches/api/getMatches";
 import { MatchCard } from "@/views/matches/ui/MatchCard";
 import { MatchesEmptyState } from "@/views/matches/ui/MatchesEmptyState";
@@ -12,7 +12,7 @@ export async function MatchesPage() {
   const matches = await getMatches();
 
   return (
-    <section>
+    <PageLayout>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeader
           title="경기 목록"
@@ -35,6 +35,6 @@ export async function MatchesPage() {
       ) : (
         <MatchesEmptyState />
       )}
-    </section>
+    </PageLayout>
   );
 }

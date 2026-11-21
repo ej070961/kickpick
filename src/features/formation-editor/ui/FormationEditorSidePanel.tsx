@@ -3,7 +3,6 @@ import { sortPlayersForBench } from "@/features/formation-editor/lib/formationEd
 import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
 import { BenchPlayersPanel } from "./BenchPlayersPanel";
 import { FormationEditorActions } from "./FormationEditorActions";
-import { SelectedSlotPanel } from "./SelectedSlotPanel";
 
 type Props = {
   isBusy: boolean;
@@ -26,9 +25,11 @@ export function FormationEditorSidePanel({
   onSave,
 }: Props) {
   const players = useFormationEditorStore((state) => state.players);
-  const quarters = useFormationEditorStore((state) => state.quarters);
-  const activeQuarterNumber = useFormationEditorStore(
-    (state) => state.activeQuarterNumber,
+  const quartersByNumber = useFormationEditorStore(
+    (state) => state.quartersByNumber,
+  );
+  const selectedQuarter = useFormationEditorStore(
+    (state) => state.selectedQuarter,
   );
   const selection = useFormationEditorStore((state) => state.selection);
   const feedbackMessage = useFormationEditorStore(
@@ -38,25 +39,10 @@ export function FormationEditorSidePanel({
     (state) => state.handleBenchPlayerClick,
   );
 
-  const activeQuarter = quarters.find(
-    (quarter) => quarter.quarterNumber === activeQuarterNumber,
-  );
-  const playerMap = useMemo(
-    () => new Map(players.map((player) => [player.id, player])),
-    [players],
-  );
+  const activeQuarter = quartersByNumber[selectedQuarter];
   const selectedSlotId = selection?.type === "slot" ? selection.slotId : null;
   const selectedBenchPlayerId =
     selection?.type === "bench" ? selection.playerId : null;
-  const selectedSlot = activeQuarter?.slots.find(
-    (slot) => slot.id === selectedSlotId,
-  );
-  const selectedPlayer = selectedSlot?.playerId
-    ? playerMap.get(selectedSlot.playerId)
-    : undefined;
-  const selectedBenchPlayer = selectedBenchPlayerId
-    ? playerMap.get(selectedBenchPlayerId)
-    : undefined;
   const assignedPlayerIds = useMemo(
     () =>
       new Set(
@@ -78,17 +64,12 @@ export function FormationEditorSidePanel({
 
   return (
     <aside className="space-y-3">
-      <SelectedSlotPanel
-        selectedBenchPlayer={selectedBenchPlayer}
-        selectedPlayer={selectedPlayer}
-        selectedSlot={selectedSlot}
-      />
       <BenchPlayersPanel
         activeAssignedPlayerCount={assignedPlayerIds.size}
         benchPlayers={benchPlayers}
         isDisabled={isBusy}
         hasSelectedSlot={Boolean(selectedSlotId)}
-        quarterNumber={activeQuarterNumber}
+        quarterNumber={selectedQuarter}
         selectedBenchPlayerId={selectedBenchPlayerId ?? null}
         onBenchPlayerClick={(player) => handleBenchPlayerClick(player.id)}
       />

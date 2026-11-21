@@ -4,17 +4,19 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 import { useStore } from "zustand";
 import { createStore, type StoreApi } from "zustand/vanilla";
 import {
-  exchangeSlotAssignments,
+  copySlotAssignments,
   replaceSlotPlayer,
   scoreSlot,
   swapSlotPlayers,
   updateParticipantSlots,
 } from "@/features/formation-editor/lib/formationEditorSlots";
+import { toQuartersByNumber } from "@/features/formation-editor/lib/formationEditorQuarters";
 import type {
   EditorPlayer,
   EditorQuarter,
+  EditorQuartersByNumber,
   EditorSlot,
-  QuarterSwapResult,
+  QuarterAssignmentResult,
 } from "@/features/formation-editor/model/types";
 
 type EditorSelection =
@@ -24,10 +26,9 @@ type EditorSelection =
 
 type FormationEditorStoreState = {
   players: EditorPlayer[];
-  quarters: EditorQuarter[];
-  activeQuarterNumber: number;
+  quartersByNumber: EditorQuartersByNumber;
+  selectedQuarter: number;
   selection: EditorSelection;
-  hasUnsavedChanges: boolean;
   feedbackMessage: string | null;
 };
 
@@ -35,25 +36,28 @@ type FormationEditorStoreActions = {
   selectQuarter: (quarterNumber: number) => void;
   handleSlotClick: (slotId: string) => void;
   handleBenchPlayerClick: (playerId: EditorPlayer["id"]) => void;
+  pasteQuarterAssignments: (
+    targetQuarterNumber: number,
+    sourceSlots: EditorSlot[],
+  ) => QuarterAssignmentResult;
   swapQuarterAssignments: (
-    firstQuarterNumber: number,
-    secondQuarterNumber: number,
-  ) => QuarterSwapResult;
+    sourceQuarterNumber: number,
+    targetQuarterNumber: number,
+  ) => QuarterAssignmentResult;
   upsertPlayer: (player: EditorPlayer) => void;
   removeParticipantFromDraft: (playerId: string) => void;
   refreshGuestAssignments: (player: EditorPlayer) => void;
   applyRegeneratedQuarters: (quarters: EditorQuarter[]) => void;
-  markSaved: () => void;
   setFeedbackMessage: (message: string | null) => void;
 };
 
 type FormationEditorStore = FormationEditorStoreState &
   FormationEditorStoreActions;
 
-type FormationEditorInitialState = Pick<
-  FormationEditorStoreState,
-  "players" | "quarters"
->;
+type FormationEditorInitialState = {
+  players: EditorPlayer[];
+  quarters: EditorQuarter[];
+};
 
 function createFormationEditorStore({
   players,
@@ -63,15 +67,21 @@ function createFormationEditorStore({
     function updateActiveQuarter(
       updater: (slots: EditorSlot[]) => EditorSlot[],
     ) {
-      set((state) => ({
-        quarters: state.quarters.map((quarter) =>
-          quarter.quarterNumber === state.activeQuarterNumber
-            ? { ...quarter, slots: updater(quarter.slots) }
-            : quarter,
-        ),
-        hasUnsavedChanges: true,
-        feedbackMessage: null,
-      }));
+      set((state) => {
+        const quarter = state.quartersByNumber[state.selectedQuarter];
+        if (!quarter) return {};
+
+        return {
+          quartersByNumber: {
+            ...state.quartersByNumber,
+            [state.selectedQuarter]: {
+              ...quarter,
+              slots: updater(quarter.slots),
+            },
+          },
+          feedbackMessage: null,
+        };
+      });
     }
 
     function clearSelection() {
@@ -106,23 +116,16 @@ function createFormationEditorStore({
 
     return {
       players,
-      quarters,
-      activeQuarterNumber: quarters[0]?.quarterNumber ?? 1,
+      quartersByNumber: toQuartersByNumber(quarters),
+      selectedQuarter: quarters[0]?.quarterNumber ?? 1,
       selection: null,
-      hasUnsavedChanges: false,
       feedbackMessage: null,
 
       selectQuarter: (quarterNumber) => {
-        if (
-          !get().quarters.some(
-            (quarter) => quarter.quarterNumber === quarterNumber,
-          )
-        ) {
-          return;
-        }
+        if (!get().quartersByNumber[quarterNumber]) return;
 
         set({
-          activeQuarterNumber: quarterNumber,
+          selectedQuarter: quarterNumber,
           selection: null,
           feedbackMessage: null,
         });
@@ -130,9 +133,7 @@ function createFormationEditorStore({
 
       handleSlotClick: (slotId) => {
         const state = get();
-        const activeQuarter = state.quarters.find(
-          (quarter) => quarter.quarterNumber === state.activeQuarterNumber,
-        );
+        const activeQuarter = state.quartersByNumber[state.selectedQuarter];
         const targetSlot = activeQuarter?.slots.find(
           (slot) => slot.id === slotId,
         );
@@ -181,51 +182,74 @@ function createFormationEditorStore({
         });
       },
 
-      swapQuarterAssignments: (firstQuarterNumber, secondQuarterNumber) => {
-        if (firstQuarterNumber === secondQuarterNumber) {
+      pasteQuarterAssignments: (targetQuarterNumber, sourceSlots) => {
+        const state = get();
+        const target = state.quartersByNumber[targetQuarterNumber];
+        if (!target) return { ok: false, reason: "quarter_not_found" };
+        const copiedSlots = copySlotAssignments({
+          destinationSlots: target.slots,
+          playerMap: new Map(
+            state.players.map((player) => [player.id, player]),
+          ),
+          sourceSlots,
+        });
+        if (!copiedSlots)
+          return { ok: false, reason: "incompatible_positions" };
+        set((current) => ({
+          quartersByNumber: {
+            ...current.quartersByNumber,
+            [targetQuarterNumber]: { ...target, slots: copiedSlots },
+          },
+          selection: null,
+          feedbackMessage: null,
+        }));
+        return { ok: true };
+      },
+
+      swapQuarterAssignments: (sourceQuarterNumber, targetQuarterNumber) => {
+        const state = get();
+        if (sourceQuarterNumber === targetQuarterNumber) {
           return { ok: false, reason: "same_quarter" };
         }
 
-        const state = get();
-        const firstQuarter = state.quarters.find(
-          (quarter) => quarter.quarterNumber === firstQuarterNumber,
-        );
-        const secondQuarter = state.quarters.find(
-          (quarter) => quarter.quarterNumber === secondQuarterNumber,
-        );
-
-        if (!firstQuarter || !secondQuarter) {
+        const source = state.quartersByNumber[sourceQuarterNumber];
+        const target = state.quartersByNumber[targetQuarterNumber];
+        if (!source || !target) {
           return { ok: false, reason: "quarter_not_found" };
         }
 
         const playerMap = new Map(
           state.players.map((player) => [player.id, player]),
         );
-        const swapped = exchangeSlotAssignments({
-          firstQuarterSlots: firstQuarter.slots,
+        const sourceSlots = copySlotAssignments({
+          destinationSlots: source.slots,
           playerMap,
-          secondQuarterSlots: secondQuarter.slots,
+          sourceSlots: target.slots,
         });
-
-        if (!swapped) return { ok: false, reason: "incompatible_positions" };
+        const targetSlots = copySlotAssignments({
+          destinationSlots: target.slots,
+          playerMap,
+          sourceSlots: source.slots,
+        });
+        if (!sourceSlots || !targetSlots) {
+          return { ok: false, reason: "incompatible_positions" };
+        }
 
         set((current) => ({
-          quarters: current.quarters.map((quarter) => {
-            if (quarter.quarterNumber === firstQuarterNumber) {
-              return { ...quarter, slots: swapped.firstQuarterSlots };
-            }
-
-            if (quarter.quarterNumber === secondQuarterNumber) {
-              return { ...quarter, slots: swapped.secondQuarterSlots };
-            }
-
-            return quarter;
-          }),
-          hasUnsavedChanges: true,
+          quartersByNumber: {
+            ...current.quartersByNumber,
+            [sourceQuarterNumber]: {
+              lineupId: target.lineupId,
+              slots: sourceSlots,
+            },
+            [targetQuarterNumber]: {
+              lineupId: source.lineupId,
+              slots: targetSlots,
+            },
+          },
           selection: null,
           feedbackMessage: null,
         }));
-
         return { ok: true };
       },
 
@@ -241,8 +265,8 @@ function createFormationEditorStore({
       removeParticipantFromDraft: (playerId) =>
         set((state) => ({
           players: state.players.filter((player) => player.id !== playerId),
-          quarters: updateParticipantSlots(
-            state.quarters,
+          quartersByNumber: updateParticipantSlots(
+            state.quartersByNumber,
             playerId,
             (slot) => ({
               ...slot,
@@ -263,8 +287,8 @@ function createFormationEditorStore({
           players: state.players.map((item) =>
             item.id === player.id ? player : item,
           ),
-          quarters: updateParticipantSlots(
-            state.quarters,
+          quartersByNumber: updateParticipantSlots(
+            state.quartersByNumber,
             player.id,
             (slot) => {
               const fitScore = scoreSlot(slot.name, player);
@@ -274,18 +298,19 @@ function createFormationEditorStore({
         })),
 
       applyRegeneratedQuarters: (nextQuarters) =>
-        set((state) => ({
-          quarters: nextQuarters,
-          hasUnsavedChanges: false,
-          selection: null,
-          activeQuarterNumber: nextQuarters.some(
-            (quarter) => quarter.quarterNumber === state.activeQuarterNumber,
-          )
-            ? state.activeQuarterNumber
-            : (nextQuarters[0]?.quarterNumber ?? 1),
-        })),
+        set((state) => {
+          const quartersByNumber = toQuartersByNumber(nextQuarters);
+          const selectedQuarter = quartersByNumber[state.selectedQuarter]
+            ? state.selectedQuarter
+            : (nextQuarters[0]?.quarterNumber ?? 1);
 
-      markSaved: () => set({ hasUnsavedChanges: false }),
+          return {
+            quartersByNumber,
+            selectedQuarter,
+            selection: null,
+          };
+        }),
+
       setFeedbackMessage: (feedbackMessage) => set({ feedbackMessage }),
     };
   });

@@ -356,13 +356,13 @@ FormationEditorClient
   -> MatchNameDialog
   -> RosterManagementDialog
   -> FormationRegenerationDialog
-  -> QuarterOrderDialog
+  -> QuarterAssignmentsPanel
   -> QuarterExportDialog
 ```
 
 `FormationEditorMainArea` 책임:
 
-- 쿼터 탭 표시
+- 쿼터 순서 카드와 복사·붙여넣기 액션 표시
 - 활성 쿼터 변경
 - 축구장 필드 렌더링
 - 슬롯 선택
@@ -452,34 +452,27 @@ matchName.submit;
 
 ### UI 결정
 
-`FormationToolbar`에 `쿼터 순서` 버튼을 추가한다.
-
-버튼 위치:
-
-```txt
-포메이션 변경 | 선수 명단 | 쿼터 순서
-```
-
-`QuarterOrderDialog`에서 쿼터 카드를 세로 목록으로 보여준다.
+`FormationEditorMainArea` 안에 흰색 카드형 `쿼터별 포메이션` 패널을 둔다. 쿼터 번호는 왼쪽의 선택 버튼으로 두고, 카드에는 드래그 핸들과 복사·붙여넣기 아이콘만 둔다. 패널은 부모 그리드 높이에 늘어나지 않고 콘텐츠와 패딩 높이를 따른다.
 
 카드 정보:
 
 ```txt
-1Q
-출전 11명 / 후보 N명
-주요 배정: GK 홍길동, CF 김철수 ...
-[위로] [아래로]
+1Q  [드래그] [복사]
+2Q  [드래그] [복사]
 ```
 
-초기 구현은 drag and drop보다 위/아래 버튼을 우선한다. 경기장 현장에서 모바일 사용 비중이 높고, 버튼 방식이 구현과 접근성 모두 단순하다. 나중에 필요하면 drag handle을 추가한다.
+쿼터 번호 버튼으로 해당 쿼터를 선택한다. 드래그 핸들만 배치 교환을 시작하고 카드에는 라인업 문구 없이 복사 또는 붙여넣기 아이콘을 둔다. 선택 상태는 쿼터 번호 버튼의 강조 스타일로만 보여주고, 배치 카드는 선택 상태와 관계없이 같은 스타일을 유지한다.
+
+쿼터 카드에 드래그 핸들을 제공하고 키보드 센서도 지원한다. 모바일 터치에서도 드래그 정렬이 가능해야 한다.
 
 동작 정책:
 
-- 카드의 순서를 바꾸면 화면에서는 임시 순서로 미리 보여준다.
-- 저장 전에는 실제 DB를 변경하지 않는다.
-- 저장 버튼을 누르면 `quarter_formations.quarter_number`를 새 순서대로 갱신한다.
-- 저장 성공 후 쿼터 탭과 활성 쿼터 라벨을 새 순서로 갱신한다.
-- 슬롯 row는 이동하지 않는다. `quarter_formations` row가 가진 슬롯 묶음은 그대로 유지하고, `quarter_number`만 바꾼다.
+- 드래그한 카드와 대상 카드의 배치를 같은 포지션 슬롯 기준으로 서로 맞바꾼다. 중간 쿼터 배치는 이동하지 않는다.
+- 선택 상태는 쿼터 번호를 따른다. 드래그 후에도 선택 번호를 유지하고 해당 쿼터의 교환된 배치를 필드에 표시한다.
+- 쿼터 번호와 슬롯 row는 유지한다. 배정 변경은 기존 편집 초안과 저장 흐름을 따른다.
+- 카드 복사는 같은 포지션 슬롯 기준으로 대상 쿼터 배정을 덮어쓰며 저장 전에는 로컬 초안에만 적용한다.
+- 복사 모드에서는 원본 외 카드에 붙여넣기 아이콘만 표시하고, 여러 대상 쿼터에 붙여넣을 수 있다. 복사 중에는 드래그를 비활성화한다. 원본 아이콘을 다시 누르면 복사 내용을 조용히 갱신하며, 패널 바깥 클릭으로 복사 모드를 종료한다.
+- 복사 및 붙여넣기 결과는 토스트로 알린다. 바깥 클릭 종료와 원본 복사 재클릭에는 토스트를 표시하지 않는다.
 
 예시:
 
@@ -488,59 +481,14 @@ matchName.submit;
 quarter A = 1Q, slots A
 quarter B = 2Q, slots B
 
-1Q와 2Q 교체 후:
-quarter A = 2Q, slots A
-quarter B = 1Q, slots B
-```
-
-주의:
-
-`quarter_number`에 `unique(match_id, quarter_number)` 제약이 있으므로 단순 순차 update는 중간에 충돌할 수 있다. 최종 구현은 RPC 또는 transaction 성격의 서버 함수를 사용한다.
-
-권장 RPC:
-
-```txt
-reorder_match_quarters(
-  p_match_id uuid,
-  p_quarter_ids uuid[]
-)
-```
-
-Expected behavior:
-
-- 현재 사용자가 소유한 match인지 검증한다.
-- 전달받은 quarter id 목록이 해당 match의 전체 quarter 목록과 정확히 일치하는지 검증한다.
-- 임시 번호 또는 단일 SQL update 전략으로 unique 충돌 없이 `quarter_number`를 재배치한다.
-- 모든 변경은 하나의 transaction으로 처리한다.
-
-권장 hook/action:
-
-```txt
-actions/reorderMatchQuarters
-model/useQuarterOrder
-ui/QuarterOrderDialog
-```
-
-권장 반환 API:
-
-```ts
-const quarterOrder = useQuarterOrder({
-  quarters: editor.editedQuarters,
-  onApply: editor.replaceEditedQuarters,
-  onMessage: editor.setMessage,
-});
-
-quarterOrder.isOpen;
-quarterOrder.open;
-quarterOrder.close;
-quarterOrder.moveUp;
-quarterOrder.moveDown;
-quarterOrder.submit;
+1Q와 2Q 순서를 바꾼 후:
+1Q = slots B의 선수 배정
+2Q = slots A의 선수 배정
 ```
 
 ### DB 영향
 
-기존 `quarter_formations.quarter_number`를 사용한다. 새 컬럼은 필요 없다. 단, 안정적인 저장을 위해 RPC 추가를 권장한다. RPC를 추가하면 `docs/database-schema.md`에 함수와 동작을 함께 문서화한다.
+`quarter_formations.quarter_number`는 변경하지 않는다. 같은 포지션의 선수 배정만 쿼터 사이에서 편집하므로 기존 `formation_slots` 저장 흐름을 사용한다.
 
 ## 추가 요구사항 3: 모든 쿼터 사진 일괄 저장
 
