@@ -1,15 +1,24 @@
+import Link from "next/link";
+import { CalendarDays } from "lucide-react";
+import { EmptyStatePanel } from "@/shared/ui";
+
 /**
  * 저장된 경기가 없을 때 경기 목록 대신 보여주는 빈 상태입니다.
  */
 export function MatchesEmptyState() {
   return (
-    <div className="border-border rounded-2xl border border-dashed bg-white/60 px-6 py-12 text-center">
-      <p className="text-foreground text-lg font-bold">
-        아직 저장된 경기가 없습니다.
-      </p>
-      <p className="text-muted mt-2 text-sm leading-6">
-        새 경기를 생성하면 이곳에서 다시 열어볼 수 있습니다.
-      </p>
-    </div>
+    <EmptyStatePanel
+      icon={<CalendarDays size={22} />}
+      title="아직 만든 경기가 없어요"
+      description="첫 경기를 만들고 쿼터별 라인업을 준비해보세요."
+      action={
+        <Link
+          href="/matches/new"
+          className="bg-foreground inline-flex min-h-11 items-center justify-center rounded-lg px-4 text-sm font-semibold text-white transition hover:brightness-110"
+        >
+          경기 만들기
+        </Link>
+      }
+    />
   );
 }

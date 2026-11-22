@@ -2,7 +2,7 @@ import type { ComponentPropsWithRef, ReactNode } from "react";
 import { cn } from "@/shared/lib/cn";
 
 type ButtonVariant =
-  "primary" | "secondary" | "danger" | "dangerSolid" | "ghost";
+  "primary" | "secondary" | "danger" | "dangerSolid" | "ghost" | "dark";
 type ButtonSize = "sm" | "md";
 
 type ButtonProps = ComponentPropsWithRef<"button"> & {
@@ -49,6 +49,7 @@ const BUTTON_VARIANT_CLASS: Record<ButtonVariant, string> = {
   danger:
     "border border-mismatch/45 text-mismatch hover:border-mismatch hover:bg-orange-50",
   dangerSolid: "bg-mismatch text-white hover:opacity-90",
+  dark: "bg-foreground text-white hover:brightness-110",
   ghost: "text-muted hover:bg-surface hover:text-foreground",
   primary: "bg-primary text-primary-foreground",
   secondary: "border border-border bg-card text-foreground hover:bg-surface",

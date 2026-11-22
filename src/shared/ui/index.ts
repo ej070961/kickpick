@@ -3,6 +3,7 @@ export * from "./Button";
 export * from "./ConfirmDialog";
 export * from "./Dialog";
 export * from "./ErrorState";
+export * from "./EmptyStatePanel";
 export * from "./FormControls";
 export * from "./HelpTooltip";
 export * from "./PageHeader";
