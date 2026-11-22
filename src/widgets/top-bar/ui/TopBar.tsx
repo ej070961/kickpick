@@ -7,7 +7,7 @@ export function TopBar() {
   return (
     <header className="bg-background/75 sticky top-0 z-20 border-b border-white/70 px-4 py-3 backdrop-blur-xl sm:px-6 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3">
-        <Link href="/" className="min-w-0 shrink">
+        <Link href="/home" className="min-w-0 shrink">
           <Image
             src="/images/logo.png"
             alt="KickPick"
