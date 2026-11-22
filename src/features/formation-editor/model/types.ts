@@ -3,31 +3,32 @@ import type {
   FormationTemplate,
   QuarterFormation,
 } from "@/entities/formation";
-import type { MatchParticipantKey, RosterPlayerKey } from "@/entities/match";
+import type { ParticipantIdentity } from "@/entities/match";
 import type { PlayerProfile } from "@/entities/player";
 
-export type EditorPlayer = PlayerProfile & {
-  /** 경기 명단 안에서 사용하는 등록 선수 또는 게스트 key입니다. */
-  id: MatchParticipantKey;
-  isGuest: boolean;
-};
+export type EditorPlayer = PlayerProfile & ParticipantIdentity;
 
 export type EditorSlot = Omit<AssignedSlot, "playerId"> & {
   /** DB 슬롯 row id로 저장과 React key에 사용합니다. */
   id: string;
-  playerId: MatchParticipantKey | null;
+  /** 배정된 선수의 원본 id입니다. 선수 정보는 store의 playersById에서 찾습니다. */
+  playerId: string | null;
 };
 
 export type EditorQuarter = Omit<QuarterFormation, "slots"> & {
   slots: EditorSlot[];
 };
 
-export type EditorQuarterEntry = {
+export type QuarterDraft = {
   lineupId: number;
   slots: EditorSlot[];
 };
 
-export type EditorQuartersByNumber = Record<number, EditorQuarterEntry>;
+export type QuarterDraftItem = QuarterDraft & {
+  quarterNumber: number;
+};
+
+export type QuarterDraftMap = Record<number, QuarterDraft>;
 
 /** 쿼터 간 선수 배정 작업 결과입니다. */
 export type QuarterAssignmentResult =
@@ -43,14 +44,14 @@ export type AssignmentSummaryItem = {
   quarterNumbers: number[];
 };
 
-export type FormationEditorTemplate = Pick<FormationTemplate, "id" | "label">;
+export type EditorTemplate = Pick<FormationTemplate, "id" | "label">;
 
 export type FormationRegenerationMode = "full" | "preserve_players";
 
-export type RosterCandidate = PlayerProfile & {
-  /** 경기 명단에 추가할 수 있는 등록 선수 key입니다. */
-  id: RosterPlayerKey;
-  isGuest: false;
+export type AvailablePlayer = PlayerProfile & {
+  /** 경기 명단에 추가할 수 있는 등록 선수 id입니다. */
+  id: string;
+  type: "general";
 };
 
 export type GuestPlayerFormInput = Pick<
@@ -61,25 +62,28 @@ export type GuestPlayerFormInput = Pick<
   id?: string;
 };
 
-export type FormationEditorMatch = {
+export type EditorMatch = {
   /** PNG 파일명 생성에 사용할 경기명과 날짜 기반 문자열입니다. */
   exportFileBaseName: string;
   /** 현재 경기에 적용된 포메이션 이름입니다. */
   formationLabel: string;
   /** 편집 대상 경기 id입니다. */
   id: string;
-  /** 경기 상세와 목록에 표시하는 경기 날짜입니다. */
-  matchDate: string | null;
+};
+
+export type EditorPageMatch = EditorMatch & {
   /** 화면에 표시할 경기명입니다. */
   name: string;
   /** 생성된 쿼터 개수입니다. */
   quarterCount: number;
 };
 
-export type FormationEditorInitialProps = {
-  formationTemplates: FormationEditorTemplate[];
-  match: FormationEditorMatch;
+export type EditorInitialData = {
+  match: EditorPageMatch;
   players: EditorPlayer[];
   quarters: EditorQuarter[];
-  rosterCandidates: RosterCandidate[];
+};
+
+export type FormationEditorProps = Omit<EditorInitialData, "match"> & {
+  match: EditorMatch;
 };

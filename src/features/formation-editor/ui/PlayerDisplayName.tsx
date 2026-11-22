@@ -1,5 +1,5 @@
 import type { EditorPlayer } from "@/features/formation-editor/model/types";
-import { formatPlayerName } from "@/features/formation-editor/lib/formationEditorFormat";
+import { formatPlayerName } from "@/features/formation-editor/lib/editorFormatting";
 
 type PlayerDisplayNameProps = {
   className?: string;
@@ -10,17 +10,17 @@ type PlayerDisplayNameProps = {
 /**
  * 편집기 UI에서 선수명과 게스트 여부를 같은 문구 규칙으로 표시합니다.
  */
-export function PlayerDisplayName({
+export const PlayerDisplayName = ({
   className,
   guestClassName = "text-gray-500",
   player,
-}: PlayerDisplayNameProps) {
+}: PlayerDisplayNameProps) => {
   return (
     <span className={className}>
       {formatPlayerName(player)}
-      {player.isGuest ? (
+      {player.type === "guest" ? (
         <span className={`font-medium ${guestClassName}`}> ・ 게스트</span>
       ) : null}
     </span>
   );
-}
+};

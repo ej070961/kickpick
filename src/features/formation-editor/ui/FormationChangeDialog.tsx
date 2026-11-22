@@ -1,0 +1,190 @@
+import type {
+  EditorTemplate,
+  FormationRegenerationMode,
+} from "@/features/formation-editor/model/types";
+import { Button, SelectField } from "@/shared/ui";
+
+type Props = {
+  currentFormationLabel: string;
+  isLoadingTemplates: boolean;
+  isPending: boolean;
+  isOpen: boolean;
+  loadError: string | null;
+  mode: FormationRegenerationMode;
+  onClose: () => void;
+  onModeChange: (mode: FormationRegenerationMode) => void;
+  onSubmit: () => void;
+  onRetry: () => void;
+  onTemplateChange: (templateId: string) => void;
+  selectedTemplateId: string;
+  templates: EditorTemplate[];
+};
+
+/**
+ * 경기 포메이션 템플릿을 바꾸고 쿼터별 슬롯을 재배정하는 확인 모달입니다.
+ */
+export const FormationChangeDialog = ({
+  currentFormationLabel,
+  isLoadingTemplates,
+  isPending,
+  isOpen,
+  loadError,
+  mode,
+  onClose,
+  onModeChange,
+  onSubmit,
+  onRetry,
+  onTemplateChange,
+  selectedTemplateId,
+  templates,
+}: Props) => {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 px-4 py-4 sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="formation-regeneration-title"
+    >
+      <div className="border-border bg-card w-full max-w-lg rounded-lg border p-5 shadow-xl">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2
+              id="formation-regeneration-title"
+              className="text-foreground text-lg font-bold"
+            >
+              포메이션 변경
+            </h2>
+            <p className="text-muted mt-1 text-sm">
+              새 포메이션 타입을 선택하고 쿼터별 배치를 재생성합니다.
+            </p>
+          </div>
+          <Button
+            onClick={onClose}
+            disabled={isPending}
+            size="sm"
+            variant="ghost"
+          >
+            닫기
+          </Button>
+        </div>
+
+        <div className="mt-4 grid gap-4">
+          <div>
+            <p className="text-muted text-xs font-bold uppercase">
+              현재 포메이션
+            </p>
+            <p className="text-foreground mt-1 text-sm font-semibold">
+              {currentFormationLabel}
+            </p>
+          </div>
+
+          <div>
+            <SelectField
+              label="새 포메이션"
+              value={selectedTemplateId}
+              onChange={(event) => onTemplateChange(event.target.value)}
+              disabled={
+                isPending || isLoadingTemplates || templates.length === 0
+              }
+            >
+              {templates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.label}
+                </option>
+              ))}
+            </SelectField>
+            {isLoadingTemplates ? (
+              <p className="text-muted mt-2 text-sm">
+                포메이션 목록을 불러오는 중입니다.
+              </p>
+            ) : loadError ? (
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <p className="text-muted text-sm">{loadError}</p>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={onRetry}
+                  disabled={isPending || isLoadingTemplates}
+                >
+                  다시 시도
+                </Button>
+              </div>
+            ) : templates.length === 0 ? (
+              <p className="text-muted mt-2 text-sm">
+                사용할 수 있는 포메이션 템플릿이 없습니다.
+              </p>
+            ) : null}
+          </div>
+
+          <fieldset>
+            <legend className="text-foreground text-sm font-semibold">
+              재배정 방식
+            </legend>
+            <div className="mt-2 space-y-2">
+              {REGENERATION_MODES.map((item) => (
+                <label
+                  key={item.value}
+                  className={`flex cursor-pointer gap-3 rounded-lg border px-3 py-3 text-sm ${
+                    mode === item.value
+                      ? "border-primary bg-mint-surface"
+                      : "border-border bg-background"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="regenerationMode"
+                    className="mt-1"
+                    checked={mode === item.value}
+                    onChange={() => onModeChange(item.value)}
+                    disabled={isPending}
+                  />
+                  <span>
+                    <span className="text-foreground block font-bold">
+                      {item.label}
+                    </span>
+                    <span className="text-muted mt-1 block">
+                      {item.description}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button onClick={onClose} disabled={isPending} variant="secondary">
+            취소
+          </Button>
+          <Button
+            onClick={onSubmit}
+            disabled={isPending || templates.length === 0}
+          >
+            {isPending ? "재배정 중..." : "포메이션 변경 및 재배정"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const REGENERATION_MODES: Array<{
+  description: string;
+  label: string;
+  value: FormationRegenerationMode;
+}> = [
+  {
+    description:
+      "모든 쿼터를 새 포메이션 기준으로 다시 생성합니다. 기존 수동 수정은 초기화됩니다.",
+    label: "전체 재배정",
+    value: "full",
+  },
+  {
+    description:
+      "각 쿼터에 뛰던 선수는 최대한 유지하고, 포지션만 새 포메이션에 맞춰 다시 배치합니다.",
+    label: "출전 선수 유지",
+    value: "preserve_players",
+  },
+];

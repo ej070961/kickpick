@@ -10,12 +10,12 @@ type CalculateTargetQuotasInput = {
   reducedPlayerIds?: string[];
 };
 
-export function calculateTargetQuotas({
+export const calculateTargetQuotas = ({
   players,
   quarterCount,
   slotsPerQuarter,
   reducedPlayerIds = [],
-}: CalculateTargetQuotasInput) {
+}: CalculateTargetQuotasInput) => {
   const totalSlots = quarterCount * slotsPerQuarter;
   const baseQuota = Math.floor(totalSlots / players.length);
   const remainder = totalSlots % players.length;
@@ -34,4 +34,4 @@ export function calculateTargetQuotas({
       baseQuota + (index < remainder ? 1 : 0),
     ]),
   );
-}
+};

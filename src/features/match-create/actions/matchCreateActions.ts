@@ -6,18 +6,10 @@ import {
   PLAYER_POSITION_CODES,
   type PlayerPositionCode,
 } from "@/entities/position";
-import {
-  getGuestPlayerKey,
-  getIdFromPlayerKey,
-  getRosterPlayerKey,
-  isGuestPlayerKey,
-} from "@/entities/match";
 import { requireCurrentTeamId } from "@/entities/team";
-import { getFormationTemplate } from "@/features/formation-template-manage/lib/formationTemplateQueries";
-import {
-  generateQuarterFormations,
-  type FormationPlayer,
-} from "@/features/match-create/lib/generateQuarterFormations";
+import { getFormationTemplate } from "@/entities/formation/api/formationTemplateQueries";
+import { generateQuarterFormations } from "@/features/formation-generate/lib/generateQuarterFormations";
+import type { FormationPlayer } from "@/features/formation-generate/model/types";
 import {
   getQuotaPlayers,
   getQuotaSlotsPerQuarter,
@@ -32,14 +24,12 @@ export type MatchCreateState = {
     matchDate?: string[];
     name?: string[];
     playerIds?: string[];
-    playerKeys?: string[];
     quarterCount?: string[];
     reducedPlayerIds?: string[];
   };
   message?: string;
 };
 
-const playerKeySchema = z.string().regex(/^(player|guest):[0-9a-f-]{36}$/);
 const playerPositionSchema = z.enum(PLAYER_POSITION_CODES);
 
 const matchCreateSchema = z.object({
@@ -56,13 +46,13 @@ const matchCreateSchema = z.object({
   ),
   matchDate: z.string().optional(),
   name: z.string().optional(),
-  playerKeys: z.array(playerKeySchema).min(1, "참가 명단을 선택해주세요."),
+  playerIds: z.array(z.string().uuid()).min(1, "참가 명단을 선택해주세요."),
   quarterCount: z.coerce
     .number()
     .int()
     .min(1, "쿼터 수는 1 이상이어야 합니다.")
     .max(8, "쿼터 수는 8 이하이어야 합니다."),
-  reducedPlayerIds: z.array(playerKeySchema).default([]),
+  reducedPlayerIds: z.array(z.string().uuid()).default([]),
 });
 
 type PlayerRow = {
@@ -105,12 +95,13 @@ function getTodayDate() {
  */
 function mapPlayer(row: PlayerRow): FormationPlayer {
   return {
-    id: getRosterPlayerKey(row.id),
+    id: row.id,
     mainPosition: row.main_position,
     name: row.name,
     playerNumber: row.player_number,
     priorityRank: row.priority_rank,
     subPositions: row.sub_positions,
+    type: "general",
   };
 }
 
@@ -164,7 +155,7 @@ export async function createMatch(
     guestPlayers: parseGuestPlayers(formData.get("guestPlayers")),
     matchDate: String(formData.get("matchDate") ?? ""),
     name: String(formData.get("name") ?? "").trim(),
-    playerKeys: formData.getAll("playerKeys").map(String),
+    playerIds: formData.getAll("playerIds").map(String),
     quarterCount: formData.get("quarterCount"),
     reducedPlayerIds: formData.getAll("reducedPlayerIds").map(String),
   });
@@ -179,7 +170,7 @@ export async function createMatch(
     guestPlayers,
     matchDate,
     name,
-    playerKeys,
+    playerIds,
     quarterCount,
     reducedPlayerIds,
   } = validatedFields.data;
@@ -194,7 +185,7 @@ export async function createMatch(
     return { errors: { formation: ["포메이션 슬롯은 11개여야 합니다."] } };
   }
 
-  if (playerKeys.length < preset.slots.length) {
+  if (playerIds.length < preset.slots.length) {
     return {
       errors: {
         playerIds: [
@@ -206,22 +197,10 @@ export async function createMatch(
 
   const supabase = await createClient();
   const teamId = await requireCurrentTeamId();
-  const registeredPlayerIds = playerKeys
-    .filter((playerKey) => !isGuestPlayerKey(playerKey))
-    .map(getIdFromPlayerKey);
-  const guestPlayerKeys = new Set(
-    guestPlayers.map((guest) => getGuestPlayerKey(guest.clientId)),
+  const guestClientIds = new Set(guestPlayers.map((guest) => guest.clientId));
+  const registeredPlayerIds = playerIds.filter(
+    (playerId) => !guestClientIds.has(playerId),
   );
-  const hasMissingGuest = playerKeys.some(
-    (playerKey) =>
-      isGuestPlayerKey(playerKey) && !guestPlayerKeys.has(playerKey),
-  );
-
-  if (hasMissingGuest) {
-    return {
-      errors: { guestPlayers: ["사용할 수 없는 게스트가 포함되어 있습니다."] },
-    };
-  }
 
   let rosterPlayers: FormationPlayer[] = [];
 
@@ -252,7 +231,7 @@ export async function createMatch(
     Math.max(0, ...rosterPlayers.map((player) => player.priorityRank)) + 1;
   const guestFormationPlayers: FormationPlayer[] = guestPlayers.map(
     (guest, index) => ({
-      id: getGuestPlayerKey(guest.clientId),
+      id: guest.clientId,
       mainPosition: guest.mainPosition,
       name: guest.name,
       playerNumber: guest.playerNumber,
@@ -260,13 +239,14 @@ export async function createMatch(
       subPositions: guest.subPositions.filter(
         (position) => position !== guest.mainPosition,
       ),
+      type: "guest",
     }),
   );
   const players = [...rosterPlayers, ...guestFormationPlayers].filter(
-    (player) => playerKeys.includes(player.id),
+    (player) => playerIds.includes(player.id),
   );
 
-  if (players.length !== playerKeys.length) {
+  if (players.length !== playerIds.length) {
     return { message: "참가 명단을 확인하지 못했습니다." };
   }
 
@@ -342,7 +322,7 @@ export async function createMatch(
   }
 
   const matchId = match.id as string;
-  const insertedGuestIdByClientKey = new Map<string, string>();
+  const insertedGuestIdByClientId = new Map<string, string>();
 
   if (guestPlayers.length > 0) {
     const { data: insertedGuests, error: guestsError } = await supabase
@@ -380,8 +360,8 @@ export async function createMatch(
     }
 
     insertedGuests.forEach((guest, index) => {
-      const clientKey = getGuestPlayerKey(guestPlayers[index]?.clientId ?? "");
-      insertedGuestIdByClientKey.set(clientKey, guest.id as string);
+      const clientId = guestPlayers[index]?.clientId ?? "";
+      insertedGuestIdByClientId.set(clientId, guest.id as string);
     });
   }
 
@@ -389,14 +369,13 @@ export async function createMatch(
     .from("match_players")
     .insert(
       players.map((player) => ({
-        guest_player_id: isGuestPlayerKey(player.id)
-          ? (insertedGuestIdByClientKey.get(player.id) ?? null)
-          : null,
+        guest_player_id:
+          player.type === "guest"
+            ? (insertedGuestIdByClientId.get(player.id) ?? null)
+            : null,
         is_reduced_quota: reducedPlayerIds.includes(player.id),
         match_id: matchId,
-        player_id: isGuestPlayerKey(player.id)
-          ? null
-          : getIdFromPlayerKey(player.id),
+        player_id: player.type === "guest" ? null : player.id,
         target_quota: generated.targetQuotas.get(player.id) ?? 0,
       })),
     );
@@ -470,17 +449,19 @@ export async function createMatch(
     ) as string;
 
     return formationItem.slots.map((slot) => {
-      const isGuest = slot.playerId ? isGuestPlayerKey(slot.playerId) : false;
+      const playerType = slot.playerId
+        ? players.find((player) => player.id === slot.playerId)?.type
+        : undefined;
       const guestPlayerId = slot.playerId
-        ? insertedGuestIdByClientKey.get(slot.playerId)
+        ? insertedGuestIdByClientId.get(slot.playerId)
         : null;
+      const isGuest = playerType === "guest";
 
       return {
         fit_score: slot.fitScore,
         guest_player_id: isGuest ? (guestPlayerId ?? null) : null,
         is_manual: slot.isManual,
-        player_id:
-          slot.playerId && !isGuest ? getIdFromPlayerKey(slot.playerId) : null,
+        player_id: slot.playerId && !isGuest ? slot.playerId : null,
         quarter_formation_id: quarterFormationId,
         slot_name: slot.name,
         x: slot.x,

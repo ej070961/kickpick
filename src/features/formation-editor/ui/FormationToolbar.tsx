@@ -3,22 +3,20 @@ import { MatchSettingsMenu } from "./MatchSettingsMenu";
 
 type Props = {
   formationLabel: string;
-  hasTemplates: boolean;
   isPending: boolean;
   onOpenRegeneration: () => void;
-  onOpenRosterManagement: () => void;
+  onOpenParticipants: () => void;
 };
 
 /**
  * 현재 경기 포메이션과 포메이션 변경 진입점을 표시합니다.
  */
-export function FormationToolbar({
+export const FormationToolbar = ({
   formationLabel,
-  hasTemplates,
   isPending,
   onOpenRegeneration,
-  onOpenRosterManagement,
-}: Props) {
+  onOpenParticipants,
+}: Props) => {
   return (
     <Panel className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -28,11 +26,10 @@ export function FormationToolbar({
         </div>
       </div>
       <MatchSettingsMenu
-        hasTemplates={hasTemplates}
         isDisabled={isPending}
         onOpenRegeneration={onOpenRegeneration}
-        onOpenRosterManagement={onOpenRosterManagement}
+        onOpenParticipants={onOpenParticipants}
       />
     </Panel>
   );
-}
+};

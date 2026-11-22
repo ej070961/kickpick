@@ -12,7 +12,7 @@ type Props = {
 };
 
 /**
- * 클라이언트 draft를 기존 Server Action이 받는 hidden input payload로 변환한다.
+ * 클라이언트 draft를 Server Action이 받는 hidden input payload로 변환한다.
  *
  * UI에서는 직관적인 `playtimeAdjustmentPlayerIds`를 쓰고, 서버 제출 직전에만
  * `reducedPlayerIds`로 변환한다.
@@ -36,15 +36,13 @@ export function MatchCreateHiddenFields({
         value={draft.info.quarterCount}
       />
       <input type="hidden" name="formation" value={draft.info.formationKey} />
-      {draft.info.gkFixed && (
-        <input type="hidden" name="gkFixed" value="on" />
-      )}
+      {draft.info.gkFixed && <input type="hidden" name="gkFixed" value="on" />}
 
       {summary.participants.map((player) => (
         <input
           key={player.id}
           type="hidden"
-          name="playerKeys"
+          name="playerIds"
           value={player.id}
         />
       ))}

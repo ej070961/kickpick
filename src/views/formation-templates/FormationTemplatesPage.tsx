@@ -1,5 +1,5 @@
 import { createFormationTemplate } from "@/features/formation-template-manage/actions/formationTemplateActions";
-import { getFormationTemplates } from "@/features/formation-template-manage/lib/formationTemplateQueries";
+import { getFormationTemplates } from "@/entities/formation/api/formationTemplateQueries";
 import { AddDialog } from "@/features/formation-template-manage/ui/AddDialog";
 import { TemplateList } from "@/features/formation-template-manage/ui/TemplateList";
 import { TemplateForm } from "@/features/formation-template-manage/ui/TemplateForm";

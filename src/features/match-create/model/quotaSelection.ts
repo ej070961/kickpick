@@ -1,4 +1,9 @@
 import type { PlayerPositionCode } from "@/entities/position";
+export {
+  getQuotaPlayers,
+  getQuotaSlotsPerQuarter,
+  pickFixedGoalkeeper,
+} from "@/features/formation-generate/lib/quotaPlayers";
 
 export type QuotaSelectionType = "increased" | "reduced";
 
@@ -7,48 +12,6 @@ type QuotaCandidate = {
   mainPosition: PlayerPositionCode;
   priorityRank: number;
 };
-
-/**
- * 골키퍼 전 쿼터 고정 시 모든 쿼터에 배정할 골키퍼를 우선순위 기준으로 선택합니다.
- */
-export function pickFixedGoalkeeper<T extends QuotaCandidate>(players: T[]) {
-  return players
-    .filter((player) => player.mainPosition === "GK")
-    .sort((a, b) => a.priorityRank - b.priorityRank)[0];
-}
-
-/**
- * 쿼터 보정 계산에 참여할 선수 목록을 반환하고, 골키퍼 전 쿼터 고정 시 고정 GK를 제외합니다.
- */
-export function getQuotaPlayers<T extends QuotaCandidate>({
-  gkFixed,
-  players,
-}: {
-  gkFixed: boolean;
-  players: T[];
-}) {
-  const fixedGoalkeeper = gkFixed ? pickFixedGoalkeeper(players) : undefined;
-
-  return {
-    fixedGoalkeeper,
-    quotaPlayers: fixedGoalkeeper
-      ? players.filter((player) => player.id !== fixedGoalkeeper.id)
-      : players,
-  };
-}
-
-/**
- * 쿼터 보정 계산에 사용할 쿼터당 슬롯 수를 반환하고, 골키퍼 전 쿼터 고정 시 GK 슬롯을 제외합니다.
- */
-export function getQuotaSlotsPerQuarter({
-  gkFixed,
-  slotsPerQuarter,
-}: {
-  gkFixed: boolean;
-  slotsPerQuarter: number;
-}) {
-  return Math.max(slotsPerQuarter - (gkFixed ? 1 : 0), 0);
-}
 
 /**
  * 선택해야 하는 보정 대상이 많은 쿼터 대상인지 적은 쿼터 대상인지 결정합니다.

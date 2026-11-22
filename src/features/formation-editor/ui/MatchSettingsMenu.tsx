@@ -6,21 +6,19 @@ import { LayoutGrid, SlidersHorizontal, UsersRound } from "lucide-react";
 import { Button } from "@/shared/ui";
 
 type Props = {
-  hasTemplates: boolean;
   isDisabled: boolean;
   onOpenRegeneration: () => void;
-  onOpenRosterManagement: () => void;
+  onOpenParticipants: () => void;
 };
 
 /**
  * 경기 명단과 포메이션 관리 액션을 경기 설정 메뉴로 제공합니다.
  */
-export function MatchSettingsMenu({
-  hasTemplates,
+export const MatchSettingsMenu = ({
   isDisabled,
   onOpenRegeneration,
-  onOpenRosterManagement,
-}: Props) {
+  onOpenParticipants,
+}: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -122,10 +120,10 @@ export function MatchSettingsMenu({
             disabled={isDisabled}
             icon={<UsersRound size={17} aria-hidden="true" />}
             label="참가 선수 관리"
-            onClick={() => runAction(onOpenRosterManagement)}
+            onClick={() => runAction(onOpenParticipants)}
           />
           <MenuItem
-            disabled={isDisabled || !hasTemplates}
+            disabled={isDisabled}
             icon={<LayoutGrid size={17} aria-hidden="true" />}
             label="포메이션 변경"
             onClick={() => runAction(onOpenRegeneration)}
@@ -134,7 +132,7 @@ export function MatchSettingsMenu({
       )}
     </div>
   );
-}
+};
 
 const getEnabledItems = (menu: HTMLDivElement | null) =>
   Array.from(
@@ -150,7 +148,12 @@ type MenuItemProps = {
   onClick: () => void;
 };
 
-function MenuItem({ disabled = false, icon, label, onClick }: MenuItemProps) {
+const MenuItem = ({
+  disabled = false,
+  icon,
+  label,
+  onClick,
+}: MenuItemProps) => {
   return (
     <button
       className="text-foreground hover:bg-surface focus-visible:ring-primary inline-flex min-h-11 items-center gap-3 rounded-lg px-3 text-left text-sm font-semibold outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -164,4 +167,4 @@ function MenuItem({ disabled = false, icon, label, onClick }: MenuItemProps) {
       {label}
     </button>
   );
-}
+};

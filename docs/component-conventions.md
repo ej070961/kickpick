@@ -131,7 +131,7 @@ calculateFitScore.ts
 - 컴포넌트 외부에서만 쓰는 상수, 유틸 함수, 보조 컴포넌트는 주요 컴포넌트 하단에 둔다.
 - 여러 컴포넌트나 파일에서 재사용되는 상수와 순수 함수는 컴포넌트 하단에 두지 말고 `model`, `lib`, `config` 등 책임에 맞는 폴더로 분리한다.
 - props/type 선언은 컴포넌트의 입력 계약이므로 import 아래에 둘 수 있다.
-- 최상위 컴포넌트는 `export function`을 기본으로 둔다. 파일에서 공개 컴포넌트를 바로 찾을 수 있고 기존 선언 방식과 일관된다. 컴포넌트 내부의 이벤트 핸들러와 콜백은 `const`와 화살표 함수로 선언해 렌더 안에서 사용하는 지역 동작임을 드러낸다. 선언 방식은 렌더 성능 최적화 수단이 아니다.
+- 컴포넌트와 일반 함수는 이름 있는 `const` 화살표 함수로 선언한다. 비동기 함수는 `const loadData = async (...) => {}` 형태를 사용한다. Server Action도 비동기 화살표 함수로 내보낸다. TSX에서 제네릭 화살표 함수를 선언할 때는 `<T,>`처럼 trailing comma를 사용해 JSX와 구분한다. 이 선언 방식은 렌더 성능 최적화 수단이 아니다.
 - JSX에서 한쪽만 렌더링할 때는 불리언 조건이나 문자열·객체의 존재 여부와 `&&`를 사용한다. 숫자는 `count > 0`처럼 불리언 조건으로 바꿔 `0`이 출력되지 않게 한다. 두 결과를 모두 표시해야 하는 분기에는 삼항 연산자를 사용할 수 있다.
 - 파일 하나에는 주요 React 컴포넌트 하나를 두는 것을 기본으로 한다. 같은 파일의 보조 컴포넌트가 독립적인 UI 책임, props 계약, 상태 분기를 갖기 시작하면 같은 `ui/` 폴더의 별도 파일로 분리한다.
 - provider, 상태, variant별 스타일 분기는 중첩 삼항보다 객체 map 또는 config 배열로 관리한다. JSX 안에서는 이미 계산된 값을 꺼내 쓰는 형태를 우선한다.
@@ -236,9 +236,11 @@ Next.js App Router에서 FSD의 화면 조립 계층은 `src/views`로 둔다.
 규칙:
 
 - Supabase에서 온 데이터는 server state로 보고, local state에 불필요하게 복제하지 않는다.
+- 초기 화면에 필요하지 않고 특정 작업에서만 쓰는 데이터는 화면 진입 시 함께 내려주지 않는다. 해당 작업을 시작할 때 필요한 범위만 서버에서 조회하고, Client Component에는 화면이 실제로 소비하는 props만 전달한다.
 - 포메이션 편집 중인 임시 배치는 feature 내부 state로 관리하고 저장 시 DB에 반영한다.
 - Next.js App Router의 feature store는 모듈 전역 singleton으로 만들지 않는다. 화면 경계의 Provider에서 인스턴스를 생성해 요청과 경기 화면 사이에 상태가 공유되지 않게 한다.
 - Store에는 여러 영역이 공유하는 편집 초안과 도메인 액션을 둔다. 다이얼로그, 검색, 폼 입력 같은 단일 UI 상태와 비동기 작업 pending은 해당 컴포넌트 또는 작업 hook에 둔다.
+- Zustand store가 상태·액션 타입, 생성, 화면 Provider, selector hook을 함께 가질 만큼 커지면 feature `model/store/` 아래 역할별 파일로 나눈다. 상태 변경 로직은 생성 함수와 강하게 결합된 경우 `createEditorStore.ts`에 유지한다.
 - 자동 배치 알고리즘은 입력과 출력이 명확한 순수 함수로 유지한다.
 
 ## 8. Form 컨벤션
@@ -334,7 +336,7 @@ shared/ui/IconButton
 
 ## 13. 포메이션 편집기 구현 패턴
 
-포메이션 편집기는 `features/formation-editor/README.md`의 구조를 기준으로 관리한다. `FormationEditorClient`는 여러 화면 영역이 함께 쓰는 작업 상태와 이벤트를 조립하고, 단일 하위 영역에만 속하는 작업 상태는 그 영역 가까이에 둔다. 화면 섹션은 `ui/` 하위 컴포넌트로 분리하며, 하위 컴포넌트에는 필요한 의존성만 전달한다.
+포메이션 편집기는 `features/formation-editor/README.md`의 구조를 기준으로 관리한다. `FormationEditor`는 경기별 store Provider 경계를 만들고, `FormationEditorContent`가 작업 hook과 화면 영역을 연결한다. 단일 하위 영역에만 속하는 작업 상태는 그 영역 가까이에 둔다. 화면 섹션은 `ui/` 하위 컴포넌트로 분리하며, 하위 컴포넌트에는 필요한 의존성만 전달한다. 독립적인 UI 상태와 입력 계약을 갖는 복합 영역은 `ui/{영역명}/`에 모아 영역 조립자와 하위 컴포넌트를 함께 둔다.
 
 규칙:
 
@@ -343,7 +345,8 @@ shared/ui/IconButton
 - Store의 쿼터 배정은 쿼터 번호 키 Record로 관리하고, 배열 순회가 필요한 경계에서만 번호순 배열로 변환한다. 선택 상태는 `selectedQuarter`로 두며 쿼터 객체를 별도 저장하지 않는다.
 - 배치 교환은 고정 쿼터 키의 슬롯 ID를 유지하고, 같은 포지션의 선수 배정과 편집기 내부 `lineupId`를 원자적으로 맞바꾼다.
 - 쿼터 선택·교환·복사 패널은 feature store를 직접 구독한다. 부모 화면은 패널이 소유하지 않는 pending 상태만 전달한다.
-- 저장은 `features/formation-editor/actions/formationEditorActions.ts` 서버 액션으로 처리한다.
+- 저장·참가자·게스트·재배정은 `features/formation-editor/actions/`의 사용자 행동별 Server Action으로 처리한다. DB 접근과 row 변환은 feature `api/`에 둔다.
+- 화면 초기 데이터 조립은 `views/formation-editor/`에서 수행하고, 조회된 DB row 타입은 view/UI로 노출하지 않는다.
 - 내보내기는 `features/formation-export/lib/exportElementAsPng.ts`를 통해 DOM 캡처로 처리한다.
 - 요약, 쿼터 배치 패널, 필드, 선택 패널, 후보 목록, 액션 영역은 각각 독립 컴포넌트로 유지한다.
 

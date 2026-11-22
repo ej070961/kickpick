@@ -9,7 +9,6 @@ match-create/
   actions/
     matchCreateActions.ts
   lib/
-    generateQuarterFormations.ts
     playerFormat.ts
   model/
     matchDraft.ts
@@ -49,14 +48,14 @@ match-create/
 ## 파일 역할
 
 - `actions/matchCreateActions.ts`: 경기 생성 Server Action. 입력 검증, 팀/선수 권한 확인, 게스트 snapshot 저장, 자동 포메이션 생성 결과 저장을 담당한다. `matches` 생성 이후 하위 row 저장에 실패하면 생성된 match를 삭제해 부분 생성 데이터를 정리한다.
-- `lib/generateQuarterFormations.ts`: 쿼터별 선수 후보군, slot fit score, quota 차감을 계산해 자동 배치 결과를 만든다. 반복 계산을 줄이기 위해 선수-슬롯 fit score table을 먼저 만들고, 슬롯별 후보 선택은 선형 탐색으로 처리한다.
+- `features/formation-generate/lib/generateQuarterFormations.ts`: 생성·편집 재배정에서 공유하는 쿼터별 자동 배치 알고리즘이다. 선수 후보, slot fit score, quota 차감을 계산한다.
 - `lib/playerFormat.ts`: 경기 생성 UI에서 선수 이름과 포지션 표시 문자열을 만든다.
 - `model/matchDraft.ts`: 저장 전 경기 초안인 `MatchDraft`, 경기 조건인 `MatchInfo`, 단계 key, draft action 타입을 정의한다. 등록 선수 선택은 `selectedRegisteredPlayerIds`, 출전 조정 대상은 `playtimeAdjustmentPlayerIds`로 표현한다.
 - `model/matchDraftReducer.ts`: 사용자의 직접 입력 action을 draft 상태에 반영한다. 외부 데이터에서 계산되는 기본값은 action payload로 받아 reducer를 예측 가능하게 유지한다.
 - `model/matchDraftSelectors.ts`: draft, 선수 목록, 포메이션 목록을 조합해 참가자, 단계 접근 가능 여부, 출전 조정 후보, 서버 제출용 reduced player id를 계산한다.
 - `model/matchDraftStorage.ts`: 새로고침 시 draft를 복구하기 위해 `sessionStorage` 저장/로드와 현재 선수/포메이션 기준 정리를 담당한다.
-- `model/quotaSelection.ts`: 골키퍼 전 쿼터 고정 여부와 슬롯 수에 따라 쿼터 보정 대상 선택 수와 기본 선택값을 계산한다.
-- `model/types.ts`: 등록 선수와 게스트를 같은 참가자 모델로 다루기 위한 타입과 `player:{uuid}` / `guest:{uuid}` key helper를 제공한다.
+- `model/quotaSelection.ts`: 경기 생성 UI의 출전 조정 대상과 기본 선택값을 계산한다. 자동 배치에 공통인 GK 및 quota 슬롯 계산은 `features/formation-generate`에 있다.
+- `model/types.ts`: 등록 선수와 게스트를 `id`와 `type` 필드가 있는 같은 참가자 모델로 다룬다.
 - `model/useMatchDraft.ts`: `useReducer`, selector, `sessionStorage` 저장을 묶어 경기 생성 화면의 상태 흐름을 제공한다.
 - `ui/MatchCreateForm.tsx`: Server Action 연결과 단계별 UI 조립만 담당하는 클라이언트 컨테이너다.
 - `ui/MatchCreateStepNav.tsx`: 클릭 가능한 3단계 버튼 UI를 렌더링한다.
@@ -83,7 +82,7 @@ match-create/
 - 골키퍼 전 쿼터 고정을 사용하려면 참가 명단에 `GK` 주 포지션 선수가 포함되어야 한다.
 - 경기명을 비워두면 서버 액션에서 경기 날짜 기준 `{날짜} 경기` 이름으로 저장하고, 입력 placeholder도 같은 이름을 보여준다.
 - 경기 생성은 여러 Supabase insert 요청으로 구성되어 있다. 생성 시간을 줄이기 위해 `quarter_formations`와 `formation_slots`는 쿼터별 루프가 아니라 배치 insert로 저장한다. `matches` 생성 이후 실패 경로는 `matches` 삭제로 cleanup하며, 하위 테이블 FK는 match 삭제 시 cascade되는 것을 전제로 한다.
-- 참가자 식별자는 feature 내부에서 `player:{uuid}` 또는 `guest:{uuid}` key로 통일하고, DB 저장 시 `player_id` / `guest_player_id`로 분리한다.
+- 참가자는 원본 `id`와 `type: "general" | "guest"`로 구분하고, DB 저장 시 `player_id` / `guest_player_id`로 분리한다.
 - 사용자-facing 문구는 `docs/decisions/0005-match-create-wizard-ux-copy.md` 기준을 따른다. 버튼과 안내문에서는 `자동 배치 초안 생성`, `쿼터 보정 대상`보다 `라인업 만들기`, `더 뛸 선수 / 덜 뛸 선수`를 우선한다.
 - 게스트 입력 항목, 경기 생성 저장 필드, 자동 배치 입력이 바뀌면 `docs/project-design.md`, `docs/database-schema.md`를 함께 확인한다.
 - `MatchCreateForm`이 커질 경우 독립 섹션은 `ui/` 컴포넌트로 분리하고, 공유 계산은 `model/`로 이동한다.

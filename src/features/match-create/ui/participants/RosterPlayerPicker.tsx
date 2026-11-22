@@ -252,7 +252,7 @@ function RosterPlayerList({
   }
 
   return players.map((player) => (
-    <RosterPlayerRow
+    <RegisteredPlayerRow
       key={player.id}
       player={player}
       selected={selectedRegisteredPlayerIdSet.has(player.id)}
@@ -261,7 +261,7 @@ function RosterPlayerList({
   ));
 }
 
-function RosterPlayerRow({
+function RegisteredPlayerRow({
   onToggle,
   player,
   selected,
