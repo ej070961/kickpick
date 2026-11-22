@@ -86,4 +86,6 @@ export type EditorInitialData = {
 
 export type FormationEditorProps = Omit<EditorInitialData, "match"> & {
   match: EditorMatch;
+  /** 랜딩 미리보기처럼 읽기 전용으로 표시할 때 사용합니다. */
+  isReadOnly?: boolean;
 };
