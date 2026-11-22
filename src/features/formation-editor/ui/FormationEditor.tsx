@@ -10,6 +10,7 @@ export const FormationEditor = ({
   match,
   players,
   quarters,
+  isReadOnly = false,
 }: FormationEditorProps) => {
   if (quarters.length === 0) {
     return (
@@ -26,7 +27,7 @@ export const FormationEditor = ({
       initialPlayers={players}
       initialQuarters={quarters}
     >
-      <FormationEditorContent match={match} />
+      <FormationEditorContent match={match} isReadOnly={isReadOnly} />
     </EditorStoreProvider>
   );
 };

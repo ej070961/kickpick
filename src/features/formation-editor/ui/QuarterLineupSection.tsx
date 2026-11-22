@@ -2,16 +2,22 @@
 
 import { useMemo, type RefObject } from "react";
 import Image from "next/image";
+import { cn } from "@/shared/lib/cn";
 import { useEditorStore } from "@/features/formation-editor/model/store";
 import { FormationSlotButton } from "./FormationSlotButton";
 
 type Props = {
+  className?: string;
   exportRef: RefObject<HTMLDivElement | null>;
   isDisabled: boolean;
 };
 
 /** 편집 중인 쿼터·선수·선택 상태를 필드 표시와 슬롯 입력에 연결합니다. */
-export const QuarterLineupSection = ({ exportRef, isDisabled }: Props) => {
+export const QuarterLineupSection = ({
+  className,
+  exportRef,
+  isDisabled,
+}: Props) => {
   const playersById = useEditorStore((state) => state.playersById);
   const quartersByNumber = useEditorStore((state) => state.quartersByNumber);
   const selectedQuarter = useEditorStore((state) => state.selectedQuarter);
@@ -28,7 +34,7 @@ export const QuarterLineupSection = ({ exportRef, isDisabled }: Props) => {
   if (!activeQuarter) return null;
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className={cn("mx-auto max-w-md", className)}>
       <div ref={exportRef} className="relative overflow-hidden rounded-md">
         <Image
           src="/images/football-field.jpg"

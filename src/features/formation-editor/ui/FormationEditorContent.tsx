@@ -17,10 +17,13 @@ import { QuarterLineupSection } from "./QuarterLineupSection";
 import { BenchPlayersPanel } from "./BenchPlayersPanel";
 import { EditorActions } from "./EditorActions";
 
-type Props = Pick<FormationEditorProps, "match">;
+type Props = Pick<FormationEditorProps, "isReadOnly" | "match">;
 
 /** 편집 작업 hook의 결과를 필요한 화면 영역과 다이얼로그에 연결합니다. */
-export const FormationEditorContent = ({ match }: Props) => {
+export const FormationEditorContent = ({
+  isReadOnly = false,
+  match,
+}: Props) => {
   const [isParticipantsDialogOpen, setIsParticipantsDialogOpen] =
     useState(false);
   const participants = useMatchParticipants({
@@ -41,7 +44,7 @@ export const FormationEditorContent = ({ match }: Props) => {
     exportImage.isExportPending;
 
   return (
-    <div className="space-y-4">
+    <div aria-disabled={isReadOnly} className="space-y-4" inert={isReadOnly}>
       <FormationToolbar
         formationLabel={regeneration.currentFormationLabel}
         isPending={

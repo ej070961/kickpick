@@ -11,7 +11,6 @@ player-manage/
   model/
     usePlayerFormState.ts
   ui/
-    CreatePlayerModal.tsx
     DeletePlayerButton.tsx
     EditPlayerModal.tsx
     PlayerBasicFields.tsx
@@ -29,9 +28,8 @@ player-manage/
 - `ui/PlayerForm.tsx`: 선수 생성/수정 공통 폼입니다. 폼 state와 Server Action 연결을 담당합니다.
 - `ui/PlayerBasicFields.tsx`: 선수 이름과 등번호 입력 필드를 렌더링합니다.
 - `ui/PlayerPositionFields.tsx`: 주 포지션 select와 부 포지션 다중 선택 리스트를 렌더링합니다.
-- `ui/PlayerFormDialog.tsx`: 선수 생성/수정 폼을 공통 dialog 안에서 렌더링하고, 닫힐 때 폼 상태를 unmount로 초기화합니다.
-- `ui/CreatePlayerModal.tsx`: 선수 추가 dialog 트리거입니다.
-- `ui/EditPlayerModal.tsx`: 선수 편집 dialog 트리거입니다.
+- `ui/PlayerFormDialog.tsx`: 열림 상태와 닫기 동작을 props로 받아 선수 폼만 공통 dialog 안에 렌더링합니다. 닫히면 폼 상태를 unmount로 초기화합니다.
+- `ui/EditPlayerModal.tsx`: 선수 편집 버튼의 열림 상태를 관리하고 버튼과 `PlayerFormDialog`를 형제 요소로 렌더링합니다.
 - `ui/DeletePlayerButton.tsx`: 공통 확인 dialog를 사용해 soft delete submit을 처리합니다.
 - `ui/PlayersSkeleton.tsx`: `/players` route loading UI입니다.
 - `ui/SubmitButton.tsx`: feature 내부 Server Action pending 버튼입니다.

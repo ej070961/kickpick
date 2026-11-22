@@ -17,7 +17,7 @@ priority-reorder/
 ## 파일 역할
 
 - `actions/priorityActions.ts`: current team의 active 선수 목록을 검증하고 순서를 저장하는 Server Action입니다.
-- `ui/PriorityBoard.tsx`: 드래그 센서, 정렬 state, 저장 action 연결을 담당합니다.
+- `ui/PriorityBoard.tsx`: 선수 ID 순서만 로컬 state로 관리하고 선수 정보는 최신 props에서 가져옵니다. 저장 전 드래그 순서는 유지하며 삭제된 선수는 제외하고 새 선수는 목록 끝에 추가합니다. 저장 action 연결도 담당합니다.
 - `ui/PriorityBoardSummary.tsx`: 등록 선수 수, 저장 상태, 저장 버튼을 렌더링합니다.
 - `ui/SortablePlayerRow.tsx`: 드래그 가능한 선수 카드와 카드 내부 액션을 렌더링합니다.
 

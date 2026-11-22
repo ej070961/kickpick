@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, type ComponentProps, type ReactNode } from "react";
+import type { ComponentProps } from "react";
 import type { Player } from "@/entities/player";
 import { Dialog } from "@/shared/ui";
 import { PlayerForm } from "./PlayerForm";
 
 type Props = {
   action: ComponentProps<typeof PlayerForm>["action"];
+  isOpen: boolean;
+  onClose: () => void;
   player?: Player;
   title: string;
-  trigger: (openDialog: () => void) => ReactNode;
 };
 
 /**
@@ -18,29 +19,24 @@ type Props = {
  * dialog를 닫으면 폼을 unmount해 입력값과 Server Action 상태를 자연스럽게
  * 초기화합니다.
  */
-export function PlayerFormDialog({ action, player, title, trigger }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  function openDialog() {
-    setIsOpen(true);
-  }
-
-  function closeDialog() {
-    setIsOpen(false);
-  }
+export function PlayerFormDialog({
+  action,
+  isOpen,
+  onClose,
+  player,
+  title,
+}: Props) {
+  if (!isOpen) return null;
 
   return (
-    <>
-      {trigger(openDialog)}
-      <Dialog
-        bodyClassName="max-h-[calc(90dvh-64px)] px-6 py-5"
-        isOpen={isOpen}
-        onClose={closeDialog}
-        panelClassName="max-w-lg rounded-2xl border-0"
-        title={title}
-      >
-        <PlayerForm action={action} player={player} onSuccess={closeDialog} />
-      </Dialog>
-    </>
+    <Dialog
+      bodyClassName="max-h-[calc(90dvh-64px)] px-6 py-5"
+      isOpen={isOpen}
+      onClose={onClose}
+      panelClassName="max-w-lg rounded-2xl border-0"
+      title={title}
+    >
+      <PlayerForm action={action} player={player} onSuccess={onClose} />
+    </Dialog>
   );
 }

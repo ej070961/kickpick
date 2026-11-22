@@ -18,12 +18,14 @@ export async function MatchesPage() {
           title="경기 목록"
           description="저장된 경기와 생성된 포메이션 히스토리를 확인합니다."
         />
-        <Link
-          href="/matches/new"
-          className="bg-primary text-primary-foreground inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold shadow-sm transition hover:brightness-95"
-        >
-          <PlusCircle size={18} aria-hidden="true" />새 경기 생성
-        </Link>
+        {matches.length > 0 && (
+          <Link
+            href="/matches/new"
+            className="bg-primary text-primary-foreground inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold shadow-sm transition hover:brightness-95"
+          >
+            <PlusCircle size={18} aria-hidden="true" />새 경기 생성
+          </Link>
+        )}
       </div>
 
       {matches.length > 0 ? (

@@ -7,8 +7,7 @@ export function LoginPage() {
         <p className="text-primary text-sm font-semibold">KickPick</p>
         <h1 className="text-foreground mt-3 text-3xl font-bold">로그인</h1>
         <p className="text-muted mt-3 text-sm leading-6">
-          SNS 계정으로 빠르게 시작하거나, 가입 없이 바로 경기 배치를
-          체험해보세요.
+          Kakao 또는 Google 계정으로 로그인해 경기 라인업을 관리해 보세요.
         </p>
         <div className="mt-6">
           <LoginForm />

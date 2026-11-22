@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseConfig } from "./config";
 
-const PUBLIC_PATH_PREFIXES = ["/login", "/auth"];
+const PUBLIC_PATH_PREFIXES = ["/login", "/auth", "/preview"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -28,9 +28,12 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
 
-  const isPublicPath = PUBLIC_PATH_PREFIXES.some((prefix) =>
-    request.nextUrl.pathname.startsWith(prefix),
-  );
+  const pathname = request.nextUrl.pathname;
+  const isPublicPath =
+    pathname === "/" ||
+    PUBLIC_PATH_PREFIXES.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    );
 
   if (!claims && !isPublicPath) {
     const url = request.nextUrl.clone();
@@ -40,7 +43,13 @@ export async function updateSession(request: NextRequest) {
 
   if (claims && request.nextUrl.pathname === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/home";
+    return NextResponse.redirect(url);
+  }
+
+  if (claims && request.nextUrl.pathname === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/home";
     return NextResponse.redirect(url);
   }
 

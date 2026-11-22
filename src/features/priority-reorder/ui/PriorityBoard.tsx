@@ -34,7 +34,9 @@ type PriorityBoardProps = {
  * 반영합니다.
  */
 export function PriorityBoard({ players }: PriorityBoardProps) {
-  const [orderedPlayers, setOrderedPlayers] = useState(players);
+  const [orderedPlayerIds, setOrderedPlayerIds] = useState(() =>
+    players.map((player) => player.id),
+  );
   const [isPending, startTransition] = useTransition();
   const [isDirty, setIsDirty] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -49,13 +51,25 @@ export function PriorityBoard({ players }: PriorityBoardProps) {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
-  const playerIds = useMemo(
-    () => orderedPlayers.map((player) => player.id),
-    [orderedPlayers],
-  );
+  const playerIds = useMemo(() => {
+    const latestPlayerIds = players.map((player) => player.id);
+
+    return isDirty
+      ? mergeLatestPlayerIdsPreservingOrder(orderedPlayerIds, latestPlayerIds)
+      : latestPlayerIds;
+  }, [isDirty, orderedPlayerIds, players]);
+  const orderedPlayers = useMemo(() => {
+    const playersById = new Map(players.map((player) => [player.id, player]));
+
+    return playerIds.flatMap((playerId) => {
+      const player = playersById.get(playerId);
+
+      return player ? [player] : [];
+    });
+  }, [playerIds, players]);
 
   function movePlayer(fromIndex: number, toIndex: number) {
-    setOrderedPlayers((current) => arrayMove(current, fromIndex, toIndex));
+    setOrderedPlayerIds(arrayMove(playerIds, fromIndex, toIndex));
     setIsDirty(true);
     setStatusMessage(null);
   }
@@ -65,12 +79,8 @@ export function PriorityBoard({ players }: PriorityBoardProps) {
 
     if (!over || active.id === over.id) return;
 
-    const oldIndex = orderedPlayers.findIndex(
-      (player) => player.id === active.id,
-    );
-    const newIndex = orderedPlayers.findIndex(
-      (player) => player.id === over.id,
-    );
+    const oldIndex = playerIds.indexOf(String(active.id));
+    const newIndex = playerIds.indexOf(String(over.id));
 
     if (oldIndex >= 0 && newIndex >= 0) {
       movePlayer(oldIndex, newIndex);
@@ -83,14 +93,6 @@ export function PriorityBoard({ players }: PriorityBoardProps) {
       setStatusMessage(result.message ?? null);
       if (result.success) setIsDirty(false);
     });
-  }
-
-  if (orderedPlayers.length === 0) {
-    return (
-      <div className="border-border bg-card text-muted rounded-lg border border-dashed p-6 text-sm">
-        아직 등록된 선수가 없습니다. 첫 선수를 추가해주세요.
-      </div>
-    );
   }
 
   return (
@@ -120,4 +122,24 @@ export function PriorityBoard({ players }: PriorityBoardProps) {
       </DndContext>
     </div>
   );
+}
+
+/**
+ * 저장 전 드래그 순서를 유지하면서 최신 목록의 ID와 대조합니다.
+ * 삭제된 선수 ID는 제외하고 새 선수 ID는 서버 목록 순서대로 마지막에 추가합니다.
+ */
+function mergeLatestPlayerIdsPreservingOrder(
+  currentPlayerIds: string[],
+  latestPlayerIds: string[],
+) {
+  const latestPlayerIdSet = new Set(latestPlayerIds);
+  const existingPlayerIds = currentPlayerIds.filter((playerId) =>
+    latestPlayerIdSet.has(playerId),
+  );
+  const existingPlayerIdSet = new Set(existingPlayerIds);
+  const addedPlayerIds = latestPlayerIds.filter(
+    (playerId) => !existingPlayerIdSet.has(playerId),
+  );
+
+  return [...existingPlayerIds, ...addedPlayerIds];
 }

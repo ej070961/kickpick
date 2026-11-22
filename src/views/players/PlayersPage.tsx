@@ -1,9 +1,7 @@
 import type { Player } from "@/entities/player";
-import { CreatePlayerModal } from "@/features/player-manage/ui/CreatePlayerModal";
-import { PriorityBoard } from "@/features/priority-reorder/ui/PriorityBoard";
 import { requireCurrentTeamId } from "@/entities/team";
 import { createClient } from "@/shared/api/supabase/server";
-import { PageHeader, PageLayout } from "@/shared/ui";
+import { PlayersPageContent } from "./PlayersPageContent";
 
 type PlayerRow = {
   id: string;
@@ -25,27 +23,8 @@ type PlayerRow = {
  */
 export async function PlayersPage() {
   const players = await getPlayers();
-  const playerListVersion = players
-    .map(
-      (player) =>
-        `${player.id}:${player.name}:${player.playerNumber ?? ""}:${player.mainPosition}:${player.subPositions.join(",")}:${player.priorityRank}`,
-    )
-    .join("|");
 
-  return (
-    <PageLayout>
-      <PageHeader
-        title="선수 관리"
-        description="경기 배치에 사용할 선수 정보와 순서를 정리하세요."
-      />
-
-      <div className="flex justify-end">
-        <CreatePlayerModal />
-      </div>
-
-      <PriorityBoard key={playerListVersion} players={players} />
-    </PageLayout>
-  );
+  return <PlayersPageContent players={players} />;
 }
 
 async function getPlayers() {

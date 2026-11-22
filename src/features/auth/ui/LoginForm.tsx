@@ -1,5 +1,4 @@
 import { OAuthLoginButton } from "./OAuthLoginButton";
-import { TrialLoginButton } from "./TrialLoginButton";
 
 type OAuthLoginOption = {
   id: "kakao" | "google";
@@ -10,7 +9,7 @@ type OAuthLoginOption = {
 
 /**
  * 로그인 화면의 인증 선택지를 조립합니다.
- * 이메일 로그인은 제공하지 않고, OAuth와 체험 모드만 제품 진입점으로 노출합니다.
+ * 이메일 로그인과 익명 체험은 제공하지 않고, OAuth 로그인만 노출합니다.
  */
 export function LoginForm() {
   return (
@@ -19,7 +18,6 @@ export function LoginForm() {
         {OAUTH_LOGIN_OPTIONS.map((provider) => (
           <OAuthLoginButton key={provider.id} provider={provider} />
         ))}
-        <TrialLoginButton />
       </div>
     </div>
   );

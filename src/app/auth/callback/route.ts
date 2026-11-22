@@ -6,10 +6,10 @@ import { createClient } from "@/shared/api/supabase/server";
 export async function GET(request: Request) {
   const { origin, searchParams } = new URL(request.url);
   const code = searchParams.get("code");
-  let next = searchParams.get("next") ?? "/";
+  let next = searchParams.get("next") ?? "/home";
 
   if (!next.startsWith("/")) {
-    next = "/";
+    next = "/home";
   }
 
   if (code) {
