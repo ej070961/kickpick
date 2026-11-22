@@ -3,22 +3,21 @@
 import { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useMemo } from "react";
-import { calculateAssignmentItems } from "@/features/formation-editor/lib/formationEditorSummary";
-import { toQuarterList } from "@/features/formation-editor/lib/formationEditorQuarters";
-import { useFormationEditorStore } from "@/features/formation-editor/model/formationEditorStore";
+import { calculateAssignmentItems } from "@/features/formation-editor/lib/assignmentSummary";
+import { toQuarterList } from "@/features/formation-editor/lib/quarterDraft";
+import { useEditorStore } from "@/features/formation-editor/model/store";
 import { Badge, Button, Panel } from "@/shared/ui";
 import { PlayerDisplayName } from "./PlayerDisplayName";
 
 /**
  * 전체 쿼터 기준 선수별 출전 쿼터 목록을 요약해서 보여줍니다.
  */
-export function AssignmentSummary() {
+export const AssignmentSummary = () => {
   const [isExpanded, setIsExpanded] = useState(true);
   const summaryId = useId();
-  const players = useFormationEditorStore((state) => state.players);
-  const quartersByNumber = useFormationEditorStore(
-    (state) => state.quartersByNumber,
-  );
+  const playersById = useEditorStore((state) => state.playersById);
+  const players = useMemo(() => Object.values(playersById), [playersById]);
+  const quartersByNumber = useEditorStore((state) => state.quartersByNumber);
   const quarters = useMemo(
     () => toQuarterList(quartersByNumber),
     [quartersByNumber],
@@ -86,4 +85,4 @@ export function AssignmentSummary() {
       </div>
     </Panel>
   );
-}
+};

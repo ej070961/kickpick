@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { GalleryVerticalEnd } from "lucide-react";
 import type { Player } from "@/entities/player";
-import { getFormationTemplates } from "@/features/formation-template-manage/lib/formationTemplateQueries";
+import { getFormationTemplates } from "@/entities/formation/api/formationTemplateQueries";
 import { MatchCreateForm } from "@/features/match-create/ui/MatchCreateForm";
 import { createClient } from "@/shared/api/supabase/server";
 import { PageHeader, PageLayout } from "@/shared/ui";

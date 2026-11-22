@@ -8,8 +8,6 @@
 formation-template-manage/
   actions/
     formationTemplateActions.ts
-  lib/
-    formationTemplateQueries.ts
   ui/
     DeleteFormationTemplateButton.tsx
     TemplateList.tsx
@@ -24,7 +22,7 @@ formation-template-manage/
 ## 파일 역할
 
 - `actions/formationTemplateActions.ts`: 템플릿 생성, 수정, soft delete Server Action을 제공한다.
-- `lib/formationTemplateQueries.ts`: current team의 active 템플릿을 조회하고 UI 모델로 변환한다.
+- 템플릿 조회와 DB row 변환은 `entities/formation/api/formationTemplateQueries.ts`에 둔다. 경기 생성, 편집기, 템플릿 관리 화면이 함께 사용하는 formation 도메인 데이터이기 때문이다.
 - `ui/TemplateForm.tsx`: 생성과 수정에서 공유하는 이름/슬롯 입력 폼이다.
 - `ui/AddDialog.tsx`: 모바일에서 새 템플릿 등록 폼을 모달로 연다.
 - `ui/EditDialog.tsx`: 기존 템플릿을 수정하는 모달이다.

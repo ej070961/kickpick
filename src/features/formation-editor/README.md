@@ -1,96 +1,105 @@
 # formation-editor
 
-쿼터별 포메이션 슬롯을 화면에서 검토, 교체, 저장하는 feature입니다. 서버에서 생성된 초안을 클라이언트 상태로 편집하고, 변경사항을 `formation_slots`에 저장합니다.
-경기 포메이션 템플릿을 변경할 때는 전체 재배정 또는 쿼터별 출전 선수 유지 재배정을 실행합니다.
+경기별 쿼터 배치를 확인하고 수정·저장하는 feature입니다. 서버에서 화면 초기 데이터를 읽고, 브라우저의 경기별 store에서 편집 초안을 관리합니다. 포메이션 변경 시 전체 재배정 또는 쿼터별 출전 선수 유지 재배정을 실행합니다.
 
-## 폴더 구조
+## 구조와 책임
 
 ```txt
 formation-editor/
   actions/
-    formationEditorActions.ts
+    loadFormationTemplateOptions.ts
+    loadMatchPlayerCandidates.ts
+    manageGuests.ts
+    manageParticipants.ts
+    regenerateFormation.ts
+    saveFormation.ts
   api/
-    formationEditorMutations.ts
-    formationEditorQueries.ts
-    formationEditorRows.ts
+    dbRows.ts
+    mappers.ts
+    mutations.ts
+    participantMutations.ts
+    queries.ts
   lib/
-    formationEditorFormat.ts
-    formationEditorMappers.ts
-    formationEditorSummary.ts
-    formationEditorSlots.ts
-    regenerateFormationSlots.ts
+    assignmentSummary.ts
+    editorFormatting.ts
+    quarterDraft.ts
+    regenerateSlots.ts
+    slotAssignments.ts
   model/
+    store/
+      EditorStoreProvider.tsx
+      createEditorStore.ts
+      index.ts
+      types.ts
+      useEditorStore.ts
+    schemas.ts
     types.ts
-    useEditorRoster.ts
-    useEditorSave.ts
-    formationEditorStore.tsx
-    useFormationExport.ts
-    useFormationRegeneration.ts
+    useFormationChange.ts
+    useFormationImages.ts
+    useMatchParticipants.ts
+    useSaveFormation.ts
   ui/
     AssignmentSummary.tsx
     BenchPlayersPanel.tsx
-    FormationEditorActions.tsx
-    FormationEditorClient.tsx
-    FormationExportFields.tsx
-    FormationEditorMainArea.tsx
-    FormationEditorSidePanel.tsx
-    FormationField.tsx
-    FormationRegenerationDialog.tsx
+    EditorActions.tsx
+    EditableFormationField.tsx
+    EditorMain.tsx
+    EditorSidebar.tsx
+    ExportFields.tsx
+    FormationChangeDialog.tsx
+    FormationEditor.tsx
     FormationToolbar.tsx
+    FormationEditorContent.tsx
+    FormationSlotButton.tsx
+    match-participants/
+      AvailablePlayerPicker.tsx
+      GuestPlayerForm.tsx
+      MatchParticipantsDialog.tsx
+      ParticipantsList.tsx
     MatchSettingsMenu.tsx
     PlayerDisplayName.tsx
-    QuarterAssignmentsPanel.tsx
-    QuarterCard.tsx
-    RosterManagementDialog.tsx
+    quarter-formations/
+      QuarterFormationCard.tsx
+      QuarterFormationDragArea.tsx
+      QuarterFormationList.tsx
+      QuarterFormationsPanel.tsx
+      QuarterSelector.tsx
 ```
 
-## 파일 역할
+- `actions/`: 저장, 참가자 관리, 게스트 관리, 재배정 등 사용자 행동별 Next.js Server Action. 입력 검증과 결과 메시지, 흐름 조정을 맡는다. 템플릿 옵션과 참가 후보 조회도 각 다이얼로그를 열 때 실행한다.
+- `api/queries.ts`: 편집기 feature가 사용하는 개별 경기·참가자·쿼터 데이터 조회. 화면 초기 데이터 전체 조립은 `views/formation-editor`에서 한다.
+- `api/mutations.ts`, `api/participantMutations.ts`: 슬롯 저장/교체와 참가자 변경에 필요한 DB 쓰기.
+- `api/dbRows.ts`: Supabase 응답 row 타입. API 계층 안에서만 사용한다.
+- `api/mappers.ts`: DB row ↔ 편집기 모델 및 DB 저장 row 변환.
+- `model/types.ts`, `model/schemas.ts`: 편집기 데이터 모델과 Server Action 입력 검증 schema.
+- `model/store/types.ts`: 편집 store의 ID 기준 선수 사전, 쿼터 초안, 선택 상태, 액션, 초기 데이터 타입.
+- `model/store/createEditorStore.ts`: 경기별 편집 초안과 배치 상호작용 로직을 포함한 Zustand store 생성.
+- `model/store/EditorStoreProvider.tsx`: 경기마다 독립 store를 만들고 하위 편집기 영역에 제공.
+- `model/store/useEditorStore.ts`: selector 기반 store 구독 hook.
+- `model/store/index.ts`: store의 feature 내부 사용 API.
+- `model/use*.ts`: 저장, 이미지 내보내기, 포메이션 변경, 참가자 변경의 클라이언트 pending과 action 호출.
+- `lib/`: 편집기 전용 순수 계산. 슬롯 교체·복사, 쿼터 draft 변환, 재배정 모드 적용, 요약과 포맷을 관리한다.
+- `ui/`: 편집 화면과 각 시각 영역. `FormationEditor`는 경기별 Provider 경계를 만들고, `FormationEditorContent`가 작업 hook과 화면 영역을 연결한다. `EditableFormationField`와 `BenchPlayersPanel`은 각자 소비하는 편집 store 상태를 직접 구독한다.
+- `ui/FormationSlotButton.tsx`: 경기장 위 슬롯의 위치, 유니폼, 등번호, 선수 이름과 선택 상태를 표시한다. 편집 영역과 이미지 내보내기 영역이 함께 사용한다.
+- `ui/match-participants/`: 참가자 명단, 등록 선수 검색·추가, 게스트 입력·수정의 화면 책임을 분리한다.
+- `ui/quarter-formations/`: 쿼터 선택 버튼, 정렬 가능한 쿼터 목록, 복사·붙여넣기 카드를 구성한다. `QuarterFormationList`는 복사 초안, store 변경, 작업 피드백을 관리하고, `QuarterFormationDragArea`는 DnD context와 드래그 후 배치 교환을 관리한다. `QuarterFormationsPanel`은 선택기와 목록을 배치한다.
+- `views/formation-editor/getEditorInitialData.ts`: 초기 편집에 필요한 경기, 참가자, 쿼터 데이터를 조합한다. 템플릿과 추가 가능 선수는 해당 다이얼로그를 열 때 조회한다. 경기명과 쿼터 수는 서버 페이지 헤더에서만 사용한다.
+- `entities/formation/api/formationTemplateQueries.ts`: 팀 포메이션 템플릿의 공통 조회와 모델 변환.
+- `features/formation-generate`: 경기 생성과 편집 재배정이 공유하는 쿼터 자동 배치 알고리즘.
 
-- `actions/formationEditorActions.ts`: 편집된 슬롯 저장 RPC를 호출하고, 포메이션 변경 시 슬롯을 재생성하며, 경기 명단 추가/제거와 게스트 추가/수정을 처리하는 서버 액션.
-- `api/formationEditorQueries.ts`: 편집기 초기 렌더링, 포메이션 재배정, 명단 수정 후 화면 갱신에 필요한 경기, 참가자, 쿼터 정보를 조회하고 `match` 의미 데이터와 editor 타입으로 정규화한다.
-- `api/formationEditorMutations.ts`: 포메이션 슬롯의 원자적 저장과 경기 포메이션명 갱신을 담당한다.
-- `api/formationEditorRows.ts`: 편집기 feature의 data source adapter 내부에서 사용하는 Supabase row 타입을 정의한다. UI와 model hook은 이 타입을 import하지 않는다.
-- `model/types.ts`: 편집기 입력·표시 타입과 entity 모델에서 파생한 편집기 타입.
-- `model/formationEditorStore.tsx`: 경기별 클라이언트 편집 store와 Provider. 쿼터 번호 키 배치, 선택, 참가자 스냅샷을 관리한다.
-- `model/useEditorRoster.ts`: 경기 참가 명단 추가, 제거, 게스트 저장에 따른 선수 목록과 쿼터 상태 갱신을 관리한다.
-- `model/useEditorSave.ts`: 편집된 슬롯 배정을 저장하는 서버 액션 흐름을 관리한다.
-- `model/useFormationExport.ts`: 현재 쿼터 이미지 복사, 복사 미지원 시 PNG 저장, 전체 쿼터 ZIP 다운로드를 관리한다.
-- `model/useFormationRegeneration.ts`: 포메이션 변경 모달 상태와 재배정 서버 액션 호출을 관리한다.
-- `lib/formationEditorFormat.ts`: 파일명 sanitize와 선수 표시명 생성 같은 순수 포맷 함수.
-- `lib/formationEditorMappers.ts`: 편집기 player key, DB row, insert row, 클라이언트 쿼터 상태 간 변환을 담당한다.
-- `lib/formationEditorSummary.ts`: 후보 선수 정렬과 전체 쿼터 배정 요약 계산 함수.
-- `lib/formationEditorSlots.ts`: 슬롯 fit score 계산, 슬롯·쿼터 간 선수 교환, 후보 선수 교체 순수 로직.
-- `lib/regenerateFormationSlots.ts`: 포메이션 변경 시 전체 재배정 또는 쿼터별 기존 출전 선수 유지 재배정을 선택해 실행하는 순수 로직.
-- `ui/FormationEditorClient.tsx`: 경기별 store Provider와 여러 화면 영역에서 함께 쓰는 작업 hook을 조립한다.
-- `ui/FormationExportFields.tsx`: store의 현재 선수·쿼터로 전체 쿼터 내보내기용 캡처 영역을 렌더링한다.
-- `ui/FormationEditorMainArea.tsx`: store의 선택 쿼터와 선수 상태를 구독해 쿼터 배치 패널과 필드를 구성한다.
-- `ui/QuarterAssignmentsPanel.tsx`: 쿼터 번호 선택, 배치 교환, 복사·반복 붙여넣기 상태와 이벤트를 관리한다.
-- `ui/QuarterCard.tsx`: 드래그 핸들과 복사 또는 붙여넣기 아이콘만 표시하는 sortable 카드다.
-- `ui/FormationEditorSidePanel.tsx`: store에서 쿼터와 후보 데이터를 구독하고 후보, 액션 영역을 조립한다.
-- `ui/AssignmentSummary.tsx`: store의 선수·쿼터를 구독해 출전 요약을 계산하고 접힘 상태를 로컬로 관리한다.
-- `ui/FormationField.tsx`: 축구장 이미지 위에 쿼터 라벨과 슬롯 유니폼을 렌더링하는 편집 필드. PNG export 캡처 대상도 포함한다.
-- `ui/FormationRegenerationDialog.tsx`: 경기 포메이션 템플릿과 재배정 방식을 선택하고 영향 범위를 안내하는 모달.
-- `ui/FormationToolbar.tsx`: 현재 경기 포메이션과 경기 설정 메뉴를 표시한다.
-- `ui/MatchSettingsMenu.tsx`: 참가 선수 관리와 포메이션 변경 메뉴 및 액션 진입점을 제공한다.
-- `ui/PlayerDisplayName.tsx`: 선수 이름과 게스트 표기 문구를 일관되게 렌더링한다.
-- `ui/BenchPlayersPanel.tsx`: 현재 쿼터에 출전하지 않는 후보 선수 목록과 교체 액션. 후보 선수를 먼저 선택한 뒤 유니폼을 눌러도 교체할 수 있다.
-- `ui/RosterManagementDialog.tsx`: 모달에서 경기 참가 명단, 등록 선수 추가, 게스트 추가/수정, 참가자 제거 액션을 제공한다.
-- `ui/FormationEditorActions.tsx`: 저장, 이미지 복사, 전체 쿼터 다운로드 액션을 제공한다. 저장과 이미지 복사 결과는 토스트로, 명단·재배정 등 나머지 결과는 액션 영역 메시지로 보여준다.
+## 데이터·상태 기준
 
-## 작업 기준
+- 초기 화면 데이터는 서버에서 조회하고 직렬화 가능한 편집기 모델만 Client Component로 전달한다.
+- 포메이션 템플릿 옵션과 경기 참가 후보는 초기 편집에 필요하지 않으므로 각각 포메이션 변경·참가자 관리 작업을 열 때 Server Action으로 조회한다. 후보 선수 조회는 서버에서 현재 팀과 경기 참가자를 기준으로 필터링한다.
+- 편집 중인 선수는 `playersById` Record로, 슬롯은 선수 ID만 참조하고 쿼터별 배치는 경기별 Zustand store에서 관리한다. 저장 전까지 DB에 반영하지 않는다.
+- 슬롯 편집 저장은 `save_formation_slots` RPC로 전체 배정을 원자적으로 반영한다.
+- 참가자는 원본 `id`와 `type: "general" | "guest"`로 표현한다. 슬롯은 `playerId`만 저장하고 선수 유형은 `playersById`에서 찾으며, DB 저장 시 API mapper가 `type`에 따라 선수 ID와 게스트 ID 컬럼으로 나눈다.
+- DB row 타입은 `ui`, `model`, 순수 재배정 로직에 전달하지 않는다. API query가 도메인 입력 모델로 변환해 반환한다.
+- 이미지 복사와 ZIP 다운로드는 미저장 편집 상태를 캡처하며 경기 데이터를 저장하지 않는다.
 
-- 슬롯 배정 변경 규칙은 `lib/formationEditorSlots.ts`에 둔다. UI 컴포넌트에서 직접 fit score 계산을 반복하지 않는다.
-- 쿼터 배치 맞바꾸기와 복사는 슬롯 id와 쿼터 소속을 유지하고 같은 포지션 슬롯 기준으로 선수 배정을 갱신한다. 변경은 로컬 편집 상태에 적용되며 기존 저장 버튼을 누를 때 DB에 반영한다.
-- 편집기 저장은 `save_formation_slots` RPC를 통해 전체 슬롯을 한 트랜잭션으로 반영한다.
-- 새 UI 섹션이 생기면 `ui/`에 역할 단위 컴포넌트로 추가하고, 이 README의 파일 역할 목록도 갱신한다.
-- 반복되는 버튼, 패널, 배지, 입력 스타일은 `shared/ui`를 우선 사용한다.
-- 서버 저장 필드가 바뀌면 `actions/formationEditorActions.ts`, `model/types.ts`, `docs/database-schema.md`를 함께 확인한다.
-- 선수 식별자는 편집기 내부에서 `player:{uuid}` 또는 `guest:{uuid}` key로 다루고, 저장 시 DB 컬럼으로 분리한다.
-- 명단에서 참가자를 제거하면 서버와 클라이언트 모두 해당 선수의 배정 슬롯을 미배정으로 갱신한다.
-- 명단 변경 후 클라이언트는 현재 편집 초안에 참가자 제거 또는 게스트 적합도 변경만 반영한다. 게스트 적합도는 저장된 배치가 아니라 편집 초안의 배정 포지션을 기준으로 계산한다.
-- 전체 재배정은 `features/match-create/lib/generateQuarterFormations.ts`를 재사용해 경기 생성과 같은 배치 규칙을 따른다.
-- 출전 선수 유지 재배정은 기존 쿼터별 배정 선수 집합을 보존하는 로직이므로 `lib/regenerateFormationSlots.ts`에서 관리한다.
-- 내보내기 캡처 영역을 바꾸면 `FormationField.tsx`의 `exportRef` 범위와 `features/formation-export` 동작을 함께 확인한다.
-- 이미지 복사와 전체 쿼터 다운로드는 저장 여부와 관계없이 현재 편집 상태를 내보낸다. 전체 이미지는 쿼터 순서대로 ZIP에 담는다.
-- Store는 경기별 Provider 인스턴스로 생성한다. 편집 초안에 영향을 주는 액션만 store에 두고, 다이얼로그·폼 상태와 서버 작업 pending은 해당 UI 또는 작업 hook에 둔다.
-- 작업 hook은 소비 컴포넌트 하나에만 속하고 상태도 그 안에서 닫히면 해당 컴포넌트 가까이에 둔다. 여러 영역에서 pending이나 액션을 공유하거나 다른 영역의 ref가 필요하면 화면 조립 컴포넌트가 연결을 맡고, 하위 컴포넌트에는 실제 사용하는 값과 콜백만 전달한다.
+## 변경 시 확인할 문서
+
+- `docs/project-design.md`: 편집기 UX와 배치 동작
+- `docs/component-conventions.md`: FSD 소유처, 상태와 UI 책임
+- `docs/database-schema.md`: 슬롯 컬럼, RPC, 소유권/RLS
+- `features/match-create/README.md`, `features/formation-generate`: 공유 자동 배치 동작

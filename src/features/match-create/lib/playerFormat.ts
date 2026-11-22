@@ -1,7 +1,6 @@
 import type { PlayerPositionCode } from "@/entities/position";
 
 type DisplayPlayer = {
-  isGuest?: boolean;
   mainPosition: PlayerPositionCode;
   name: string;
   playerNumber: number | null;

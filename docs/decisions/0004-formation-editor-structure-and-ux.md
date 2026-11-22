@@ -8,6 +8,10 @@ Accepted
 
 2026-08-19
 
+## 구현 구조 업데이트 (2026-11-22)
+
+아래의 기존 구조안은 UX 결정의 기록으로 보존한다. 구현 책임과 파일 위치는 이후 리팩터링으로 갱신되었으므로 현재 기준으로 읽지 않는다. 최신 구조는 `src/features/formation-editor/README.md`를 따른다. 현재는 화면 초기 데이터 조립을 `src/views/formation-editor/`에 두고, 사용자 행동별 Server Action, DB query/mutation adapter, 순수 편집 로직을 각각 분리한다. 공통 자동 배치는 `src/features/formation-generate/`, 템플릿 조회는 `src/entities/formation/api/`가 소유한다.
+
 ## 배경
 
 포메이션 편집기는 KickPick의 핵심 작업 화면이다. 현재 사용자는 경기 상세 화면에서 쿼터별 포메이션을 확인하고, 선수 교체, 후보 선수 투입, 명단 수정, 포메이션 변경, 저장, 현재 쿼터 PNG 내보내기를 수행한다.
@@ -245,10 +249,10 @@ export type SlotRow = {
 
 ```ts
 export type EditorPlayer = {
-  /** 편집기 내부 선수 key. player:{uuid} 또는 guest:{uuid} 형식이다. */
+  /** 등록 선수 또는 게스트 row의 원본 ID */
   id: string;
-  /** 경기 전용 게스트이면 true */
-  isGuest?: boolean;
+  /** 참가자 유형. 등록 선수는 general, 경기 게스트는 guest */
+  type: "general" | "guest";
   /** 자동 배치와 fit score 계산에 가장 먼저 사용하는 포지션 */
   mainPosition: PlayerPositionCode;
   /** 화면에 표시할 선수 이름 */
@@ -292,7 +296,7 @@ toEditorSlot(row);
 toEditorQuarter(row);
 toEditorQuarters(rows);
 toSaveSlot(slot);
-splitPlayerKey(playerKey);
+splitParticipantIdentity(participant);
 ```
 
 현재처럼 `mapMatchPlayerRowToEditorPlayer`는 정확하지만 반복 사용 시 읽는 비용이 크다. public API로 넓게 노출되는 함수가 아니라 feature 내부 mapper라면 짧은 이름이 낫다.

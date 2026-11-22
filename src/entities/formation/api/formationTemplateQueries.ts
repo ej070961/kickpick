@@ -1,0 +1,99 @@
+import type { FormationTemplate } from "@/entities/formation";
+import type { FormationSlotCode } from "@/entities/position";
+import { requireCurrentTeamId } from "@/entities/team";
+import { createClient } from "@/shared/api/supabase/server";
+
+type TemplateSlotRow = {
+  slot_name: FormationSlotCode;
+  sort_order: number;
+  x: number;
+  y: number;
+};
+
+type TemplateRow = {
+  formation_template_slots: TemplateSlotRow[];
+  id: string;
+  name: string;
+};
+
+type TemplateOptionRow = Pick<TemplateRow, "id" | "name">;
+
+export type FormationTemplateOption = {
+  id: string;
+  label: string;
+};
+
+/**
+ * DB row로 저장된 포메이션 템플릿을 경기 생성 UI가 사용하는 모델로 변환합니다.
+ */
+const mapTemplate = (row: TemplateRow): FormationTemplate => {
+  return {
+    id: row.id,
+    key: row.id,
+    label: row.name,
+    slots: [...row.formation_template_slots]
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((slot) => ({
+        name: slot.slot_name,
+        x: Number(slot.x),
+        y: Number(slot.y),
+      })),
+  };
+};
+
+export const getFormationTemplates = async (teamId?: string) => {
+  const currentTeamId = teamId ?? (await requireCurrentTeamId());
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("formation_templates")
+    .select("id, name, formation_template_slots(slot_name, sort_order, x, y)")
+    .eq("team_id", currentTeamId)
+    .eq("is_deleted", false)
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(error.message);
+
+  return ((data ?? []) as unknown as TemplateRow[]).map(mapTemplate);
+};
+
+/** 포메이션 선택 UI가 표시할 팀 템플릿의 id와 이름만 조회합니다. */
+export const getFormationTemplateOptions = async (
+  teamId?: string,
+): Promise<FormationTemplateOption[]> => {
+  const currentTeamId = teamId ?? (await requireCurrentTeamId());
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("formation_templates")
+    .select("id, name")
+    .eq("team_id", currentTeamId)
+    .eq("is_deleted", false)
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(error.message);
+
+  return ((data ?? []) as unknown as TemplateOptionRow[]).map(
+    ({ id, name }) => ({
+      id,
+      label: name,
+    }),
+  );
+};
+
+export const getFormationTemplate = async (templateId: string) => {
+  const teamId = await requireCurrentTeamId();
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("formation_templates")
+    .select("id, name, formation_template_slots(slot_name, sort_order, x, y)")
+    .eq("team_id", teamId)
+    .eq("is_deleted", false)
+    .eq("id", templateId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+
+  return mapTemplate(data as unknown as TemplateRow);
+};

@@ -52,7 +52,6 @@ export function MatchCreateForm({ formationTemplates, players }: Props) {
       : undefined;
   const participantErrors = [
     state.errors?.playerIds?.[0],
-    state.errors?.playerKeys?.[0],
     state.errors?.guestPlayers?.[0],
   ].filter((error): error is string => Boolean(error));
   const nextGuestPriorityRank =
@@ -160,7 +159,8 @@ function MatchCreateStepContent({
         setupMessage={participantSetupMessage}
         summary={summary}
         actions={{
-          addGuestPlayer: (guest) => dispatch({ guest, type: "addGuestPlayer" }),
+          addGuestPlayer: (guest) =>
+            dispatch({ guest, type: "addGuestPlayer" }),
           editGuestPlayer: (guest) =>
             dispatch({ guest, type: "editGuestPlayer" }),
           removeGuestPlayer: (guestId) =>

@@ -11,11 +11,11 @@ type FitScoreInput = {
   subPositions: PlayerPositionCode[];
 };
 
-export function calculateFitScore({
+export const calculateFitScore = ({
   slotPosition,
   mainPosition,
   subPositions,
-}: FitScoreInput) {
+}: FitScoreInput) => {
   const slotPlayerPosition = getPlayerPositionForSlot(slotPosition);
 
   if (slotPlayerPosition === mainPosition) return 10;
@@ -25,4 +25,4 @@ export function calculateFitScore({
   }
 
   return 0;
-}
+};
