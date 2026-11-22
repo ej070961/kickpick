@@ -7,6 +7,7 @@ import type {
 import { QuarterLineupSection } from "@/features/formation-editor/ui/QuarterLineupSection";
 import { STARTER_FORMATION_TEMPLATES } from "@/entities/formation/config/starterTemplates";
 import { DEFAULT_SLOT_COORDS } from "@/entities/formation/config/slotCoords";
+import { getPlayerPositionForSlot } from "@/entities/position";
 import { generateQuarterFormations } from "@/features/formation-generate/lib/generateQuarterFormations";
 
 type LandingFieldPreviewProps = {
@@ -70,14 +71,7 @@ const players: EditorPlayer[] = playerNames.map((name, index) => {
     type: "general",
     name,
     playerNumber: index + 1,
-    mainPosition:
-      position === "LCB" || position === "RCB"
-        ? "CB"
-        : position === "CDM"
-          ? "CM"
-          : position === "LW" || position === "RW"
-            ? "CF"
-            : position,
+    mainPosition: getPlayerPositionForSlot(position),
     subPositions: [],
     priorityRank: index + 1,
   };
